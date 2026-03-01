@@ -47,6 +47,27 @@ Preview optimized output:
 pnpm run preview:site
 ```
 
+## How This Is Built Logs
+
+Generate publishable build logs (plan + Cursor transcripts):
+
+```bash
+pnpm run logs:sync:site
+```
+
+This command:
+
+- Reads parent Cursor transcripts from `.cursor` project transcripts
+- Reads the plan source used for this build
+- Redacts obvious local paths and token-like values
+- Writes time-ordered markdown logs to `apps/jdconley-site/public/how-this-is-built/logs/`
+- Writes `index.json` manifest for the logs page
+
+Published URLs after build/deploy:
+
+- `/how-this-is-built`
+- `/how-this-is-built/logs/<timestamped-file>.md`
+
 ## dotenvx Local Secrets
 
 Create a local env file:
@@ -93,6 +114,7 @@ pnpm run test:e2e:wrangler:site
 Deploy optimized `dist` from local CLI:
 
 ```bash
+pnpm run logs:sync:site
 pnpm run deploy:site
 ```
 

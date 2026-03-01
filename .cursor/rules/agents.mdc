@@ -1,0 +1,16 @@
+---
+description: Route agent behavior through repository skills and AGENTS.md workflow.
+alwaysApply: true
+---
+
+# Use Repository Skills First
+
+Before implementing tasks, read `AGENTS.md` at the repo root and choose the matching project skill from `.cursor/skills/`.
+
+Apply the documented workflow order by default:
+1. `pnpm run logs:sync:site` (when logs/process artifacts are in scope)
+2. `pnpm run build:site`
+3. `pnpm run test:e2e:site`
+4. Deploy only when explicitly requested
+
+Never commit secrets (`.env`, tokens), and ensure log redaction checks when publishing transcripts.

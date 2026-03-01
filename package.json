@@ -7,6 +7,7 @@
     "apps/*"
   ],
   "scripts": {
+    "logs:sync:site": "pnpm --filter @jdconley/jdconley-site run logs:sync",
     "dev:site": "pnpm --filter @jdconley/jdconley-site run dev",
     "build:site": "pnpm --filter @jdconley/jdconley-site run build",
     "preview:site": "pnpm --filter @jdconley/jdconley-site run preview",

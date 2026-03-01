@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>How This Is Built - JD Conley</title>
+  <meta content="Build logs, plans, and transcript-driven development notes for jdconley-site." name="description">
+  <meta content="How This Is Built - JD Conley" property="og:title">
+  <meta content="Build logs, plans, and transcript-driven development notes for jdconley-site." property="og:description">
+  <meta content="%VITE_SITE_URL%/images/caverock.jpg" property="og:image">
+  <meta content="How This Is Built - JD Conley" property="twitter:title">
+  <meta content="Build logs, plans, and transcript-driven development notes for jdconley-site." property="twitter:description">
+  <meta content="%VITE_SITE_URL%/images/caverock.jpg" property="twitter:image">
+  <meta property="og:type" content="website">
+  <meta content="summary_large_image" name="twitter:card">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <link href="css/normalize.css" rel="stylesheet" type="text/css">
+  <link href="css/webflow.css" rel="stylesheet" type="text/css">
+  <link href="css/jdconley-com.webflow.css" rel="stylesheet" type="text/css">
+  <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon">
+  <link href="images/webclip.png" rel="apple-touch-icon">
+  <link href="%VITE_SITE_URL%/how-this-is-built" rel="canonical">
+</head>
+<body>
+  <main class="sections">
+    <section class="section bio">
+      <h5 class="section-heading">How this is built</h5>
+      <div class="rich-text-block w-richtext">
+        <p>This page publishes the real build artifacts for this site: plans, implementation transcripts, and execution logs.</p>
+        <p>The markdown files are generated in chronological order with iOS-style timestamps and automatic redaction for obvious sensitive values.</p>
+        <p><a href="index.html#how-built">Back to homepage section</a></p>
+      </div>
+    </section>
+
+    <section class="section follow">
+      <h5 class="section-heading">Published build logs</h5>
+      <div class="rich-text-block w-richtext">
+        <p id="logs-meta">Loading log index...</p>
+        <ul id="logs-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script type="text/javascript">
+    (async function loadLogs() {
+      const listElement = document.getElementById("logs-list");
+      const metaElement = document.getElementById("logs-meta");
+
+      try {
+        const response = await fetch("/how-this-is-built/logs/index.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Unable to load build logs index.");
+        }
+
+        const manifest = await response.json();
+        const items = Array.isArray(manifest.items) ? manifest.items : [];
+
+        if (items.length === 0) {
+          metaElement.textContent = "No logs found yet. Run logs sync to generate them.";
+          return;
+        }
+
+        metaElement.textContent =
+          "Generated " + (manifest.generatedAtIOS || "recently") + " · " + items.length + " documents";
+
+        for (const item of items) {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.href = item.href;
+          a.textContent = item.title;
+          li.appendChild(a);
+
+          const details = document.createElement("span");
+          details.textContent = " — " + item.sourceType + " · " + item.timestampIOS;
+          li.appendChild(details);
+
+          listElement.appendChild(li);
+        }
+      } catch (error) {
+        metaElement.textContent = "Could not load logs index.";
+      }
+    })();
+  </script>
+</body>
+</html>
