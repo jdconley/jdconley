@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+
+TRANSCRIPTS_ROOT="/Users/jd/.cursor/projects/Users-jd-src-jdconley/agent-transcripts"
+LOGS_OUTPUT_DIR="apps/jdconley-site/public/how-this-is-built/logs"
+
+if [ ! -d "$TRANSCRIPTS_ROOT" ]; then
+  echo "Skipping logs sync: missing local Cursor transcripts at $TRANSCRIPTS_ROOT"
+  exit 0
+fi
+
+pnpm run logs:sync:site
+git add "$LOGS_OUTPUT_DIR"

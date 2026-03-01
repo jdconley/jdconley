@@ -284,7 +284,12 @@ async function writeOutput(artifacts) {
     });
   }
 
-  const generatedAt = new Date();
+  const latestArtifactTimestamp = artifacts.length
+    ? new Date(Math.max(...artifacts.map((artifact) => artifact.timestamp.getTime())))
+    : new Date(0);
+
+  // Keep manifest metadata stable across no-op reruns.
+  const generatedAt = latestArtifactTimestamp;
   const manifest = {
     generatedAt: generatedAt.toISOString(),
     generatedAtIOS: toIosTimestamp(generatedAt),
