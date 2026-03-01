@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-03-01T22:21:57.675Z",
-  "generatedAtIOS": "Mar 1, 2026 at 2:21 PM",
-  "itemCount": 13,
+  "generatedAt": "2026-03-01T23:04:46.014Z",
+  "generatedAtIOS": "Mar 1, 2026 at 3:04 PM",
+  "itemCount": 14,
   "items": [
     {
       "title": "JD OS Cloudflare Ideas",
@@ -103,9 +103,17 @@
       "title": "analyze pending git changes, create separate...",
       "sourceType": "transcript",
       "sourceId": "78442ff9-5362-4cf4-927d-82a4d757d398",
-      "timestampSortable": "2026-03-01-22-21-57",
-      "timestampIOS": "Mar 1, 2026 at 2:21 PM",
-      "href": "/how-this-is-built/logs/2026-03-01-22-21-57_analyze-pending-git-changes-create-separate.md"
+      "timestampSortable": "2026-03-01-22-22-21",
+      "timestampIOS": "Mar 1, 2026 at 2:22 PM",
+      "href": "/how-this-is-built/logs/2026-03-01-22-22-21_analyze-pending-git-changes-create-separate.md"
+    },
+    {
+      "title": "let's publish jdconley-site. jdconley.com is managed...",
+      "sourceType": "transcript",
+      "sourceId": "cd2fb925-2419-45b9-b103-5a35834b8d4f",
+      "timestampSortable": "2026-03-01-23-04-46",
+      "timestampIOS": "Mar 1, 2026 at 3:04 PM",
+      "href": "/how-this-is-built/logs/2026-03-01-23-04-46_let-s-publish-jdconley-site-jdconley-com-is-managed.md"
     }
   ]
 }
