@@ -2,11 +2,10 @@
 
 Product-oriented engineering leader. I build software people want.
 
-- **Website**: `https://www.jdconley.com`
-- **LinkedIn**: `https://www.linkedin.com/in/jdconley`
-- **GitHub**: `https://github.com/jdconley`
-- **X / Twitter**: `https://twitter.com/wackie`
-- **Hacker News**: `https://news.ycombinator.com/user?id=jconley`
+- **[Website](https://www.jdconley.com)**
+- **[LinkedIn](https://www.linkedin.com/in/jdconley)**
+- **[X / Twitter](https://twitter.com/wackie)**
+- **[Hacker News](https://news.ycombinator.com/user?id=jconley)**
 
 Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years**. I’m a **Y Combinator alum**, startup advisor, builder, and (rarely) investor.
 
@@ -20,7 +19,7 @@ Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years
 ## Highlights
 
 - **AfterHour** Head of Engineering. Consumer finance social, AI trading, AI product development workflows.
-- **Brava**: VP / Head of Engineering (software). Complex consumer IoT + custom Linux OS; acquired in 2019 by Middleby (`$MIDD`).
+- **Brava**: VP / Head of Engineering (software). Complex consumer IoT + custom Linux OS; acquired in 2019 by [Middleby](https://www.google.com/finance/quote/MIDD:NASDAQ) (`$MIDD`).
 - **RealCrowd**: Co-founder / CTO. Direct commercial real estate investing marketplace (YC Summer 2013).
 - **Disney / Playdom**: Principal engineer; shipped profitable games and platform tech.
 
@@ -41,7 +40,7 @@ I’m working on AfterHour, doing a little consulting, and investing (including 
 
 My site publishes real build artifacts (plans + redacted transcripts) so you can inspect the process end-to-end:
 
-- `https://www.jdconley.com/how-this-is-built`
+- [https://www.jdconley.com/how-this-is-built](https://www.jdconley.com/how-this-is-built)
 
 Local commits auto-refresh website log artifacts through a Husky `pre-commit` hook (`pnpm run logs:sync:site` + staged log outputs). For a one-off bypass, use `HUSKY=0 git commit ...`.
 

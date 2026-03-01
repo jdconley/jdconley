@@ -2,14 +2,14 @@
 title: "tags. 2. **Tool calls**: Tool calls..."
 sourceType: transcript
 sourceId: "23e1d4d7-e02d-40a0-8264-02bdb4e7e620"
-timestampSortable: "2026-03-01-21-36-49"
-timestampIOS: "Mar 1, 2026 at 1:36 PM"
+timestampSortable: "2026-03-01-21-37-30"
+timestampIOS: "Mar 1, 2026 at 1:37 PM"
 ---
 
 # tags. 2. **Tool calls**: Tool calls...
 
 - Source: Cursor parent transcript `23e1d4d7-e02d-40a0-8264-02bdb4e7e620`
-- Timestamp (iOS): Mar 1, 2026 at 1:36 PM
+- Timestamp (iOS): Mar 1, 2026 at 1:37 PM
 
 ## 1. USER
 
@@ -268,3 +268,54 @@ Core edits are in place. I’m now running the full verification sequence in the
 ## 38. ASSISTANT
 
 **Planning parallel git diffs**
+
+## 39. ASSISTANT
+
+**Assessing husky hook directory tracking**
+
+## 40. ASSISTANT
+
+**Confirming commit and logs details**
+
+## 41. ASSISTANT
+
+Implemented the Husky automation plan end-to-end and completed all todos.
+
+### What I changed
+
+- Added Husky at repo root in `package.json`:
+  - `devDependencies.husky` (`^9.1.7`)
+  - `scripts.prepare` set to `husky`
+- Initialized Husky and added a real hook at `.husky/pre-commit` that:
+  - guards for missing local Cursor transcript path
+  - runs `pnpm run logs:sync:site`
+  - stages `apps/jdconley-site/public/how-this-is-built/logs`
+- Stabilized manifest generation in `apps/jdconley-site/scripts/export-ai-build-logs.mjs`:
+  - `generatedAt` now derives from latest artifact timestamp (deterministic for unchanged inputs)
+  - this avoids time-only churn on no-op reruns
+- Updated `README.md` with hook workflow + bypass note:
+  - explains auto-sync on commit
+  - includes `HUSKY=0 git commit ...` one-off bypass guidance
+
+### Verification run (in required order)
+
+Executed successfully:
+
+1. `pnpm run logs:sync:site`
+2. `pnpm run build:site`
+3. `pnpm run test:e2e:site`
+
+Results:
+- Logs sync generated and refreshed manifest/log files in `apps/jdconley-site/public/how-this-is-built/logs/`
+- Build succeeded
+- Playwright E2E passed (`3 passed`)
+- `ReadLints` reported no diagnostics in edited files
+
+### Notes
+
+- The log manifest now includes newer transcript-derived entries and updated links as expected.
+- There is an existing broad working-tree delta in `README.md` (beyond this Husky note) and an untracked `DEVELOPING.md`; I did not revert unrelated workspace state.
+
+If you want, I can make a clean commit next that includes only the Husky/log-sync automation changes.
+
+**Summarizing final verification and notes**
