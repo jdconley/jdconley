@@ -1,147 +1,48 @@
-# JD Conley Monorepo
+# JD Conley
 
-Static personal site export from Webflow, rebuilt as a monorepo app with Vite optimization, Playwright E2E, and Cloudflare Pages deployment.
+Product-oriented engineering leader. I build software people want.
 
-## Structure
+- **Website**: `https://www.jdconley.com`
+- **LinkedIn**: `https://www.linkedin.com/in/jdconley`
+- **GitHub**: `https://github.com/jdconley`
+- **X / Twitter**: `https://twitter.com/wackie`
+- **Hacker News**: `https://news.ycombinator.com/user?id=jconley`
 
-- `apps/jdconley-site/`: Static site app and deployment/testing config
-- `jdconley-com.webflow.zip`: Original Webflow export source artifact
+Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years**. I’m a **Y Combinator alum**, startup advisor, builder, and (rarely) investor.
 
-## Prerequisites
+## What I do
 
-- Node.js 20+ (22 recommended)
-- pnpm 10+
-- Cloudflare account + Pages project (for deploy)
+- **Engineering leadership**: building and coaching teams that ship
+- **Architecture**: pragmatic systems that scale without over-engineering
+- **Product + execution**: tight feedback loops, measurable outcomes
+- **Hard problems**: performance, reliability, observability, “this is on fire”
 
-## Install
+## Highlights
 
-```bash
-pnpm install
-```
+- **AfterHour** Head of Engineering. Consumer finance social, AI trading, AI product development workflows.
+- **Brava**: VP / Head of Engineering (software). Complex consumer IoT + custom Linux OS; acquired in 2019 by Middleby (`$MIDD`).
+- **RealCrowd**: Co-founder / CTO. Direct commercial real estate investing marketplace (YC Summer 2013).
+- **Disney / Playdom**: Principal engineer; shipped profitable games and platform tech.
 
-If pnpm asks to approve build scripts, run:
+## How I work (principles)
 
-```bash
-pnpm approve-builds
-```
+- **First principles**: start with the real problem, not the default solution
+- **Serve the customer**: build what people want, not what engineers want
+- **Don’t over-engineer**: keep optionality, ship, then iterate
+- **Ship often**: feedback is the engine
+- **Assume good intentions**: fix systems and communication before blame
+- **Over-communicate**: alignment beats heroics
 
-Then approve `esbuild`, `sharp`, and `workerd`.
+## What I’m up to now
 
-## Local Development
+I’m working on AfterHour, doing a little consulting, and investing (including through **Pioneer Fund** / **Orange Fund**). I’m also exploring AI (and a bunch of other buzzwords) with a builder’s lens.
 
-Run Vite dev server:
+## How this repo is “built in public”
 
-```bash
-pnpm run dev:site
-```
+My site publishes real build artifacts (plans + redacted transcripts) so you can inspect the process end-to-end:
 
-Build optimized production output:
+- `https://www.jdconley.com/how-this-is-built`
 
-```bash
-pnpm run build:site
-```
+Local commits auto-refresh website log artifacts through a Husky `pre-commit` hook (`pnpm run logs:sync:site` + staged log outputs). For a one-off bypass, use `HUSKY=0 git commit ...`.
 
-Preview optimized output:
-
-```bash
-pnpm run preview:site
-```
-
-## How This Is Built Logs
-
-Generate publishable build logs (plan + Cursor transcripts):
-
-```bash
-pnpm run logs:sync:site
-```
-
-This command:
-
-- Reads parent Cursor transcripts from `.cursor` project transcripts
-- Reads the plan source used for this build
-- Redacts obvious local paths and token-like values
-- Writes time-ordered markdown logs to `apps/jdconley-site/public/how-this-is-built/logs/`
-- Writes `index.json` manifest for the logs page
-
-Published URLs after build/deploy:
-
-- `/how-this-is-built`
-- `/how-this-is-built/logs/<timestamped-file>.md`
-
-## dotenvx Local Secrets
-
-Create a local env file:
-
-```bash
-cp apps/jdconley-site/.env.example apps/jdconley-site/.env
-```
-
-Set values in `apps/jdconley-site/.env`:
-
-- `VITE_SITE_URL` (example: `https://jdconley.com`)
-- `CLOUDFLARE_PAGES_PROJECT` (Cloudflare Pages project name)
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_API_TOKEN`
-
-Wrangler commands are wrapped with `dotenvx run` in pnpm scripts, so these values are loaded automatically.
-
-## Local Wrangler Testing (Cloudflare-like)
-
-Run a local Cloudflare Pages preview from built `dist`:
-
-```bash
-pnpm run preview:cf:site
-```
-
-Use this when you want to validate Cloudflare Pages behavior. Use `pnpm run preview:site` for faster local preview.
-
-## E2E Tests (Playwright)
-
-Run smoke tests against Vite preview:
-
-```bash
-pnpm run test:e2e:site
-```
-
-Run smoke tests against local Wrangler runtime:
-
-```bash
-pnpm run test:e2e:wrangler:site
-```
-
-## Cloudflare Deploy (CLI)
-
-Deploy optimized `dist` from local CLI:
-
-```bash
-pnpm run logs:sync:site
-pnpm run deploy:site
-```
-
-This executes:
-
-- Vite production build
-- Post-build image optimization
-- `wrangler pages deploy` from `apps/jdconley-site/dist`
-
-## GitHub Actions CI/CD
-
-- CI workflow: `.github/workflows/ci.yml`
-  - Runs on PRs and pushes to `main`
-  - Installs dependencies, builds site, runs Playwright tests
-- Deploy workflow: `.github/workflows/deploy.yml`
-  - Runs on push to `main` (and manual dispatch)
-  - Builds and deploys to Cloudflare Pages
-
-Required GitHub configuration:
-
-- **Repository Secrets**
-  - `CLOUDFLARE_API_TOKEN`
-  - `CLOUDFLARE_ACCOUNT_ID`
-- **Repository Variables**
-  - `CLOUDFLARE_PAGES_PROJECT`
-  - `SITE_URL` (optional but recommended)
-
-## Notes / Known limitations from Webflow export
-
-- `401.html` contains Webflow password-protection form behavior (`/.wf_auth`) that is platform-specific and not functional as standalone static hosting authentication.
+If you’re here for the code and workflows, see `DEVELOPING.md`.
