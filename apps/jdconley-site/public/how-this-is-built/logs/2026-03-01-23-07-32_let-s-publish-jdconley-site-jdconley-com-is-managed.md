@@ -2,7 +2,7 @@
 title: "let's publish jdconley-site. jdconley.com is managed..."
 sourceType: transcript
 sourceId: "cd2fb925-2419-45b9-b103-5a35834b8d4f"
-timestampSortable: "2026-03-01-23-07-24"
+timestampSortable: "2026-03-01-23-07-32"
 timestampIOS: "Mar 1, 2026 at 3:07 PM"
 ---
 
@@ -779,3 +779,19 @@ commit and push
 I’ll commit the workflow updates and push them now. First I’m checking current git status/diff/log to confirm exactly what will be included.
 
 **Planning robust git commit sequence**
+
+## 86. ASSISTANT
+
+**Committing CI/CD environment fix**
+
+## 87. ASSISTANT
+
+Committed and pushed.
+
+- Commit: `30dddea`
+- Branch: `main` → `origin/main`
+- Main change: CI/CD workflow fixes for environment setup and LTS/pinned toolchain
+
+Note: pre-commit hooks ran `logs:sync:site`, so the commit also included refreshed `how-this-is-built` log artifacts automatically.
+
+**Confirming commit included hook-generated files**

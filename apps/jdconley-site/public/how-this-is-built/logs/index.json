@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-03-01T23:07:24.000Z",
-  "generatedAtIOS": "Mar 1, 2026 at 3:07 PM",
-  "itemCount": 14,
+  "generatedAt": "2026-03-01T23:29:59.951Z",
+  "generatedAtIOS": "Mar 1, 2026 at 3:29 PM",
+  "itemCount": 15,
   "items": [
     {
       "title": "JD OS Cloudflare Ideas",
@@ -111,9 +111,17 @@
       "title": "let's publish jdconley-site. jdconley.com is managed...",
       "sourceType": "transcript",
       "sourceId": "cd2fb925-2419-45b9-b103-5a35834b8d4f",
-      "timestampSortable": "2026-03-01-23-07-24",
+      "timestampSortable": "2026-03-01-23-07-32",
       "timestampIOS": "Mar 1, 2026 at 3:07 PM",
-      "href": "/how-this-is-built/logs/2026-03-01-23-07-24_let-s-publish-jdconley-site-jdconley-com-is-managed.md"
+      "href": "/how-this-is-built/logs/2026-03-01-23-07-32_let-s-publish-jdconley-site-jdconley-com-is-managed.md"
+    },
+    {
+      "title": "i need a new section for...",
+      "sourceType": "transcript",
+      "sourceId": "fa479677-53e0-4efb-8551-a156fc1d080e",
+      "timestampSortable": "2026-03-01-23-29-59",
+      "timestampIOS": "Mar 1, 2026 at 3:29 PM",
+      "href": "/how-this-is-built/logs/2026-03-01-23-29-59_i-need-a-new-section-for.md"
     }
   ]
 }
