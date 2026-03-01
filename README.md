@@ -36,6 +36,12 @@ Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years
 
 I’m working on AfterHour, doing a little consulting, and investing (including through **Pioneer Fund** / **Orange Fund**). I’m also exploring AI (and a bunch of other buzzwords) with a builder’s lens.
 
+## Recent projects
+
+- **[wodbrains](https://github.com/jdconley/wodbrains)** — Builds a smart timer from any workout: paste text, drop a screenshot, share a URL, or describe what you want.
+- **[deadhand](https://github.com/jdconley/deadhand)** — Remote command and control for Cursor AI local agents.
+- **[jdconley](https://github.com/jdconley/jdconley)** — This repo: jdconley.com plus build-in-public logs and tooling.
+
 ## How this repo is “built in public”
 
 My site publishes real build artifacts (plans + redacted transcripts) so you can inspect the process end-to-end:
