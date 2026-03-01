@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.DS_Store
+
+.env
+.env.*
+!.env.example
+.env.keys
+
+apps/*/node_modules/
+apps/*/dist/
+apps/*/playwright-report/
+apps/*/test-results/
+apps/*/.env.keys
+apps/*/.wrangler/

@@ -1,0 +1,25 @@
+{
+  "name": "@jdconley/jdconley-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build && node ./scripts/optimize-images.mjs",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "preview:cf": "dotenvx run -- wrangler pages dev dist --ip 127.0.0.1 --port 8788",
+    "preview:cf:build": "pnpm run build && pnpm run preview:cf",
+    "test:e2e": "playwright test",
+    "test:e2e:ci": "playwright test --reporter=line",
+    "test:e2e:wrangler": "E2E_SERVER=wrangler playwright test",
+    "deploy": "pnpm run build && dotenvx run -- sh -c 'wrangler pages deploy dist --project-name \"$CLOUDFLARE_PAGES_PROJECT\"'"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "latest",
+    "@playwright/test": "latest",
+    "html-minifier-terser": "latest",
+    "sharp": "latest",
+    "vite": "latest",
+    "wrangler": "latest"
+  }
+}

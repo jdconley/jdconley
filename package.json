@@ -1,0 +1,25 @@
+{
+  "name": "jdconley",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.17.1",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:site": "pnpm --filter @jdconley/jdconley-site run dev",
+    "build:site": "pnpm --filter @jdconley/jdconley-site run build",
+    "preview:site": "pnpm --filter @jdconley/jdconley-site run preview",
+    "preview:cf:site": "pnpm --filter @jdconley/jdconley-site run preview:cf",
+    "test:e2e:site": "pnpm --filter @jdconley/jdconley-site run test:e2e",
+    "test:e2e:wrangler:site": "pnpm --filter @jdconley/jdconley-site run test:e2e:wrangler",
+    "deploy:site": "pnpm --filter @jdconley/jdconley-site run deploy"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
+  }
+}
