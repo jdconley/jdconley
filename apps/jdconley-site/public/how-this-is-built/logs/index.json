@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-03-01T23:29:59.951Z",
-  "generatedAtIOS": "Mar 1, 2026 at 3:29 PM",
-  "itemCount": 15,
+  "generatedAt": "2026-03-01T23:37:47.384Z",
+  "generatedAtIOS": "Mar 1, 2026 at 3:37 PM",
+  "itemCount": 16,
   "items": [
     {
       "title": "JD OS Cloudflare Ideas",
@@ -119,9 +119,17 @@
       "title": "i need a new section for...",
       "sourceType": "transcript",
       "sourceId": "fa479677-53e0-4efb-8551-a156fc1d080e",
-      "timestampSortable": "2026-03-01-23-29-59",
-      "timestampIOS": "Mar 1, 2026 at 3:29 PM",
-      "href": "/how-this-is-built/logs/2026-03-01-23-29-59_i-need-a-new-section-for.md"
+      "timestampSortable": "2026-03-01-23-30-14",
+      "timestampIOS": "Mar 1, 2026 at 3:30 PM",
+      "href": "/how-this-is-built/logs/2026-03-01-23-30-14_i-need-a-new-section-for.md"
+    },
+    {
+      "title": "i can't see the whole left...",
+      "sourceType": "transcript",
+      "sourceId": "41317351-4006-4c7b-a436-2beec53dc9cb",
+      "timestampSortable": "2026-03-01-23-37-47",
+      "timestampIOS": "Mar 1, 2026 at 3:37 PM",
+      "href": "/how-this-is-built/logs/2026-03-01-23-37-47_i-can-t-see-the-whole-left.md"
     }
   ]
 }
