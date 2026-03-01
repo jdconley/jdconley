@@ -2,14 +2,14 @@
 title: "let's publish jdconley-site. jdconley.com is managed..."
 sourceType: transcript
 sourceId: "cd2fb925-2419-45b9-b103-5a35834b8d4f"
-timestampSortable: "2026-03-01-23-04-46"
-timestampIOS: "Mar 1, 2026 at 3:04 PM"
+timestampSortable: "2026-03-01-23-07-24"
+timestampIOS: "Mar 1, 2026 at 3:07 PM"
 ---
 
 # let's publish jdconley-site. jdconley.com is managed...
 
 - Source: Cursor parent transcript `cd2fb925-2419-45b9-b103-5a35834b8d4f`
-- Timestamp (iOS): Mar 1, 2026 at 3:04 PM
+- Timestamp (iOS): Mar 1, 2026 at 3:07 PM
 
 ## 1. USER
 
@@ -667,3 +667,115 @@ ok commit and push latest changes
 I’ll stage the current repo changes, create a commit message consistent with recent history, and push to `origin/main`. I’m first checking status/diff/log to draft the message correctly.
 
 **Running git status, diff, log**
+
+## 74. ASSISTANT
+
+I found only log-sync artifacts pending, so I’m committing those generated `how-this-is-built` log updates and pushing to `main`.
+
+**Committing and pushing updated logs**
+
+## 75. ASSISTANT
+
+Committed and pushed to `origin/main`.
+
+- Commit: `a2cf39c`
+- Message: `Refresh published AI build logs after latest deployment workflow.`
+- Pushed: `main -> main` on `https://github.com/jdconley/jdconley.git`
+- Current status: clean (`## main...origin/main`)
+
+Pre-commit hooks ran `logs:sync:site` and included the refreshed generated log artifacts in this commit.
+
+**Finalizing commit and push**
+
+## 76. USER
+
+<user_query>
+fix the ci/cd scripts to setup the environment
+</user_query>
+
+## 77. ASSISTANT
+
+I’ll update the GitHub Actions workflows so environment/tooling setup is reliable (fixing the pnpm/node ordering issue that’s breaking runs), then I’ll verify the changes and report exactly what was adjusted.
+
+**Preparing CI/CD environment update**
+
+## 78. ASSISTANT
+
+I found the exact breakage: `setup-node` enables `cache: pnpm` before pnpm exists on PATH. I’m updating both workflows to install pnpm first and pin cache to `pnpm-lock.yaml`.
+
+**Planning workflow edits and caching**
+
+## 79. ASSISTANT
+
+Updated CI/CD workflow setup so pnpm is available before Node’s pnpm cache step runs.
+
+### What I changed
+- `.github/workflows/ci.yml`
+  - Moved `pnpm/action-setup@v4` **before** `actions/setup-node@v4`
+  - Added `cache-dependency-path: pnpm-lock.yaml` under `setup-node`
+- `.github/workflows/deploy.yml`
+  - Same ordering fix and `cache-dependency-path` addition
+
+### Why this fixes it
+Your failure was:
+- `Unable to locate executable file: pnpm` during `Setup Node.js`
+
+`actions/setup-node` with `cache: pnpm` expects pnpm to already be on PATH. Reordering fixes that.
+
+### Verification
+- Checked diff for both workflows.
+- Ran lint diagnostics on edited files: no issues.
+
+If you want, I can also commit/push these workflow fixes and then trigger a rerun (`gh run rerun <run-id>`) to confirm green.
+
+**Summarizing changes and next steps**
+
+## 80. USER
+
+<user_query>
+update ci/cd to use lts versions of dependencies
+</user_query>
+
+## 81. ASSISTANT
+
+I’ll update the workflows to use LTS-aligned runtime/tool versions (instead of fixed current versions), then show the exact changes so CI and deploy stay on supported release tracks.
+
+**Planning CI/CD dependency updates**
+
+## 82. ASSISTANT
+
+I’m going to switch workflow Node runtime to `lts/*` and pin pnpm to your repo’s declared package manager version (`10.17.1`) so CI/CD uses an LTS runtime with a consistent toolchain.
+
+**Standardizing Node LTS and pnpm versions**
+
+## 83. ASSISTANT
+
+Updated CI/CD to use LTS-aligned runtime/tool versions in both workflows.
+
+### Changes made
+- `.github/workflows/ci.yml`
+  - `node-version` changed from `22` → `lts/*`
+  - `pnpm` version changed from `10` → `10.17.1` (matches `packageManager` in root `package.json`)
+  - Keeps `cache: pnpm` with `cache-dependency-path: pnpm-lock.yaml`
+- `.github/workflows/deploy.yml`
+  - Same changes as CI: `node-version: lts/*`, `pnpm: 10.17.1`, lockfile cache path retained
+
+### Why this setup
+- Node now tracks the latest active LTS line automatically.
+- pnpm doesn’t have an LTS channel, so pinning to the repo’s declared version is the safest equivalent for reproducibility.
+
+If you want, I can commit and push these workflow updates, then you can rerun Actions immediately.
+
+**Preparing final update summary**
+
+## 84. USER
+
+<user_query>
+commit and push
+</user_query>
+
+## 85. ASSISTANT
+
+I’ll commit the workflow updates and push them now. First I’m checking current git status/diff/log to confirm exactly what will be included.
+
+**Planning robust git commit sequence**
