@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Use Repository Skills First
 
-Before implementing tasks, read `AGENTS.md` at the repo root and choose the matching project skill from `.cursor/skills/`.
+Before implementing tasks, read `AGENTS.md` at the repo root and choose the matching project skill from `.agents/skills/` (with `.cursor/skills/` symlinked to the same targets).
 
 Apply the documented workflow order by default:
 1. `pnpm run logs:sync:site` (when logs/process artifacts are in scope)

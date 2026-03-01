@@ -5,17 +5,37 @@ Use this guide when working in this repository. Prefer reusing project skills in
 ## Skill Routing
 
 - **Webflow refresh / export sync**
-  - Use: `.cursor/skills/webflow-static-site-refresh/SKILL.md`
+  - Use: `.agents/skills/webflow-static-site-refresh/SKILL.md`
   - Trigger phrases: "new Webflow zip", "refresh export", "sync Webflow site"
 - **Cloudflare deploy / Wrangler parity**
-  - Use: `.cursor/skills/cloudflare-pages-ops/SKILL.md`
+  - Use: `.agents/skills/cloudflare-pages-ops/SKILL.md`
   - Trigger phrases: "Cloudflare Pages", "Wrangler", "deploy", "dotenvx"
 - **How-this-is-built logs publishing**
-  - Use: `.cursor/skills/ai-build-logs-publishing/SKILL.md`
+  - Use: `.agents/skills/ai-build-logs-publishing/SKILL.md`
   - Trigger phrases: "publish logs", "Cursor transcripts", "how this is built"
 - **pnpm / workspace dependency operations**
-  - Use: `.cursor/skills/pnpm-monorepo-ops/SKILL.md`
+  - Use: `.agents/skills/pnpm-monorepo-ops/SKILL.md`
   - Trigger phrases: "pnpm", "lockfile", "install issues", "dependency update"
+- **Install existing skills via skills.sh**
+  - Use: `.agents/skills/skills-sh-skill-finder/SKILL.md`
+  - Trigger phrases: "skills.sh", "add existing skill", "install skill", "skill finder"
+- **Create local skills (conversation-seeded)**
+  - Use: `.agents/skills/local-skill-scaffolder/SKILL.md`
+  - Trigger phrases: "create skill", "new local skill", "skill from conversation", "scaffold skill"
+- **Web design guideline reviews**
+  - Use: `.agents/skills/web-design-guidelines/SKILL.md`
+  - Trigger phrases: "web design", "UI audit", "review UX", "check accessibility"
+
+## Skill Layout (skills.sh Defaults)
+
+- Canonical project skills live in `.agents/skills/<skill-name>/SKILL.md`.
+- Keep `.cursor/skills/<skill-name>` as a symlink to `../../.agents/skills/<skill-name>` for editor compatibility.
+- Install third-party skills with defaults: `pnpm dlx skills add <owner/repo> --skill <skill-name> --agent cursor -y`.
+- For new custom skills:
+  1. `pnpm dlx skills init .agents/skills/<skill-name>`
+  2. `ln -s ../../.agents/skills/<skill-name> .cursor/skills/<skill-name>`
+  3. `pnpm dlx skills ls` (verify the skill is visible through the default `.agents/skills` path)
+- Do not run `skills add` against `.agents/skills/<skill-name>` for local custom skills; use `skills add` for third-party sources.
 
 ## Default Workflow Order
 

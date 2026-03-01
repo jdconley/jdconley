@@ -2,7 +2,7 @@
 title: "update the @README.md to point to..."
 sourceType: transcript
 sourceId: "f390cd07-21c5-46c3-a334-fc685144eafe"
-timestampSortable: "2026-03-01-21-40-36"
+timestampSortable: "2026-03-01-21-40-55"
 timestampIOS: "Mar 1, 2026 at 1:40 PM"
 ---
 
@@ -35,3 +35,14 @@ Added a **Recent projects** section to your README with all three repos:
 - **jdconley** — This repo: jdconley.com plus build-in-public logs and tooling
 
 The section is placed between “What I’m up to now” and “How this repo is built in public”, using the GitHub repo descriptions (shortened where needed).
+
+## 5. USER
+
+<user_query>
+
+commit and push
+</user_query>
+
+## 6. ASSISTANT
+
+The changes are committed and pushed to `main`. The Husky pre-commit hook ran `logs:sync:site` and included the updated log artifacts in the commit, so four files changed in total.
