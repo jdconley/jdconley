@@ -1535,6 +1535,38 @@ figcaption {
   width: 4em;
 }
 
+.vibe-project-date {
+  color: var(--medium-slate-blue);
+  font-size: .6em;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-left: 10%;
+  margin-bottom: .4em;
+}
+
+.vibe-project-links {
+  display: flex;
+  gap: 1.2em;
+  margin-left: 10%;
+  margin-top: .6em;
+}
+
+.vibe-link {
+  display: flex;
+  align-items: center;
+  gap: .3em;
+  color: var(--grey-2);
+  font-size: .6em;
+}
+
+.vibe-link-icon {
+  width: 1em;
+  height: 1em;
+  opacity: .6;
+}
+
+
 @media screen and (max-width: 991px) {
   .rich-text-block p, .rich-text-block li {
     font-size: .8em;
@@ -2198,6 +2230,19 @@ figcaption {
 
   .project-number {
     display: block;
+  }
+
+  .vibe-project-date {
+    margin-left: 1em;
+    font-size: .8em;
+  }
+
+  .vibe-project-links {
+    margin-left: 1em;
+  }
+
+  .vibe-link {
+    font-size: .85em;
   }
 
   .skills-item {
