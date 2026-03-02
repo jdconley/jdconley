@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+Disallow: /home-version-2.html
+Disallow: /home-version-3.html
+Disallow: /old-home.html
+Disallow: /info/changelog.html
+Disallow: /info/licenses.html
+Disallow: /info/style-guide.html
+Disallow: /401.html
+
+# LLM-friendly content
+# See https://llmstxt.org for the llms.txt specification
+
+Sitemap: https://www.jdconley.com/sitemap.xml

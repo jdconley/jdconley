@@ -2,7 +2,7 @@
 title: "i can't see the whole left..."
 sourceType: transcript
 sourceId: "41317351-4006-4c7b-a436-2beec53dc9cb"
-timestampSortable: "2026-03-01-23-37-47"
+timestampSortable: "2026-03-01-23-37-57"
 timestampIOS: "Mar 1, 2026 at 3:37 PM"
 ---
 
@@ -320,3 +320,7 @@ To-do's from the plan have already been created. Do not create them again. Mark 
 <user_query>
 commit and push
 </user_query>
+
+## 17. ASSISTANT
+
+Committed and pushed. The change is now live on `main` at `7ed4d66`.

@@ -6,7 +6,7 @@
   "scripts": {
     "logs:sync": "node ./scripts/export-ai-build-logs.mjs",
     "dev": "vite --host 0.0.0.0 --port 5173",
-    "build": "vite build && node ./scripts/optimize-images.mjs",
+    "build": "vite build && node ./scripts/generate-llm-markdown.mjs && node ./scripts/optimize-images.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "preview:cf": "dotenvx run -- wrangler pages dev dist --ip 127.0.0.1 --port 8788",
     "preview:cf:build": "pnpm run build && pnpm run preview:cf",
@@ -19,7 +19,9 @@
     "@dotenvx/dotenvx": "latest",
     "@playwright/test": "latest",
     "html-minifier-terser": "latest",
+    "linkedom": "^0.18.12",
     "sharp": "latest",
+    "turndown": "^7.2.2",
     "vite": "latest",
     "wrangler": "latest"
   }
