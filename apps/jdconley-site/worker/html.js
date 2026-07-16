@@ -11,7 +11,9 @@ function escapeAttribute(value) {
 
 function replaceAttribute(html, selector, attribute, value) {
   const pattern = new RegExp(`(<${selector}[^>]*\\s${attribute}=")[^"]*(")`, "iu");
-  return html.replace(pattern, `$1${escapeAttribute(value)}$2`);
+  return html.replace(pattern, (_match, prefix, suffix) =>
+    `${prefix}${escapeAttribute(value)}${suffix}`
+  );
 }
 
 export async function injectRuntimeConfig(response, env, requestUrl) {
@@ -19,7 +21,10 @@ export async function injectRuntimeConfig(response, env, requestUrl) {
   if (!response.ok || !contentType.toLowerCase().includes("text/html")) return response;
   const html = await response.text();
   const siteKey = escapeAttribute(env.TURNSTILE_SITE_KEY);
-  let configured = html.replace(SITE_KEY_META, `<meta name="turnstile-site-key" content="${siteKey}">`);
+  let configured = html.replace(
+    SITE_KEY_META,
+    () => `<meta name="turnstile-site-key" content="${siteKey}">`
+  );
   if (requestUrl) {
     const url = new URL(requestUrl);
     const state = parseState(url.search).state;
@@ -28,7 +33,10 @@ export async function injectRuntimeConfig(response, env, requestUrl) {
     const image = `https://jdconley.com/a-better-time/share.png?${query}`;
     const title = `A Better Time for ${state.place}`;
     const description = `See how a gentler clock could follow the sun in ${state.place}.`;
-    configured = configured.replace(/<title>[^<]*<\/title>/iu, `<title>${escapeAttribute(title)}</title>`);
+    configured = configured.replace(
+      /<title>[^<]*<\/title>/iu,
+      () => `<title>${escapeAttribute(title)}</title>`
+    );
     configured = replaceAttribute(configured, 'meta name="description"', "content", description);
     configured = replaceAttribute(configured, 'link rel="canonical"', "href", canonical);
     configured = replaceAttribute(configured, 'meta property="og:title"', "content", title);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import worker from "../../worker/index.js";
 import { SHARE_CHANGE_COPY } from "../../worker/share-image.js";
+import { parseHTML } from "linkedom";
 
 const sourceHtml = `<!doctype html><html><head><title>A Better Time</title><meta name="description" content="old"><link rel="canonical" href="https://jdconley.com/a-better-time"><meta property="og:title" content="old"><meta property="og:description" content="old"><meta property="og:image" content="old"><meta name="twitter:title" content="old"><meta name="twitter:description" content="old"><meta name="twitter:image" content="old"><meta name="turnstile-site-key" content=""></head><body></body></html>`;
 const env = {
@@ -31,6 +32,26 @@ describe("personalized sharing", () => {
     expect(html).toContain("lat=38.940&amp;lon=-119.977");
     expect(html).toContain("bias=0&amp;year=2026");
     expect(html).not.toContain("nope");
+  });
+
+  it("preserves replacement tokens, quotes, ampersands, and markup-like place text exactly", async () => {
+    const place = 'Cash $& Carry "$1" <sun> & Friends';
+    const response = await worker.fetch(new Request(`https://jdconley.test/a-better-time?place=${encodeURIComponent(place)}&year=2026`), env);
+    const html = await response.text();
+    const { document } = parseHTML(html);
+    const expectedTitle = `A Better Time for ${place}`;
+    const expectedDescription = `See how a gentler clock could follow the sun in ${place}.`;
+    expect(document.title).toBe(expectedTitle);
+    expect(document.querySelector('meta[name="description"]').getAttribute("content")).toBe(expectedDescription);
+    expect(document.querySelector('meta[property="og:title"]').getAttribute("content")).toBe(expectedTitle);
+    expect(document.querySelector('meta[property="og:description"]').getAttribute("content")).toBe(expectedDescription);
+    expect(document.querySelector('meta[name="twitter:title"]').getAttribute("content")).toBe(expectedTitle);
+    expect(document.querySelector('meta[name="twitter:description"]').getAttribute("content")).toBe(expectedDescription);
+    expect(document.querySelector('meta[name="turnstile-site-key"]').getAttribute("content")).toBe("test-site-key");
+    const canonical = new URL(
+      document.querySelector('link[rel="canonical"]').getAttribute("href")
+    );
+    expect(canonical.searchParams.get("place")).toBe(place);
   });
 
   it("renders a cached 1200x630 PNG with canonical ETag", async () => {
