@@ -392,6 +392,20 @@ test.describe("live daylight model", () => {
     expect(box?.height).toBeGreaterThan(20);
     await expect(page.locator("[data-chart='clock'] [data-adjustment-band]")).toHaveAttribute("data-axis-domain", "-60,0,60 seconds");
     await expect(page.locator("[data-chart='clock'] svg")).toHaveAttribute("preserveAspectRatio", "xMidYMid meet");
+    const geometry = await page.locator("[data-chart='clock'] svg").evaluate((svg) => {
+      const ticks = [...svg.querySelectorAll("[data-axis-kind='offset'][data-axis-value]")];
+      const adjustment = svg.querySelector("[data-adjustment-band]");
+      return {
+        tickY: ticks.map((tick) => Number(tick.getAttribute("y1") ?? tick.getAttribute("y"))),
+        tickValues: ticks.map((tick) => Number(tick.getAttribute("data-axis-value"))),
+        adjustmentTop: Number(adjustment?.getAttribute("data-band-top")),
+        offsetBottom: Number(svg.querySelector("[data-offset-band]")?.getAttribute("data-band-bottom"))
+      };
+    });
+    expect(geometry.tickValues).toEqual([-180, 0, 180]);
+    expect(geometry.tickY[0]).toBeGreaterThan(geometry.tickY[1]);
+    expect(geometry.tickY[1]).toBeGreaterThan(geometry.tickY[2]);
+    expect(geometry.offsetBottom).toBeLessThan(geometry.adjustmentTop);
   });
 
   test("crossing the phone breakpoint rerenders ticks while retaining focus and date", async ({ page }) => {

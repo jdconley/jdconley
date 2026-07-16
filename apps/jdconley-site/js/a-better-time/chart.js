@@ -102,6 +102,15 @@ export function getClockBandLayout(height) {
   };
 }
 
+export function getClockScales(height, offsetDomain) {
+  const layout = getClockBandLayout(height);
+  return {
+    layout,
+    offsetY: (value) => layout.offsetTop + ((offsetDomain[1] - value) / (offsetDomain[1] - offsetDomain[0])) * (layout.offsetBottom - layout.offsetTop),
+    adjustmentY: (seconds) => layout.adjustmentTop + ((60 - seconds) / 120) * (layout.adjustmentBottom - layout.adjustmentTop)
+  };
+}
+
 export function getChartSeries(kind) {
   return kind === "daylight"
     ? [
@@ -208,7 +217,7 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
     "aria-label": kind === "daylight" ? "Proposed and current-policy sunrise and sunset across the year" : "Proposed clock offset and daily change across the year",
     preserveAspectRatio: "xMidYMid meet"
   });
-  renderGrid(element, width, height, labels, y);
+  if (kind === "daylight") renderGrid(element, width, height, labels, y);
 
   if (kind === "daylight") {
     getChartSeries(kind).forEach(({ field, name, className, strokeDasharray }) => {
@@ -241,10 +250,15 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
       regionStart = regionEnd + 1;
     }
   } else {
-    const bands = getClockBandLayout(height);
-    const offsetY = (value) => bands.offsetTop + ((domain[1] - value) / (domain[1] - domain[0])) * (bands.offsetBottom - bands.offsetTop);
-    const adjustmentY = (seconds) => bands.adjustmentTop + ((60 - seconds) / 120) * (bands.adjustmentBottom - bands.adjustmentTop);
-    const adjustmentBand = svg("g", { "data-adjustment-band": "", "data-axis-domain": "-60,0,60 seconds" });
+    const { layout: bands, offsetY, adjustmentY } = getClockScales(height, domain);
+    const offsetBand = svg("g", { "data-offset-band": "", "data-band-top": bands.offsetTop, "data-band-bottom": bands.offsetBottom });
+    labels.forEach(({ value, label }) => {
+      const tickY = offsetY(value);
+      offsetBand.append(svg("line", { x1: left, x2: width - right, y1: tickY, y2: tickY, class: value === 0 ? "zero-line" : "chart-grid-line", "data-axis-kind": "offset", "data-axis-value": value }));
+      addText(offsetBand, label, { x: 36, y: tickY + 3, "text-anchor": "end", class: "chart-axis-label", "data-axis-kind": "offset-label", "data-axis-value": value });
+    });
+    element.append(offsetBand);
+    const adjustmentBand = svg("g", { "data-adjustment-band": "", "data-axis-domain": "-60,0,60 seconds", "data-band-top": bands.adjustmentTop, "data-band-bottom": bands.adjustmentBottom });
     [-60, 0, 60].forEach((seconds) => {
       const bandY = adjustmentY(seconds);
       adjustmentBand.append(svg("line", { x1: left, x2: width - right, y1: bandY, y2: bandY, class: seconds === 0 ? "zero-line" : "chart-grid-line" }));

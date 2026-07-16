@@ -105,6 +105,22 @@ describe("chart metadata", () => {
     }));
     const layout = getClockBandLayout(310);
     expect(layout.adjustmentBottom - layout.adjustmentTop).toBeGreaterThan(50);
+    expect(layout.offsetBottom).toBeLessThan(layout.adjustmentTop);
+  });
+
+  it("maps clock offset ticks and paths through the same upper-band scale", async () => {
+    const { getClockScales } = await import("../../js/a-better-time/chart.js");
+    const scales = getClockScales(310, [-180, 180]);
+    expect([-180, 0, 180].map(scales.offsetY)).toEqual([
+      scales.layout.offsetBottom,
+      (scales.layout.offsetTop + scales.layout.offsetBottom) / 2,
+      scales.layout.offsetTop
+    ]);
+    expect([-60, 0, 60].map(scales.adjustmentY)).toEqual([
+      scales.layout.adjustmentBottom,
+      (scales.layout.adjustmentTop + scales.layout.adjustmentBottom) / 2,
+      scales.layout.adjustmentTop
+    ]);
   });
 
   it("builds an accessible active-date readout for normal and polar days", () => {
