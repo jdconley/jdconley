@@ -325,6 +325,28 @@ test.describe("live daylight model", () => {
     await expect(page.locator("[data-gain-metric] strong")).not.toHaveText(gainBefore ?? "");
   });
 
+  test("tuning identifies the exact malformed time endpoint", async ({ page }) => {
+    await page.goto(path);
+    await page.getByRole("button", { name: "Tune my day" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Tune your day" });
+    const start = dialog.getByLabel("Day starts");
+    const end = dialog.getByLabel("Day ends");
+
+    await start.fill("07:00");
+    await end.fill("");
+    await dialog.getByRole("button", { name: "Apply settings" }).click();
+    await expect(start).not.toHaveAttribute("aria-invalid", "true");
+    await expect(end).toHaveAttribute("aria-invalid", "true");
+    await expect(end).toBeFocused();
+
+    await start.fill("");
+    await end.fill("22:00");
+    await dialog.getByRole("button", { name: "Apply settings" }).click();
+    await expect(start).toHaveAttribute("aria-invalid", "true");
+    await expect(end).not.toHaveAttribute("aria-invalid", "true");
+    await expect(start).toBeFocused();
+  });
+
   test("keyboard inspection coordinates both desktop charts", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(`${path}?year=2026`);

@@ -181,9 +181,12 @@ tuneDialog.querySelector("[data-tune-form]").addEventListener("submit", (event) 
   const duration = wake === null || sleep === null ? 0 : (sleep - wake + 1440) % 1440;
   if (wake === null || sleep === null || !Number.isInteger(bias) || duration < 480 || duration > 1200) {
     tuneError.textContent = "Choose a waking window between 8 and 20 hours.";
-    wakeInput.setAttribute("aria-invalid", "true");
-    sleepInput.setAttribute("aria-invalid", "true");
-    wakeInput.focus();
+    const relationalError = wake !== null && sleep !== null && (duration < 480 || duration > 1200);
+    if (wake === null || relationalError) wakeInput.setAttribute("aria-invalid", "true");
+    else wakeInput.removeAttribute("aria-invalid");
+    if (sleep === null || relationalError) sleepInput.setAttribute("aria-invalid", "true");
+    else sleepInput.removeAttribute("aria-invalid");
+    (wake === null || relationalError ? wakeInput : sleepInput).focus();
     return;
   }
   wakeInput.removeAttribute("aria-invalid");
