@@ -17,7 +17,8 @@ import {
   renderWranglerConfig,
   resolveReconciliationTempRoot,
   selectDatabase,
-  selectTurnstileWidget
+  selectTurnstileWidget,
+  writeGithubOutput
 } from "../../scripts/reconcile-production-resources.mjs";
 
 const validEnv = {
@@ -34,6 +35,7 @@ const replacementDatabaseUuid = "123e4567-e89b-42d3-a456-426614174002";
 const sourceDirectory = '/checkout/apps/site "quoted"';
 const tempDirectory = "/runner-temp/jdconley-production-a1B2c3";
 const tempConfigPath = `${tempDirectory}/wrangler.toml`;
+const tempSecretsPath = `${tempDirectory}/wrangler-secrets.json`;
 const wranglerSource = `name = "jdconley-site"\nmain = "worker/index.js"\ncompatibility_date = "2026-07-15"\n[assets]\ndirectory = "dist"\nbinding = "ASSETS"\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "a-better-time"\ndatabase_id = "${databaseUuid}"\nmigrations_dir = "migrations"\n`;
 const manifest = { ndjsonSha256: "a".repeat(64), outputRows: { total: 12 } };
 const execFileAsync = promisify(execFile);
@@ -130,6 +132,7 @@ describe("production reconciliation helpers", () => {
     const checkout = path.join(root, 'checkout "quoted"');
     const generatedDirectory = path.join(root, "generated");
     const generatedConfig = path.join(generatedDirectory, "wrangler.toml");
+    const generatedSecrets = path.join(generatedDirectory, "wrangler-secrets.json");
     const outDirectory = path.join(root, "dry-run-output");
     const localState = path.join(root, "local-state");
     try {
@@ -149,6 +152,10 @@ describe("production reconciliation helpers", () => {
         renderWranglerConfig(wranglerSource, replacementDatabaseUuid, checkout),
         { mode: 0o600 }
       );
+      await writeFile(generatedSecrets, JSON.stringify({
+        TURNSTILE_SECRET_KEY: "fixture-turnstile-secret",
+        SUPPORT_IP_HMAC_SECRET: "fixture-support-hmac-secret-value"
+      }), { mode: 0o600 });
       const env = {
         ...process.env,
         NO_COLOR: "1",
@@ -161,10 +168,13 @@ describe("production reconciliation helpers", () => {
       delete env.CLOUDFLARE_API_TOKEN;
       delete env.CLOUDFLARE_ACCOUNT_ID;
 
-      await execFileAsync("pnpm", [
-        "exec", "wrangler", "deploy", "--dry-run", "--config", generatedConfig, "--outdir", outDirectory
+      const dryRun = await execFileAsync("pnpm", [
+        "exec", "wrangler", "deploy", "--dry-run", "--config", generatedConfig,
+        "--secrets-file", generatedSecrets, "--outdir", outDirectory
       ], { cwd: appDirectory, env, timeout: 30_000 });
       await access(path.join(outDirectory, "index.js"));
+      expect(`${dryRun.stdout}\n${dryRun.stderr}`).toContain("TURNSTILE_SECRET_KEY");
+      expect(`${dryRun.stdout}\n${dryRun.stderr}`).toContain("SUPPORT_IP_HMAC_SECRET");
 
       const migrations = await execFileAsync("pnpm", [
         "exec", "wrangler", "d1", "migrations", "list", "a-better-time", "--local",
@@ -205,6 +215,26 @@ describe("production reconciliation helpers", () => {
     expect(sanitized).not.toContain(token);
     expect(sanitized).not.toContain("short-token");
     expect(sanitized).toContain("[REDACTED]");
+  });
+
+  test("writes only single-line GitHub output keys and values", async () => {
+    const writes = [];
+    await writeGithubOutput(
+      { GITHUB_OUTPUT: "/tmp/github-output" },
+      "WRANGLER_CONFIG",
+      "/tmp/config.toml",
+      async (...args) => { writes.push(args); }
+    );
+    expect(writes).toEqual([["/tmp/github-output", "WRANGLER_CONFIG=/tmp/config.toml\n", "utf8"]]);
+    for (const [key, value] of [
+      ["BAD\nKEY", "safe"],
+      ["SAFE", "bad\rvalue"],
+      ["SAFE", "bad\u0000value"],
+      ["SAFE", "bad\u007fvalue"]
+    ]) {
+      await expect(writeGithubOutput({ GITHUB_OUTPUT: "/tmp/github-output" }, key, value, async () => {}))
+        .rejects.toThrow(/GitHub output/i);
+    }
   });
 });
 
@@ -283,7 +313,8 @@ describe("production reconciliation orchestration", () => {
     ["SITE_URL", "https://example.com", /canonical.*jdconley\.com/i],
     ["SITE_URL", "https://jdconley.com/path", /canonical.*jdconley\.com/i],
     ["SITE_URL", "https://jdconley.com:443", /canonical.*jdconley\.com/i],
-    ["SUPPORT_IP_HMAC_SECRET", "s".repeat(31), /32 bytes/i]
+    ["SUPPORT_IP_HMAC_SECRET", "s".repeat(31), /32 bytes/i],
+    ["SUPPORT_IP_HMAC_SECRET", `${"s".repeat(32)}\n`, /control/i]
   ])("rejects an invalid production %s contract", async (name, value, message) => {
     const { events, dependencies } = harness();
     await expect(reconcileProductionResources({ env: { ...validEnv, [name]: value } }, dependencies)).rejects.toThrow(message);
@@ -305,7 +336,11 @@ describe("production reconciliation orchestration", () => {
     const { events, dependencies } = harness({ databases: [], widgets: [], state: null, actualCount: 0 });
     const result = await reconcileProductionResources({ env: validEnv }, dependencies);
 
-    expect(result).toEqual({ wranglerConfigPath: tempConfigPath, turnstileSiteKey: "new-site-key" });
+    expect(result).toEqual({
+      wranglerConfigPath: tempConfigPath,
+      wranglerSecretsFilePath: tempSecretsPath,
+      turnstileSiteKey: "new-site-key"
+    });
     expect(events.find(([type]) => type === "temp")).toEqual(["temp", "/runner-temp"]);
     const operations = events.map((event) => event[0] === "fetch" ? `${event[0]}:${event[1]}:${event[2].split("/").at(-1)}` : event[0] === "run" ? `${event[0]}:${event[2].join(" ")}` : event[0]);
     expect(operations).toEqual([
@@ -318,7 +353,7 @@ describe("production reconciliation orchestration", () => {
       expect.stringContaining("SELECT COUNT(*)"),
       expect.stringContaining("INSERT INTO production_resource_state"),
       "fetch:GET:widgets?per_page=1000&page=1", "fetch:POST:widgets",
-      expect.stringContaining("secret bulk"), "output", "output"
+      "write", "output", "output", "output"
     ]);
     const configWrite = events.find(([type]) => type === "write");
     expect(configWrite[2]).toContain(`database_id = "${createdDatabaseUuid}"`);
@@ -332,13 +367,23 @@ describe("production reconciliation orchestration", () => {
     const importRun = events.find(([type, _command, args]) => type === "run" && args.includes("locations:import:remote"));
     expect(importRun[2]).toEqual(["run", "locations:import:remote", "--", "--config", result.wranglerConfigPath]);
     expect(importRun[3].cwd).toBe(appDirectory);
-    const secretRun = events.find(([type, _command, args]) => type === "run" && args.includes("bulk"));
-    expect(secretRun[2].slice(-2)).toEqual(["--config", tempConfigPath]);
-    expect(secretRun[3].cwd).toBe(appDirectory);
-    expect(secretRun[3].input).toBe(JSON.stringify({ TURNSTILE_SECRET_KEY: "new-widget-secret", SUPPORT_IP_HMAC_SECRET: "h".repeat(32) }));
+    expect(events.some(([type, _command, args]) => type === "run" && args.includes("bulk"))).toBe(false);
+    const secretsWrite = events.filter(([type]) => type === "write")[1];
+    expect(secretsWrite[1]).toBe(tempSecretsPath);
+    expect(secretsWrite[3]).toEqual({ mode: 0o600 });
+    expect(JSON.parse(secretsWrite[2])).toEqual({
+      TURNSTILE_SECRET_KEY: "new-widget-secret",
+      SUPPORT_IP_HMAC_SECRET: "h".repeat(32)
+    });
+    expect(events.filter(([type]) => type === "output")).toEqual([
+      ["output", "WRANGLER_CONFIG", tempConfigPath],
+      ["output", "WRANGLER_SECRETS_FILE", tempSecretsPath],
+      ["output", "TURNSTILE_SITE_KEY", "new-site-key"]
+    ]);
     const logs = JSON.stringify(events.filter(([type]) => type === "log"));
     expect(logs).not.toContain("new-site-key");
     expect(logs).not.toContain("new-widget-secret");
+    expect(logs).not.toContain("h".repeat(32));
     const stateWrite = events.find(([type, _command, args]) => type === "run" && args.some((argument) => argument.includes?.("INSERT INTO production_resource_state")));
     expect(stateWrite[2]).toContain("--yes");
     expect(events.some(([type]) => type === "remove")).toBe(false);
@@ -353,6 +398,19 @@ describe("production reconciliation orchestration", () => {
     };
     await expect(reconcileProductionResources({ env: validEnv }, dependencies)).rejects.toThrow("migration failed");
     expect(events.find(([type]) => type === "temp")).toEqual(["temp", "/runner-temp"]);
+    expect(events.filter(([type]) => type === "remove")).toEqual([
+      ["remove", tempDirectory, { recursive: true, force: true }]
+    ]);
+  });
+
+  test("removes the staged secrets directory when publishing an output fails", async () => {
+    const { events, dependencies } = harness();
+    dependencies.output = async () => { throw new Error("output failed"); };
+    await expect(reconcileProductionResources({ env: validEnv }, dependencies)).rejects.toThrow("output failed");
+    expect(events.filter(([type]) => type === "write").map(([, file]) => file)).toEqual([
+      tempConfigPath,
+      tempSecretsPath
+    ]);
     expect(events.filter(([type]) => type === "remove")).toEqual([
       ["remove", tempDirectory, { recursive: true, force: true }]
     ]);
@@ -410,6 +468,28 @@ describe("production reconciliation orchestration", () => {
     expect(events.filter(([type]) => type === "log")).toEqual([
       ["log", "::add-mask::new-site-key"],
       ["log", "::add-mask::new-widget-secret"]
+    ]);
+  });
+
+  test("rejects a malicious Turnstile site key before masking, staging secrets, or publishing outputs", async () => {
+    const widget = {
+      name: "A Better Time - jdconley.com",
+      sitekey: "unsafe-site-key\nINJECTED=value",
+      secret: "existing-widget-secret",
+      mode: "managed",
+      domains
+    };
+    const { events, dependencies } = harness({
+      widgets: [widget],
+      state: { checksum: manifest.ndjsonSha256, row_count: 12 },
+      actualCount: 12
+    });
+    await expect(reconcileProductionResources({ env: { ...validEnv, GITHUB_ACTIONS: "true" } }, dependencies))
+      .rejects.toThrow(/site key/i);
+    expect(events.filter(([type]) => type === "write")).toHaveLength(1);
+    expect(events.some(([type]) => type === "output" || type === "log")).toBe(false);
+    expect(events.filter(([type]) => type === "remove")).toEqual([
+      ["remove", tempDirectory, { recursive: true, force: true }]
     ]);
   });
 

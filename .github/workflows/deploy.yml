@@ -17,18 +17,17 @@ jobs:
   deploy:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main'
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      SUPPORT_IP_HMAC_SECRET: ${{ secrets.SUPPORT_IP_HMAC_SECRET }}
       SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
       VITE_SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
@@ -44,6 +43,10 @@ jobs:
           fi
 
       - name: Validate production secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPPORT_IP_HMAC_SECRET: ${{ secrets.SUPPORT_IP_HMAC_SECRET }}
         shell: bash
         run: |
           required_secrets=(
@@ -68,12 +71,12 @@ jobs:
           fi
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
         with:
           version: 10.17.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: lts/*
           cache: pnpm
@@ -85,27 +88,76 @@ jobs:
       - name: Build site
         run: pnpm run build:site
 
+      - name: Reject stale main before reconciliation
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          CURRENT_MAIN_SHA=$(git rev-parse "origin/main")
+          if [[ "$CURRENT_MAIN_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "Refusing to reconcile stale CI commit $EXPECTED_SHA; current main is $CURRENT_MAIN_SHA." >&2
+            exit 1
+          fi
+
       - name: Reconcile production resources
         id: reconcile
         working-directory: apps/jdconley-site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPPORT_IP_HMAC_SECRET: ${{ secrets.SUPPORT_IP_HMAC_SECRET }}
         run: pnpm run production:reconcile
 
       - name: Capture reconciliation outputs
         id: production
         env:
           CONFIG_PATH: ${{ steps.reconcile.outputs.WRANGLER_CONFIG }}
+          SECRETS_FILE: ${{ steps.reconcile.outputs.WRANGLER_SECRETS_FILE }}
           TURNSTILE_SITE_KEY: ${{ steps.reconcile.outputs.TURNSTILE_SITE_KEY }}
         run: |
-          if [[ -z "$CONFIG_PATH" || ! -f "$CONFIG_PATH" ]]; then
-            echo "Reconciliation did not produce a Wrangler config." >&2
+          for value in "$CONFIG_PATH" "$SECRETS_FILE" "$TURNSTILE_SITE_KEY"; do
+            if [[ -z "$value" || "$value" =~ [[:cntrl:]] ]]; then
+              echo "Reconciliation output is empty or contains control characters." >&2
+              exit 1
+            fi
+          done
+          if [[ ! -f "$CONFIG_PATH" || ! -f "$SECRETS_FILE" ]]; then
+            echo "Reconciliation did not produce its config and secrets files." >&2
             exit 1
           fi
           if [[ ! "$TURNSTILE_SITE_KEY" =~ ^[A-Za-z0-9_-]{10,}$ ]]; then
             echo "Reconciliation produced a malformed Turnstile site key." >&2
             exit 1
           fi
-          echo "config_path=${{ steps.reconcile.outputs.WRANGLER_CONFIG }}" >> "$GITHUB_OUTPUT"
-          echo "turnstile_site_key=${{ steps.reconcile.outputs.TURNSTILE_SITE_KEY }}" >> "$GITHUB_OUTPUT"
+          TEMP_ROOT=$(realpath "$RUNNER_TEMP")
+          CONFIG_REAL=$(realpath "$CONFIG_PATH")
+          SECRETS_REAL=$(realpath "$SECRETS_FILE")
+          GENERATED_DIR=$(dirname "$CONFIG_REAL")
+          if [[ "$(dirname "$GENERATED_DIR")" != "$TEMP_ROOT" ||
+                ! "$(basename "$GENERATED_DIR")" =~ ^jdconley-production-[A-Za-z0-9]{6}$ ||
+                "$CONFIG_REAL" != "$GENERATED_DIR/wrangler.toml" ||
+                "$SECRETS_REAL" != "$GENERATED_DIR/wrangler-secrets.json" ]]; then
+            echo "Reconciliation outputs are outside the generated runner temp directory." >&2
+            exit 1
+          fi
+          if [[ "$(stat -c '%a' "$CONFIG_REAL")" != "600" || "$(stat -c '%a' "$SECRETS_REAL")" != "600" ]]; then
+            echo "Reconciliation output files must have mode 0600." >&2
+            exit 1
+          fi
+          echo "config_path=$CONFIG_PATH" >> "$GITHUB_OUTPUT"
+          echo "secrets_file=$SECRETS_FILE" >> "$GITHUB_OUTPUT"
+          echo "turnstile_site_key=$TURNSTILE_SITE_KEY" >> "$GITHUB_OUTPUT"
+
+      - name: Reject stale main before deployment
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          CURRENT_MAIN_SHA=$(git rev-parse "origin/main")
+          if [[ "$CURRENT_MAIN_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "Refusing to deploy stale CI commit $EXPECTED_SHA; current main is $CURRENT_MAIN_SHA." >&2
+            exit 1
+          fi
 
       - name: Deploy Cloudflare Worker
         uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
@@ -116,6 +168,7 @@ jobs:
           command: >-
             deploy
             --config "${{ steps.production.outputs.config_path }}"
+            --secrets-file "${{ steps.production.outputs.secrets_file }}"
             --var "TURNSTILE_SITE_KEY:${{ steps.production.outputs.turnstile_site_key }}"
             --var "SUPPORT_ORIGIN:${{ env.SITE_URL }}"
 

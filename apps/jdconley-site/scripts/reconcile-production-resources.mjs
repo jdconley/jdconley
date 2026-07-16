@@ -177,6 +177,9 @@ function validateEnvironment(env) {
     throw new Error("SITE_URL must be the canonical https://jdconley.com origin");
   }
   if (new TextEncoder().encode(env.SUPPORT_IP_HMAC_SECRET).byteLength < 32) throw new Error("SUPPORT_IP_HMAC_SECRET must contain at least 32 bytes");
+  if (/[\u0000-\u001f\u007f]/u.test(env.SUPPORT_IP_HMAC_SECRET)) {
+    throw new Error("SUPPORT_IP_HMAC_SECRET must not contain control characters");
+  }
 }
 
 function normalizeRunJson(result) {
@@ -255,7 +258,12 @@ function databaseId(database) {
 }
 
 function widgetCredentials(widget) {
-  if (!widget?.sitekey || !widget?.secret) throw new Error(`Cloudflare Turnstile widget ${WIDGET_NAME} did not return a sitekey and secret`);
+  if (!/^[A-Za-z0-9_-]{10,128}$/u.test(widget?.sitekey ?? "")) {
+    throw new Error(`Cloudflare Turnstile widget ${WIDGET_NAME} returned an invalid site key`);
+  }
+  if (typeof widget?.secret !== "string" || !widget.secret || /[\u0000-\u001f\u007f]/u.test(widget.secret)) {
+    throw new Error(`Cloudflare Turnstile widget ${WIDGET_NAME} returned an invalid secret`);
+  }
   return { sitekey: widget.sitekey, secret: widget.secret };
 }
 
@@ -267,8 +275,15 @@ function validateLocationManifest(manifest) {
   return manifest;
 }
 
-async function defaultOutput(env, key, value) {
-  if (env.GITHUB_OUTPUT) await appendFile(env.GITHUB_OUTPUT, `${key}=${value}\n`, "utf8");
+function validateGithubOutput(key, value) {
+  if (!/^[A-Z][A-Z0-9_]*$/u.test(key) || typeof value !== "string" || !value || /[\u0000-\u001f\u007f]/u.test(value)) {
+    throw new Error("GitHub output keys and values must be non-empty safe single-line strings");
+  }
+}
+
+export async function writeGithubOutput(env, key, value, append = appendFile) {
+  validateGithubOutput(key, value);
+  if (env.GITHUB_OUTPUT) await append(env.GITHUB_OUTPUT, `${key}=${value}\n`, "utf8");
 }
 
 export async function cleanupReconciledConfig(configPath, {
@@ -308,7 +323,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
   const write = dependencies.write ?? writeFile;
   const remove = dependencies.remove ?? rm;
   const temp = dependencies.temp ?? realTemp;
-  const output = dependencies.output ?? ((key, value) => defaultOutput(env, key, value));
+  const output = dependencies.output ?? ((key, value) => writeGithubOutput(env, key, value));
   const log = dependencies.log ?? console.log;
 
   validateEnvironment(env);
@@ -339,7 +354,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
       const widget = selectTurnstileWidget(widgets, WIDGET_NAME);
       if (!widget) plannedMutations.push(`Create Turnstile widget ${WIDGET_NAME}`);
       else if (needsTurnstileUpdate(widget, TURNSTILE_DOMAINS)) plannedMutations.push(`Update Turnstile widget ${WIDGET_NAME}`);
-      plannedMutations.push("Upload Worker secrets");
+      plannedMutations.push("Stage Worker secrets for atomic deployment");
       for (const mutation of plannedMutations) log(`[dry-run] ${mutation}`);
       return { dryRun: true, plannedMutations, wranglerConfigPath: null, turnstileSiteKey: widget?.sitekey ?? null };
     }
@@ -384,13 +399,20 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
       log(`::add-mask::${sitekey}`);
       log(`::add-mask::${secret}`);
     }
-    await run("pnpm", ["exec", "wrangler", "secret", "bulk", "--config", wranglerConfigPath], {
-      cwd: APP_DIRECTORY,
-      input: JSON.stringify({ TURNSTILE_SECRET_KEY: secret, SUPPORT_IP_HMAC_SECRET: env.SUPPORT_IP_HMAC_SECRET })
-    });
+    const wranglerSecretsFilePath = path.join(path.dirname(wranglerConfigPath), "wrangler-secrets.json");
+    await write(wranglerSecretsFilePath, `${JSON.stringify({
+      TURNSTILE_SECRET_KEY: secret,
+      SUPPORT_IP_HMAC_SECRET: env.SUPPORT_IP_HMAC_SECRET
+    })}\n`, { mode: 0o600 });
+    for (const [key, value] of [
+      ["WRANGLER_CONFIG", wranglerConfigPath],
+      ["WRANGLER_SECRETS_FILE", wranglerSecretsFilePath],
+      ["TURNSTILE_SITE_KEY", sitekey]
+    ]) validateGithubOutput(key, value);
     await output("WRANGLER_CONFIG", wranglerConfigPath);
+    await output("WRANGLER_SECRETS_FILE", wranglerSecretsFilePath);
     await output("TURNSTILE_SITE_KEY", sitekey);
-    return { wranglerConfigPath, turnstileSiteKey: sitekey };
+    return { wranglerConfigPath, wranglerSecretsFilePath, turnstileSiteKey: sitekey };
   } catch (error) {
     const message = redactError(error);
     if (wranglerConfigPath) {
