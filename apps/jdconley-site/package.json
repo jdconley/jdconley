@@ -10,6 +10,10 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "preview:cf": "dotenvx run -- wrangler dev --ip 127.0.0.1 --port 8788",
     "preview:cf:build": "pnpm run build && pnpm run preview:cf",
+    "db:migrate:local": "wrangler d1 migrations apply a-better-time --local",
+    "locations:build": "node ./scripts/build-location-index.mjs",
+    "locations:import:local": "node ./scripts/import-location-index.mjs --local --fixtures",
+    "locations:import:remote": "node ./scripts/import-location-index.mjs --remote",
     "test:unit": "vitest run --config vitest.config.mjs",
     "test:worker": "vitest run --config vitest.worker.config.mjs",
     "test:e2e": "playwright test",
@@ -32,6 +36,7 @@
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
     "@resvg/resvg-wasm": "^2.6.2",
+    "fflate": "^0.8.3",
     "satori": "^0.28.0",
     "suncalc": "^2.0.1",
     "tz-lookup": "^6.1.25"

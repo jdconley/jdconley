@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2025-09-08T00:00:00.000Z",
+  "generationTime": "SOURCE_DATE_EPOCH",
+  "sources": {
+    "places": {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_place_national.zip",
+      "sha256": "49644173a453469d9bd77fb7a493b027f87567e209edaf2078aac7543ac2ee29"
+    },
+    "zctas": {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_zcta_national.zip",
+      "sha256": "51516a4283bab5cd2376eec75609ddc4b363a18297e8adeeaac7b03cf7c84dbe"
+    },
+    "zctaCounties": {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt",
+      "sha256": "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf"
+    }
+  },
+  "sourceRows": {
+    "places": 32350,
+    "zctas": 33791,
+    "zctaCountyRelationships": 47863
+  },
+  "outputRows": {
+    "total": 65489,
+    "places": 31847,
+    "zips": 33642
+  },
+  "ndjsonSha256": "390d3b3b71ff95252eb559738325bf264c2ffbfe92bc5feee2d21aeb714f5948"
+}
