@@ -10,10 +10,10 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await env.DB.exec("DELETE FROM locations;");
-  const statement = env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone) VALUES(?,?,?,?,?,?,?,?)");
+  const statement = env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone,population) VALUES(?,?,?,?,?,?,?,?,?)");
   await env.DB.batch(fixtures.map((row) => statement.bind(
     row.kind, row.search_name, row.display_name, row.state_code, row.zip,
-    row.latitude, row.longitude, row.time_zone
+    row.latitude, row.longitude, row.time_zone, row.population
   )));
 });
 
@@ -23,7 +23,7 @@ async function request(path, init) {
 
 describe("GET /api/a-better-time/locations", () => {
   it("supports U.S. locations across the antimeridian", async () => {
-    await expect(env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone) VALUES('place','attu','Attu, AK','AK',NULL,52.84,173.18,'America/Adak')").run()).resolves.toBeTruthy();
+    await expect(env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone,population) VALUES('place','attu','Attu, AK','AK',NULL,52.84,173.18,'America/Adak',0)").run()).resolves.toBeTruthy();
   });
 
   it("normalizes Unicode, whitespace, and case and ranks duplicate names deterministically", async () => {
@@ -32,8 +32,8 @@ describe("GET /api/a-better-time/locations", () => {
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(response.headers.get("cache-control")).toBe("public, max-age=300");
     expect(await response.json()).toEqual({ results: [
-      { place: "Portland, ME", lat: 43.633157, lon: -70.185305, tz: "America/New_York" },
-      { place: "Portland, OR", lat: 45.536951, lon: -122.649971, tz: "America/Los_Angeles" }
+      { place: "Portland, OR", lat: 45.536951, lon: -122.649971, tz: "America/Los_Angeles" },
+      { place: "Portland, ME", lat: 43.633157, lon: -70.185305, tz: "America/New_York" }
     ] });
   });
 
@@ -68,8 +68,25 @@ describe("GET /api/a-better-time/locations", () => {
     expect((await response.json()).results).toBeInstanceOf(Array);
   });
 
+  it("ranks official population prominence for broad prefixes", async () => {
+    const statement = env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone,population) VALUES('place',?,?,?,NULL,?,?,?,?)");
+    await env.DB.batch([
+      ["san diego", "San Diego, CA", "CA", 32.7, -117.1, "America/Los_Angeles", 1422710],
+      ["san francisco", "San Francisco, CA", "CA", 37.7, -122.4, "America/Los_Angeles", 881549],
+      ["san tiny", "San Tiny, CA", "CA", 36, -121, "America/Los_Angeles", 10]
+    ].map((row) => statement.bind(...row)));
+    const response = await request("/api/a-better-time/locations?q=san");
+    const places = (await response.json()).results.map(({ place }) => place);
+    expect(places.slice(0, 2)).toEqual(["San Diego, CA", "San Francisco, CA"]);
+  });
+
+  it("keeps Portland prominent for a broad port prefix", async () => {
+    const response = await request("/api/a-better-time/locations?q=port");
+    expect((await response.json()).results[0].place).toBe("Portland, OR");
+  });
+
   it("caps prefix results at eight and returns stable empty JSON", async () => {
-    const statement = env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone) VALUES('place',?,?,?,?,?,?,?)");
+    const statement = env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone,population) VALUES('place',?,?,?,?,?,?,?,0)");
     await env.DB.batch(["CA", "CO", "FL", "IL", "MA", "MO", "NJ", "OH", "VA"].map((state) =>
       statement.bind("springfield", `Springfield, ${state}`, state, null, 39, -90, "America/Chicago")));
     const capped = await request("/api/a-better-time/locations?q=spring");

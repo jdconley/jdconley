@@ -1,11 +1,11 @@
 [
-  {"kind":"place","search_name":"anchorage","display_name":"Anchorage, AK","state_code":"AK","zip":null,"latitude":61.17425,"longitude":-149.284329,"time_zone":"America/Anchorage"},
-  {"kind":"place","search_name":"phoenix","display_name":"Phoenix, AZ","state_code":"AZ","zip":null,"latitude":33.572154,"longitude":-112.090132,"time_zone":"America/Phoenix"},
-  {"kind":"zip","search_name":"85001","display_name":"85001, AZ","state_code":"AZ","zip":"85001","latitude":33.4484,"longitude":-112.074,"time_zone":"America/Phoenix"},
-  {"kind":"place","search_name":"south lake tahoe","display_name":"South Lake Tahoe, CA","state_code":"CA","zip":null,"latitude":38.928218,"longitude":-119.981,"time_zone":"America/Los_Angeles"},
-  {"kind":"zip","search_name":"96150","display_name":"96150, CA","state_code":"CA","zip":"96150","latitude":38.87332,"longitude":-120.068481,"time_zone":"America/Los_Angeles"},
-  {"kind":"place","search_name":"honolulu","display_name":"Honolulu, HI","state_code":"HI","zip":null,"latitude":21.324347,"longitude":-157.84764,"time_zone":"Pacific/Honolulu"},
-  {"kind":"place","search_name":"portland","display_name":"Portland, ME","state_code":"ME","zip":null,"latitude":43.633157,"longitude":-70.185305,"time_zone":"America/New_York"},
-  {"kind":"place","search_name":"portland","display_name":"Portland, OR","state_code":"OR","zip":null,"latitude":45.536951,"longitude":-122.649971,"time_zone":"America/Los_Angeles"},
-  {"kind":"zip","search_name":"97205","display_name":"97205, OR","state_code":"OR","zip":"97205","latitude":45.52009,"longitude":-122.702169,"time_zone":"America/Los_Angeles"}
+  {"kind":"place","search_name":"anchorage","display_name":"Anchorage, AK","state_code":"AK","zip":null,"latitude":61.17425,"longitude":-149.284329,"time_zone":"America/Anchorage","population":291247},
+  {"kind":"place","search_name":"phoenix","display_name":"Phoenix, AZ","state_code":"AZ","zip":null,"latitude":33.572154,"longitude":-112.090132,"time_zone":"America/Phoenix","population":1708127},
+  {"kind":"zip","search_name":"85001","display_name":"85001, AZ","state_code":"AZ","zip":"85001","latitude":33.4484,"longitude":-112.074,"time_zone":"America/Phoenix","population":0},
+  {"kind":"place","search_name":"south lake tahoe","display_name":"South Lake Tahoe, CA","state_code":"CA","zip":null,"latitude":38.928218,"longitude":-119.981,"time_zone":"America/Los_Angeles","population":22036},
+  {"kind":"zip","search_name":"96150","display_name":"96150, CA","state_code":"CA","zip":"96150","latitude":38.87332,"longitude":-120.068481,"time_zone":"America/Los_Angeles","population":0},
+  {"kind":"place","search_name":"honolulu","display_name":"Honolulu, HI","state_code":"HI","zip":null,"latitude":21.324347,"longitude":-157.84764,"time_zone":"Pacific/Honolulu","population":350964},
+  {"kind":"place","search_name":"portland","display_name":"Portland, ME","state_code":"ME","zip":null,"latitude":43.633157,"longitude":-70.185305,"time_zone":"America/New_York","population":66752},
+  {"kind":"place","search_name":"portland","display_name":"Portland, OR","state_code":"OR","zip":null,"latitude":45.536951,"longitude":-122.649971,"time_zone":"America/Los_Angeles","population":656754},
+  {"kind":"zip","search_name":"97205","display_name":"97205, OR","state_code":"OR","zip":"97205","latitude":45.52009,"longitude":-122.702169,"time_zone":"America/Los_Angeles","population":0}
 ]

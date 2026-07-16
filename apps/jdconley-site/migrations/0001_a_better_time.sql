@@ -8,6 +8,7 @@ CREATE TABLE locations (
   latitude REAL NOT NULL CHECK (latitude BETWEEN 17 AND 72),
   longitude REAL NOT NULL CHECK (longitude BETWEEN -180 AND 180),
   time_zone TEXT NOT NULL CHECK (length(time_zone) BETWEEN 3 AND 64),
+  population INTEGER NOT NULL DEFAULT 0 CHECK (population >= 0),
   CHECK ((kind = 'zip' AND zip IS NOT NULL) OR (kind = 'place' AND zip IS NULL))
 );
 

@@ -5,6 +5,7 @@ import path from "node:path";
 
 import { unzipSync } from "fflate";
 import tzLookup from "tz-lookup";
+import { resolveUsTimeZone } from "../worker/us-time-zones.js";
 
 export const SOURCES = Object.freeze({
   places: {
@@ -20,6 +21,12 @@ export const SOURCES = Object.freeze({
     // us choose the state containing the largest land-area share of each ZCTA.
     url: "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt",
     sha256: "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf"
+  },
+  populations: {
+    // Official Census Population Estimates Program subcounty file. SUMLEV 162
+    // provides one incorporated-place row keyed by state and place FIPS.
+    url: "https://www2.census.gov/programs-surveys/popest/datasets/2010-2020/cities/SUB-EST2020_ALL.csv",
+    sha256: "2b05bd6b45934a2a7d628b27957a32deb2cdd6e2eacdb28ba1c9090dfe24d0bb"
   }
 });
 
@@ -49,6 +56,32 @@ export function parseDelimited(text, delimiter = "|") {
   return lines.slice(1).map((line) => Object.fromEntries(headers.map((header, index) => [header, line.split(delimiter)[index] ?? ""])));
 }
 
+function parseCsvRows(text) {
+  const rows = [];
+  let row = [], field = "", quoted = false;
+  const input = String(text).replace(/^\uFEFF/u, "");
+  for (let index = 0; index < input.length; index += 1) {
+    const character = input[index];
+    if (quoted && character === '"' && input[index + 1] === '"') { field += '"'; index += 1; }
+    else if (character === '"') quoted = !quoted;
+    else if (!quoted && character === ",") { row.push(field); field = ""; }
+    else if (!quoted && (character === "\n" || character === "\r")) {
+      if (character === "\r" && input[index + 1] === "\n") index += 1;
+      row.push(field); field = ""; if (row.some(Boolean)) rows.push(row); row = [];
+    } else field += character;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+export function parsePopulationCsv(text) {
+  const [headers, ...rows] = parseCsvRows(text);
+  if (!headers) return [];
+  return rows.map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""])))
+    .filter((row) => row.SUMLEV === "162" && STATE_FIPS[row.STATE])
+    .map((row) => ({ geoid: `${row.STATE}${row.PLACE}`, population: Math.max(0, Number.parseInt(row.POPESTIMATE042020, 10) || 0) }));
+}
+
 export function verifyChecksum(bytes, expected, label) {
   const actual = createHash("sha256").update(bytes).digest("hex");
   if (actual !== expected) throw new Error(`Checksum mismatch for ${label}: expected ${expected}, received ${actual}`);
@@ -62,13 +95,21 @@ function numeric(value, label) {
 }
 
 function preferredZctaStates(relationships) {
-  const preferred = new Map();
+  const totals = new Map();
   for (const row of relationships) {
     const zip = normalizeWhitespace(row.GEOID_ZCTA5_20);
     const state = STATE_FIPS[normalizeWhitespace(row.GEOID_COUNTY_20).slice(0, 2)];
     if (!/^\d{5}$/u.test(zip) || !state) continue;
     const land = Number(row.AREALAND_PART) || 0;
     const water = Number(row.AREAWATER_PART) || 0;
+    const key = `${zip}\u0000${state}`;
+    const total = totals.get(key) ?? { zip, state, land: 0, water: 0 };
+    total.land += land;
+    total.water += water;
+    totals.set(key, total);
+  }
+  const preferred = new Map();
+  for (const { zip, state, land, water } of totals.values()) {
     const score = [land, water, state];
     const current = preferred.get(zip);
     if (!current || score[0] > current.score[0] || (score[0] === current.score[0] && score[1] > current.score[1]) ||
@@ -83,9 +124,10 @@ function compareText(left, right) {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-export function buildLocationRecords({ places, zctas, relationships, timezoneFor = tzLookup }) {
+export function buildLocationRecords({ places, zctas, relationships, populations = [], timezoneFor = tzLookup }) {
   const records = [];
   const uniquePlaces = new Map();
+  const populationByGeoid = new Map(populations.map(({ geoid, population }) => [geoid, population]));
   for (const row of [...places].sort((a, b) => compareText(normalizeWhitespace(a.GEOID), normalizeWhitespace(b.GEOID)))) {
     const state = normalizeWhitespace(row.USPS);
     if (!STATE_CODES.has(state)) continue;
@@ -94,7 +136,9 @@ export function buildLocationRecords({ places, zctas, relationships, timezoneFor
     const name = normalizeWhitespace(row.NAME).replace(PLACE_SUFFIX, "");
     const record = {
       kind: "place", search_name: normalizeSearchName(name), display_name: `${name}, ${state}`,
-      state_code: state, zip: null, latitude, longitude, time_zone: timezoneFor(latitude, longitude)
+      state_code: state, zip: null, latitude, longitude,
+      time_zone: resolveUsTimeZone(state, latitude, longitude, timezoneFor),
+      population: populationByGeoid.get(normalizeWhitespace(row.GEOID)) ?? 0
     };
     const key = `${record.search_name}\u0000${state}`;
     if (!uniquePlaces.has(key)) uniquePlaces.set(key, record);
@@ -110,7 +154,7 @@ export function buildLocationRecords({ places, zctas, relationships, timezoneFor
     const longitude = numeric(row.INTPTLONG, "ZCTA longitude");
     records.push({
       kind: "zip", search_name: zip, display_name: `${zip}, ${state}`, state_code: state, zip,
-      latitude, longitude, time_zone: timezoneFor(latitude, longitude)
+      latitude, longitude, time_zone: resolveUsTimeZone(state, latitude, longitude, timezoneFor), population: 0
     });
   }
 
@@ -158,17 +202,18 @@ export function resolveGenerationTime({ generatedAt, sourceDateEpoch = process.e
 }
 
 export async function generateLocationIndex({ fetcher = fetch, generatedAt, outputDirectory } = {}) {
-  const [placeBytes, zctaBytes, relationshipBytes] = await Promise.all([
-    download(SOURCES.places, fetcher), download(SOURCES.zctas, fetcher), download(SOURCES.zctaCounties, fetcher)
+  const [placeBytes, zctaBytes, relationshipBytes, populationBytes] = await Promise.all([
+    download(SOURCES.places, fetcher), download(SOURCES.zctas, fetcher), download(SOURCES.zctaCounties, fetcher), download(SOURCES.populations, fetcher)
   ]);
   const places = parseDelimited(unzipText(placeBytes, "places"));
   const zctas = parseDelimited(unzipText(zctaBytes, "ZCTAs"));
   const relationships = parseDelimited(new TextDecoder().decode(relationshipBytes));
-  const records = buildLocationRecords({ places, zctas, relationships });
+  const populations = parsePopulationCsv(new TextDecoder().decode(populationBytes));
+  const records = buildLocationRecords({ places, zctas, relationships, populations });
   const generation = resolveGenerationTime({ generatedAt });
   const { ndjson, manifest } = serializeLocationIndex(records, {
     ...generation,
-    sourceRows: { places: places.length, zctas: zctas.length, zctaCountyRelationships: relationships.length }
+    sourceRows: { places: places.length, zctas: zctas.length, zctaCountyRelationships: relationships.length, populations: populations.length }
   });
   if (outputDirectory) {
     await mkdir(outputDirectory, { recursive: true });

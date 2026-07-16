@@ -46,7 +46,8 @@ export async function handleLocations(request, env) {
       FROM locations_fts AS f JOIN locations AS l ON l.id = f.rowid
       WHERE locations_fts MATCH ?1
       ORDER BY CASE WHEN l.search_name = ?2 THEN 0 ELSE 1 END,
-               l.search_name, l.state_code, l.kind, COALESCE(l.zip, ''), l.display_name
+               CASE WHEN substr(l.search_name, 1, length(?2)) = ?2 THEN 0 ELSE 1 END,
+               l.population DESC, l.search_name, l.state_code, l.kind, COALESCE(l.zip, ''), l.display_name
       LIMIT 8
     `).bind(match, query).all();
   }
