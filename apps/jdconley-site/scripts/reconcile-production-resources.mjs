@@ -28,30 +28,84 @@ export function selectTurnstileWidget(widgets, name = "A Better Time - jdconley.
   return selectNamedResource(widgets, name, "Turnstile widget");
 }
 
-export function renderWranglerConfig(config, databaseId) {
-  if (typeof databaseId !== "string" || !UUID_PATTERN.test(databaseId)) throw new Error("Invalid D1 database UUID");
-  const headers = [...config.matchAll(/^[ \t]*\[\[d1_databases\]\]\s*(?:#.*)?$/gmu)];
-  const namedBlocks = [];
-  for (const header of headers) {
-    const start = header.index;
-    const remainder = config.slice(start + header[0].length);
-    const nextHeader = remainder.match(/^[ \t]*\[{1,2}[^\]\r\n]+\]{1,2}\s*(?:#.*)?$/mu);
-    const end = nextHeader ? start + header[0].length + nextHeader.index : config.length;
-    const block = config.slice(start, end);
-    if (!/^[ \t]*database_name\s*=\s*(["'])a-better-time\1\s*(?:#.*)?$/mu.test(block)) continue;
-    namedBlocks.push({ start, block });
-  }
+function tableBlocks(config, expectedHeader) {
+  const headers = [...config.matchAll(/^[ \t]*(\[\[[^\]\r\n]+\]\]|\[[^\]\r\n]+\])[ \t]*(?:#[^\r\n]*)?$/gmu)];
+  return headers
+    .map((header, index) => ({
+      header: header[1],
+      start: header.index,
+      end: headers[index + 1]?.index ?? config.length
+    }))
+    .filter(({ header }) => header === expectedHeader);
+}
+
+function namedDatabaseBlock(config) {
+  const namedBlocks = tableBlocks(config, "[[d1_databases]]").filter(({ start, end }) =>
+    /^[ \t]*database_name[ \t]*=[ \t]*(["'])a-better-time\1[ \t]*(?:#[^\r\n]*)?$/mu.test(config.slice(start, end))
+  );
   if (namedBlocks.length !== 1) throw new Error(`Expected exactly one named D1 database block, received ${namedBlocks.length}`);
-  const [{ start: blockStart, block }] = namedBlocks;
-  const bindings = [...block.matchAll(/^[ \t]*binding\s*=\s*(["'])([^\r\n]*?)\1\s*(?:#.*)?$/gmu)];
+  const [block] = namedBlocks;
+  const bindings = [...config.slice(block.start, block.end).matchAll(/^[ \t]*binding[ \t]*=[ \t]*(["'])([^\r\n]*?)\1[ \t]*(?:#[^\r\n]*)?$/gmu)];
   if (bindings.length !== 1 || bindings[0][2] !== "DB") throw new Error("Named D1 database block must use binding DB exactly once");
+  return block;
+}
+
+function sourceRoot(sourceDirectory) {
+  if (typeof sourceDirectory !== "string" || !path.isAbsolute(sourceDirectory)) {
+    throw new Error("Wrangler source directory must be an absolute path");
+  }
+  if (/[\u0000-\u001f\u007f]/u.test(sourceDirectory)) {
+    throw new Error("Wrangler source directory contains unsafe control characters");
+  }
+  return path.resolve(sourceDirectory);
+}
+
+function anchoredPath(root, configuredPath, label) {
+  if (!configuredPath || path.isAbsolute(configuredPath) || /[\u0000-\u001f\u007f]/u.test(configuredPath)) {
+    throw new Error(`${label} must be a safe relative path`);
+  }
+  const absolute = path.resolve(root, configuredPath);
+  const relative = path.relative(root, absolute);
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error(`${label} resolves outside the Wrangler source directory`);
+  }
+  return absolute;
+}
+
+function replacePathAssignment(config, { start, end }, name, label, root) {
+  const assignment = new RegExp(
+    `^([ \\t]*${name}[ \\t]*=[ \\t]*)(["'])([^\\\\\\r\\n]*?)\\2([ \\t]*(?:#[^\\r\\n]*)?$)`,
+    "gmu"
+  );
+  const block = config.slice(start, end);
+  const matches = [...block.matchAll(assignment)];
+  if (matches.length !== 1) throw new Error(`Expected exactly one ${label} assignment, received ${matches.length}`);
+  const [match] = matches;
+  const replacement = `${match[1]}${JSON.stringify(anchoredPath(root, match[3], label))}${match[4]}`;
+  const absoluteStart = start + match.index;
+  return `${config.slice(0, absoluteStart)}${replacement}${config.slice(absoluteStart + match[0].length)}`;
+}
+
+export function renderWranglerConfig(config, databaseId, sourceDirectory) {
+  if (typeof databaseId !== "string" || !UUID_PATTERN.test(databaseId)) throw new Error("Invalid D1 database UUID");
+  const root = sourceRoot(sourceDirectory);
+  const { start: blockStart, end: blockEnd } = namedDatabaseBlock(config);
+  const block = config.slice(blockStart, blockEnd);
   const identifiers = [...block.matchAll(/^([ \t]*database_id\s*=\s*)(["'])([^\r\n]*?)\2(\s*(?:#.*)?$)/gmu)];
   if (identifiers.length !== 1) throw new Error(`Expected exactly one D1 database_id assignment, received ${identifiers.length}`);
   const [match] = identifiers;
   if (!UUID_PATTERN.test(match[3])) throw new Error("Existing D1 database_id is not a standard UUID");
   const start = blockStart + match.index;
   const replacement = `${match[1]}${match[2]}${databaseId}${match[2]}${match[4]}`;
-  return `${config.slice(0, start)}${replacement}${config.slice(start + match[0].length)}`;
+  let rendered = `${config.slice(0, start)}${replacement}${config.slice(start + match[0].length)}`;
+
+  const firstTable = [...rendered.matchAll(/^[ \t]*\[{1,2}[^\]\r\n]+\]{1,2}[ \t]*(?:#[^\r\n]*)?$/gmu)][0];
+  rendered = replacePathAssignment(rendered, { start: 0, end: firstTable?.index ?? rendered.length }, "main", "main", root);
+  const assets = tableBlocks(rendered, "[assets]");
+  if (assets.length !== 1) throw new Error(`Expected exactly one [assets] directory table, received ${assets.length}`);
+  rendered = replacePathAssignment(rendered, assets[0], "directory", "assets directory", root);
+  rendered = replacePathAssignment(rendered, namedDatabaseBlock(rendered), "migrations_dir", "D1 migrations_dir", root);
+  return rendered;
 }
 
 export function needsLocationImport(state, manifest, actualCount) {
@@ -291,7 +345,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
     }
 
     const sourceConfig = await read(path.join(APP_DIRECTORY, "wrangler.toml"), "utf8");
-    const reconciledConfig = renderWranglerConfig(sourceConfig, databaseId(database));
+    const reconciledConfig = renderWranglerConfig(sourceConfig, databaseId(database), APP_DIRECTORY);
     wranglerConfigPath = await temp(tempRoot);
     await write(wranglerConfigPath, reconciledConfig, { mode: 0o600 });
 

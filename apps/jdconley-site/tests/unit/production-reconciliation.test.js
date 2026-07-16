@@ -1,4 +1,8 @@
-import { access, readFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { describe, expect, test } from "vitest";
 import { importLocations, parseImportArguments } from "../../scripts/import-location-index.mjs";
@@ -27,10 +31,13 @@ const domains = ["jdconley.com", "www.jdconley.com", "jdconley-site.jd-conley.wo
 const databaseUuid = "123e4567-e89b-42d3-a456-426614174000";
 const createdDatabaseUuid = "123e4567-e89b-42d3-a456-426614174001";
 const replacementDatabaseUuid = "123e4567-e89b-42d3-a456-426614174002";
+const sourceDirectory = '/checkout/apps/site "quoted"';
 const tempDirectory = "/runner-temp/jdconley-production-a1B2c3";
 const tempConfigPath = `${tempDirectory}/wrangler.toml`;
-const wranglerSource = `name = "jdconley-site"\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "a-better-time"\ndatabase_id = "${databaseUuid}"\n`;
+const wranglerSource = `name = "jdconley-site"\nmain = "worker/index.js"\ncompatibility_date = "2026-07-15"\n[assets]\ndirectory = "dist"\nbinding = "ASSETS"\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "a-better-time"\ndatabase_id = "${databaseUuid}"\nmigrations_dir = "migrations"\n`;
 const manifest = { ndjsonSha256: "a".repeat(64), outputRows: { total: 12 } };
+const execFileAsync = promisify(execFile);
+const appDirectory = fileURLToPath(new URL("../../", import.meta.url));
 
 function cloudflareResponse(result, success = true, resultInfo) {
   return { ok: true, json: async () => ({ success, result, ...(resultInfo ? { result_info: resultInfo } : {}), ...(success ? {} : { errors: result }) }) };
@@ -84,19 +91,90 @@ describe("production reconciliation helpers", () => {
     expect(() => selectDatabase([{ name: "a-better-time" }, { name: "a-better-time" }], "a-better-time")).toThrow(/multiple/i);
   });
 
-  test("strictly replaces the sole D1 database id without changing other TOML", () => {
-    const input = `name = "site"\n\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "a-better-time"\ndatabase_id = "${databaseUuid}"\n\n[vars]\nVALUE = "database_id = untouched"\n`;
-    expect(renderWranglerConfig(input, replacementDatabaseUuid)).toBe(input.replace(databaseUuid, replacementDatabaseUuid));
+  test("anchors path settings to the source directory while preserving all other TOML", () => {
+    const input = `name = "site"\nmain = "worker/index.js"\n\n[assets]\ndirectory = "dist"\nbinding = "ASSETS"\n\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "a-better-time"\ndatabase_id = "${databaseUuid}"\nmigrations_dir = "migrations"\n\n[vars]\nVALUE = "database_id = untouched"\n`;
+    const expected = input
+      .replace('main = "worker/index.js"', `main = ${JSON.stringify(path.join(sourceDirectory, "worker/index.js"))}`)
+      .replace('directory = "dist"', `directory = ${JSON.stringify(path.join(sourceDirectory, "dist"))}`)
+      .replace('migrations_dir = "migrations"', `migrations_dir = ${JSON.stringify(path.join(sourceDirectory, "migrations"))}`)
+      .replace(databaseUuid, replacementDatabaseUuid);
+    expect(renderWranglerConfig(input, replacementDatabaseUuid, sourceDirectory)).toBe(expected);
     const withUnrelatedId = `${input}\n[durable_objects]\ndatabase_id = \"not-d1\"\n`;
-    expect(renderWranglerConfig(withUnrelatedId, replacementDatabaseUuid)).toBe(withUnrelatedId.replace(databaseUuid, replacementDatabaseUuid));
-    expect(() => renderWranglerConfig("name = \"site\"\n", replacementDatabaseUuid)).toThrow(/exactly one/i);
-    expect(() => renderWranglerConfig("database_id = \"one\"\ndatabase_id = \"two\"\n", replacementDatabaseUuid)).toThrow(/exactly one/i);
-    expect(() => renderWranglerConfig(input, 'unsafe"\ndatabase_id = "injected')).toThrow(/invalid/i);
-    expect(() => renderWranglerConfig(input, "not-a-standard-uuid")).toThrow(/UUID/i);
-    expect(() => renderWranglerConfig(input.replace(databaseUuid, "malformed-existing-id"), replacementDatabaseUuid)).toThrow(/UUID/i);
-    expect(() => renderWranglerConfig(input.replace('binding = "DB"', 'binding = "OTHER"'), replacementDatabaseUuid)).toThrow(/binding DB/i);
-    expect(() => renderWranglerConfig(input.replace('binding = "DB"\n', ""), replacementDatabaseUuid)).toThrow(/binding DB/i);
+    expect(renderWranglerConfig(withUnrelatedId, replacementDatabaseUuid, sourceDirectory)).toBe(`${expected}\n[durable_objects]\ndatabase_id = \"not-d1\"\n`);
+    expect(() => renderWranglerConfig("name = \"site\"\n", replacementDatabaseUuid, sourceDirectory)).toThrow(/exactly one/i);
+    expect(() => renderWranglerConfig("database_id = \"one\"\ndatabase_id = \"two\"\n", replacementDatabaseUuid, sourceDirectory)).toThrow(/exactly one/i);
+    expect(() => renderWranglerConfig(input, 'unsafe"\ndatabase_id = "injected', sourceDirectory)).toThrow(/invalid/i);
+    expect(() => renderWranglerConfig(input, "not-a-standard-uuid", sourceDirectory)).toThrow(/UUID/i);
+    expect(() => renderWranglerConfig(input.replace(databaseUuid, "malformed-existing-id"), replacementDatabaseUuid, sourceDirectory)).toThrow(/UUID/i);
+    expect(() => renderWranglerConfig(input.replace('binding = "DB"', 'binding = "OTHER"'), replacementDatabaseUuid, sourceDirectory)).toThrow(/binding DB/i);
+    expect(() => renderWranglerConfig(input.replace('binding = "DB"\n', ""), replacementDatabaseUuid, sourceDirectory)).toThrow(/binding DB/i);
   });
+
+  test("rejects source or config paths that cannot be safely anchored", () => {
+    expect(() => renderWranglerConfig(wranglerSource, replacementDatabaseUuid, "relative/source"))
+      .toThrow(/source directory.*absolute/i);
+    expect(() => renderWranglerConfig(
+      wranglerSource.replace('main = "worker/index.js"', 'main = "../worker/index.js"'),
+      replacementDatabaseUuid,
+      "/checkout/apps/site"
+    )).toThrow(/main.*outside/i);
+    expect(() => renderWranglerConfig(
+      wranglerSource.replace('directory = "dist"\n', ""),
+      replacementDatabaseUuid,
+      "/checkout/apps/site"
+    )).toThrow(/assets.*directory/i);
+  });
+
+  test("generated temp config reaches fixture entry, assets, and migrations without network access", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "jdconley-wrangler-config-"));
+    const checkout = path.join(root, 'checkout "quoted"');
+    const generatedDirectory = path.join(root, "generated");
+    const generatedConfig = path.join(generatedDirectory, "wrangler.toml");
+    const outDirectory = path.join(root, "dry-run-output");
+    const localState = path.join(root, "local-state");
+    try {
+      await Promise.all([
+        mkdir(path.join(checkout, "worker"), { recursive: true }),
+        mkdir(path.join(checkout, "dist"), { recursive: true }),
+        mkdir(path.join(checkout, "migrations"), { recursive: true }),
+        mkdir(generatedDirectory, { recursive: true })
+      ]);
+      await Promise.all([
+        writeFile(path.join(checkout, "worker/index.js"), 'export default { fetch() { return new Response("fixture"); } };\n'),
+        writeFile(path.join(checkout, "dist/index.html"), "<!doctype html><title>fixture</title>\n"),
+        writeFile(path.join(checkout, "migrations/0001_fixture.sql"), "CREATE TABLE fixture (id INTEGER PRIMARY KEY);\n")
+      ]);
+      await writeFile(
+        generatedConfig,
+        renderWranglerConfig(wranglerSource, replacementDatabaseUuid, checkout),
+        { mode: 0o600 }
+      );
+      const env = {
+        ...process.env,
+        NO_COLOR: "1",
+        WRANGLER_HIDE_BANNER: "true",
+        WRANGLER_SEND_METRICS: "false",
+        WRANGLER_SEND_ERROR_REPORTS: "false",
+        XDG_CONFIG_HOME: path.join(root, "xdg-config"),
+        XDG_CACHE_HOME: path.join(root, "xdg-cache")
+      };
+      delete env.CLOUDFLARE_API_TOKEN;
+      delete env.CLOUDFLARE_ACCOUNT_ID;
+
+      await execFileAsync("pnpm", [
+        "exec", "wrangler", "deploy", "--dry-run", "--config", generatedConfig, "--outdir", outDirectory
+      ], { cwd: appDirectory, env, timeout: 30_000 });
+      await access(path.join(outDirectory, "index.js"));
+
+      const migrations = await execFileAsync("pnpm", [
+        "exec", "wrangler", "d1", "migrations", "list", "a-better-time", "--local",
+        "--config", generatedConfig, "--persist-to", localState
+      ], { cwd: appDirectory, env, timeout: 30_000 });
+      expect(`${migrations.stdout}\n${migrations.stderr}`).toContain("0001_fixture.sql");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 40_000);
 
   test("imports locations unless checksum and every row count agree", () => {
     const manifest = { ndjsonSha256: "abc", outputRows: { total: 12 } };
@@ -244,10 +322,19 @@ describe("production reconciliation orchestration", () => {
     ]);
     const configWrite = events.find(([type]) => type === "write");
     expect(configWrite[2]).toContain(`database_id = "${createdDatabaseUuid}"`);
+    expect(configWrite[2]).toContain(`main = ${JSON.stringify(path.join(appDirectory, "worker/index.js"))}`);
+    expect(configWrite[2]).toContain(`directory = ${JSON.stringify(path.join(appDirectory, "dist"))}`);
+    expect(configWrite[2]).toContain(`migrations_dir = ${JSON.stringify(path.join(appDirectory, "migrations"))}`);
     expect(configWrite[3]).toEqual({ mode: 0o600 });
+    const migrationsRun = events.find(([type, _command, args]) => type === "run" && args.includes("migrations"));
+    expect(migrationsRun[2].slice(-2)).toEqual(["--config", tempConfigPath]);
+    expect(migrationsRun[3].cwd).toBe(appDirectory);
     const importRun = events.find(([type, _command, args]) => type === "run" && args.includes("locations:import:remote"));
     expect(importRun[2]).toEqual(["run", "locations:import:remote", "--", "--config", result.wranglerConfigPath]);
+    expect(importRun[3].cwd).toBe(appDirectory);
     const secretRun = events.find(([type, _command, args]) => type === "run" && args.includes("bulk"));
+    expect(secretRun[2].slice(-2)).toEqual(["--config", tempConfigPath]);
+    expect(secretRun[3].cwd).toBe(appDirectory);
     expect(secretRun[3].input).toBe(JSON.stringify({ TURNSTILE_SECRET_KEY: "new-widget-secret", SUPPORT_IP_HMAC_SECRET: "h".repeat(32) }));
     const logs = JSON.stringify(events.filter(([type]) => type === "log"));
     expect(logs).not.toContain("new-site-key");
