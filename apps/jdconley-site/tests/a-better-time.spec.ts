@@ -299,6 +299,7 @@ test.describe("live daylight model", () => {
 
   test("tuning validates and then updates canonical URL and model", async ({ page }) => {
     await page.goto(path);
+    const gainBefore = await page.locator("[data-gain-metric] strong").textContent();
     await page.getByRole("button", { name: "Tune my day" }).first().click();
     const dialog = page.getByRole("dialog", { name: "Tune your day" });
     await dialog.getByLabel("Day starts").fill("06:00");
@@ -315,6 +316,7 @@ test.describe("live daylight model", () => {
     await expect(page).toHaveURL(/sleep=1260/);
     await expect(page).toHaveURL(/bias=50/);
     await expect(page.locator("[data-settings-summary]").first()).toContainText("6:00 AM");
+    await expect(page.locator("[data-gain-metric] strong")).not.toHaveText(gainBefore ?? "");
   });
 
   test("keyboard inspection coordinates both desktop charts", async ({ page }) => {
@@ -360,6 +362,9 @@ test.describe("live daylight model", () => {
     const box = await target.boundingBox();
     expect(box).not.toBeNull();
     await page.mouse.move(box!.x + 10, box!.y + box!.height / 2);
+    const hovered = Number(await target.getAttribute("aria-valuenow"));
+    expect(hovered).toBeLessThan(10);
+    await expect(page.locator("[data-active-readout] strong")).toContainText("January");
     await page.mouse.down();
     await page.mouse.move(box!.x + box!.width * 0.75, box!.y + box!.height / 2, { steps: 4 });
     await page.mouse.up();
@@ -369,5 +374,40 @@ test.describe("live daylight model", () => {
     const clicked = Number(await page.locator("[data-chart='daylight'] [data-inspection-target]").getAttribute("aria-valuenow"));
     expect(clicked).toBeLessThan(10);
     await expect(page.locator(`[data-cursor-index='${clicked}']`)).toHaveCount(2);
+  });
+
+  test("a real touch tap inspects a date without hover", async ({ browser }) => {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      hasTouch: true,
+      isMobile: true
+    });
+    const page = await context.newPage();
+    await page.goto(`${path}?year=2026`);
+    const target = page.locator("[data-chart='daylight'] [data-inspection-target]");
+    const box = await target.boundingBox();
+    expect(box).not.toBeNull();
+    await page.touchscreen.tap(box!.x + box!.width * 0.9, box!.y + box!.height / 2);
+    expect(Number(await target.getAttribute("aria-valuenow"))).toBeGreaterThan(320);
+    await context.close();
+  });
+
+  test("invalid shared settings show and dismiss a reset notice while using fallbacks", async ({ page }) => {
+    await page.goto(`${path}?lat=nope&bias=900&year=2026`);
+    const notice = page.getByRole("status");
+    await expect(notice).toContainText("lat, bias");
+    await expect(page.locator("[data-chart='daylight'] [data-series='proposed-sunrise']")).toHaveAttribute("d", /^M.+L/);
+    await expect(page).toHaveURL(/lat=38\.940/);
+    await expect(page).toHaveURL(/bias=0/);
+    await notice.getByRole("button", { name: "Dismiss reset notice" }).click();
+    await expect(notice).toBeHidden();
+  });
+
+  test("polar seasons are labeled and split missing-event line segments", async ({ page }) => {
+    await page.goto(`${path}?lat=71.291&lon=-156.789&place=Utqiagvik%2C+AK&tz=America%2FAnchorage&wake=420&sleep=1320&bias=0&year=2026`);
+    await expect(page.locator(".polar-label", { hasText: "Polar day" })).toBeVisible();
+    await expect(page.locator(".polar-label", { hasText: "Polar night" }).first()).toBeVisible();
+    const pathData = await page.locator("[data-series='proposed-sunrise']").getAttribute("d");
+    expect(pathData?.match(/M/g)?.length).toBeGreaterThanOrEqual(2);
   });
 });

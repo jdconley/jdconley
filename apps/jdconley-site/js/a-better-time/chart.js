@@ -61,6 +61,31 @@ export function getDstTransitionIndices(days) {
   );
 }
 
+export function getChartSeries(kind) {
+  return kind === "daylight"
+    ? [
+        { field: "currentSunriseMinute", name: "current-sunrise", className: "reference-line", strokeDasharray: "5 5" },
+        { field: "currentSunsetMinute", name: "current-sunset", className: "reference-line", strokeDasharray: "5 5" },
+        { field: "proposedSunriseMinute", name: "proposed-sunrise", className: "sunrise-line" },
+        { field: "proposedSunsetMinute", name: "proposed-sunset", className: "sunset-line" }
+      ]
+    : [
+        { field: "proposedOffsetSeconds", name: "proposed-offset", className: "offset-line" },
+        { field: "dailyAdjustmentSeconds", name: "daily-adjustment", className: "adjustment-line" }
+      ];
+}
+
+export function buildLinkedActiveState(activeIndex, dayCount, ariaValueText, chartKinds) {
+  const ratio = activeIndex / Math.max(1, dayCount - 1);
+  const shared = {
+    activeIndex,
+    cursorX: 42 + ratio * (760 - 42 - 8),
+    ariaValueNow: String(activeIndex),
+    ariaValueText
+  };
+  return Object.fromEntries(chartKinds.map((kind) => [kind, { ...shared }]));
+}
+
 function signed(value) {
   if (value === 0) return "0";
   return `${value > 0 ? "+" : "−"}${Math.abs(value)}`;
@@ -145,19 +170,13 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
   renderGrid(element, width, height, labels, y);
 
   if (kind === "daylight") {
-    const series = [
-      ["currentSunriseMinute", "current-sunrise", "reference-line"],
-      ["currentSunsetMinute", "current-sunset", "reference-line"],
-      ["proposedSunriseMinute", "proposed-sunrise", "sunrise-line"],
-      ["proposedSunsetMinute", "proposed-sunset", "sunset-line"]
-    ];
-    series.forEach(([field, name, className]) => {
+    getChartSeries(kind).forEach(({ field, name, className, strokeDasharray }) => {
       const path = svg("path", {
         d: buildLinePath(days, (day) => day[field], { x, y }),
         class: className,
         "data-series": name
       });
-      if (className === "reference-line") path.setAttribute("stroke-dasharray", "5 5");
+      if (strokeDasharray) path.setAttribute("stroke-dasharray", strokeDasharray);
       element.append(path);
     });
     getDstTransitionIndices(days).forEach((index) => {
@@ -257,16 +276,21 @@ export function createChartController(root, onActiveDay) {
   let days = [];
   let activeIndex = 0;
   const updateVisuals = () => {
-    const ratio = activeIndex / Math.max(1, days.length - 1);
-    const cursorX = 42 + ratio * (760 - 42 - 8);
-    root.querySelectorAll("[data-cursor-index]").forEach((cursor) => {
-      cursor.setAttribute("x1", String(cursorX));
-      cursor.setAttribute("x2", String(cursorX));
-      cursor.setAttribute("data-cursor-index", String(activeIndex));
-    });
-    root.querySelectorAll("[data-inspection-target]").forEach((target) => {
-      target.setAttribute("aria-valuenow", String(activeIndex));
-      target.setAttribute("aria-valuetext", buildReadout(days[activeIndex]).dateLabel);
+    const linked = buildLinkedActiveState(
+      activeIndex,
+      days.length,
+      buildReadout(days[activeIndex]).dateLabel,
+      [...root.querySelectorAll("[data-chart]")].map((host) => host.dataset.chart)
+    );
+    root.querySelectorAll("[data-chart]").forEach((host) => {
+      const state = linked[host.dataset.chart];
+      const cursor = host.querySelector("[data-cursor-index]");
+      cursor.setAttribute("x1", String(state.cursorX));
+      cursor.setAttribute("x2", String(state.cursorX));
+      cursor.setAttribute("data-cursor-index", String(state.activeIndex));
+      const target = host.querySelector("[data-inspection-target]");
+      target.setAttribute("aria-valuenow", state.ariaValueNow);
+      target.setAttribute("aria-valuetext", state.ariaValueText);
     });
   };
   const render = () => {

@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   buildLinePath,
+  buildLinkedActiveState,
   buildReadout,
   formatClockMinute,
   getDstTransitionIndices,
   getNearestDay,
-  getTickIndices
+  getTickIndices,
+  getChartSeries
 } from "../../js/a-better-time/chart.js";
 
 describe("buildLinePath", () => {
@@ -36,6 +38,21 @@ describe("formatClockMinute", () => {
 });
 
 describe("chart metadata", () => {
+  it("describes current-policy series as dashed reference lines", () => {
+    const series = getChartSeries("daylight");
+    expect(series.filter(({ name }) => name.startsWith("current-"))).toEqual([
+      expect.objectContaining({ name: "current-sunrise", className: "reference-line", strokeDasharray: "5 5" }),
+      expect.objectContaining({ name: "current-sunset", className: "reference-line", strokeDasharray: "5 5" })
+    ]);
+  });
+
+  it("shares one active index, cursor position, and aria date across chart instances", () => {
+    expect(buildLinkedActiveState(182, 365, "July 2", ["daylight", "clock"])).toEqual({
+      daylight: { activeIndex: 182, cursorX: 397, ariaValueNow: "182", ariaValueText: "July 2" },
+      clock: { activeIndex: 182, cursorX: 397, ariaValueNow: "182", ariaValueText: "July 2" }
+    });
+  });
+
   it("reduces month ticks on compact screens", () => {
     expect(getTickIndices(365, false)).toHaveLength(12);
     expect(getTickIndices(365, true)).toHaveLength(4);
