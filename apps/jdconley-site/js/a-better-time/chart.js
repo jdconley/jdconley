@@ -61,6 +61,47 @@ export function getDstTransitionIndices(days) {
   );
 }
 
+export function getDstTransitions(days) {
+  return getDstTransitionIndices(days).map((index) => ({
+    index,
+    label: days[index].currentUtcOffsetMinutes > days[index - 1].currentUtcOffsetMinutes
+      ? "DST starts"
+      : "Standard time"
+  }));
+}
+
+export function getInitialDayIndex(selectedYear, timeZone, now = new Date()) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone, year: "numeric", month: "numeric", day: "numeric" })
+      .formatToParts(now)
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value }) => [type, Number(value)])
+  );
+  const dayCount = (Date.UTC(selectedYear + 1, 0, 1) - Date.UTC(selectedYear, 0, 1)) / 86_400_000;
+  if (parts.year !== selectedYear) return Math.floor(dayCount / 2);
+  return Math.floor((Date.UTC(selectedYear, parts.month - 1, parts.day) - Date.UTC(selectedYear, 0, 1)) / 86_400_000);
+}
+
+export function getKeyboardDayIndex(key, current, dayCount) {
+  let next = current;
+  if (key === "ArrowLeft" || key === "ArrowDown") next -= 1;
+  else if (key === "ArrowRight" || key === "ArrowUp") next += 1;
+  else if (key === "Home") next = 0;
+  else if (key === "End") next = dayCount - 1;
+  else return null;
+  return Math.max(0, Math.min(dayCount - 1, next));
+}
+
+export function getClockBandLayout(height) {
+  return {
+    offsetTop: 10,
+    offsetBottom: Math.round(height * 0.5),
+    adjustmentTop: Math.round(height * 0.58),
+    adjustmentBottom: height - 26,
+    adjustmentDomain: [-60, 60]
+  };
+}
+
 export function getChartSeries(kind) {
   return kind === "daylight"
     ? [
@@ -165,7 +206,7 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
     viewBox: `0 0 ${width} ${height}`,
     role: "group",
     "aria-label": kind === "daylight" ? "Proposed and current-policy sunrise and sunset across the year" : "Proposed clock offset and daily change across the year",
-    preserveAspectRatio: "none"
+    preserveAspectRatio: "xMidYMid meet"
   });
   renderGrid(element, width, height, labels, y);
 
@@ -179,12 +220,12 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
       if (strokeDasharray) path.setAttribute("stroke-dasharray", strokeDasharray);
       element.append(path);
     });
-    getDstTransitionIndices(days).forEach((index) => {
+    getDstTransitions(days).forEach(({ index, label }) => {
       element.append(svg("line", {
         x1: x(index), x2: x(index), y1: top, y2: height - bottom,
         class: "dst-marker", "data-dst-marker": "", "aria-hidden": "true"
       }));
-      addText(element, "DST", { x: x(index) + 3, y: top + 11, class: "dst-label" });
+      addText(element, label, { x: x(index) + 3, y: top + 11, class: "dst-label" });
     });
     let regionStart = 0;
     while (regionStart < days.length) {
@@ -200,13 +241,22 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
       regionStart = regionEnd + 1;
     }
   } else {
-    element.append(svg("line", { x1: left, x2: width - right, y1: y(0), y2: y(0), class: "zero-line" }));
+    const bands = getClockBandLayout(height);
+    const offsetY = (value) => bands.offsetTop + ((domain[1] - value) / (domain[1] - domain[0])) * (bands.offsetBottom - bands.offsetTop);
+    const adjustmentY = (seconds) => bands.adjustmentTop + ((60 - seconds) / 120) * (bands.adjustmentBottom - bands.adjustmentTop);
+    const adjustmentBand = svg("g", { "data-adjustment-band": "", "data-axis-domain": "-60,0,60 seconds" });
+    [-60, 0, 60].forEach((seconds) => {
+      const bandY = adjustmentY(seconds);
+      adjustmentBand.append(svg("line", { x1: left, x2: width - right, y1: bandY, y2: bandY, class: seconds === 0 ? "zero-line" : "chart-grid-line" }));
+      addText(adjustmentBand, `${seconds > 0 ? "+" : ""}${seconds}s`, { x: 36, y: bandY + 3, "text-anchor": "end", class: "chart-axis-label" });
+    });
+    element.append(adjustmentBand);
     element.append(svg("path", {
-      d: buildLinePath(days, (day) => day.proposedOffsetSeconds / 60, { x, y }),
+      d: buildLinePath(days, (day) => day.proposedOffsetSeconds / 60, { x, y: offsetY }),
       class: "offset-line", "data-series": "proposed-offset"
     }));
     element.append(svg("path", {
-      d: buildLinePath(days, (day) => day.dailyAdjustmentSeconds / 60, { x, y }),
+      d: buildLinePath(days, (day) => day.dailyAdjustmentSeconds, { x, y: adjustmentY }),
       class: "adjustment-line", "data-series": "daily-adjustment"
     }));
   }
@@ -243,16 +293,13 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
   });
   target.addEventListener("pointermove", (event) => { if (dragging || event.pointerType === "mouse") inspect(event, false); });
   target.addEventListener("pointerup", (event) => { dragging = false; inspect(event, true); });
-  target.addEventListener("click", (event) => inspect(event, true));
+  target.addEventListener("pointercancel", () => { dragging = false; });
+  target.addEventListener("lostpointercapture", () => { dragging = false; });
   target.addEventListener("keydown", (event) => {
-    let next = Number(target.getAttribute("aria-valuenow"));
-    if (event.key === "ArrowLeft") next -= 1;
-    else if (event.key === "ArrowRight") next += 1;
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = days.length - 1;
-    else return;
+    const next = getKeyboardDayIndex(event.key, Number(target.getAttribute("aria-valuenow")), days.length);
+    if (next === null) return;
     event.preventDefault();
-    onSelect(Math.max(0, Math.min(days.length - 1, next)), true, kind);
+    onSelect(next, true, kind);
   });
   element.append(target);
   const legend = document.createElement("div");
@@ -275,6 +322,7 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
 export function createChartController(root, onActiveDay) {
   let days = [];
   let activeIndex = 0;
+  const compactQuery = window.matchMedia("(max-width: 699px)");
   const updateVisuals = () => {
     const linked = buildLinkedActiveState(
       activeIndex,
@@ -304,6 +352,14 @@ export function createChartController(root, onActiveDay) {
       });
     });
   };
+  const onBreakpointChange = () => {
+    const focusedKind = document.activeElement?.hasAttribute("data-inspection-target")
+      ? document.activeElement.closest("[data-chart]")?.dataset.chart
+      : null;
+    render();
+    if (focusedKind) root.querySelector(`[data-chart='${focusedKind}'] [data-inspection-target]`)?.focus({ preventScroll: true });
+  };
+  compactQuery.addEventListener("change", onBreakpointChange);
   return {
     update(nextDays, nextIndex) {
       days = nextDays;
@@ -313,6 +369,9 @@ export function createChartController(root, onActiveDay) {
     setActive(index) {
       activeIndex = Math.max(0, Math.min(days.length - 1, index));
       render();
+    },
+    destroy() {
+      compactQuery.removeEventListener("change", onBreakpointChange);
     }
   };
 }

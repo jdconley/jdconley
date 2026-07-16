@@ -286,6 +286,7 @@ test.describe("live daylight model", () => {
     await expect(page.locator("[data-chart='daylight'] [data-series='proposed-sunrise']")).toHaveAttribute("d", /^M.+L/);
     await expect(page.locator("[data-chart='daylight'] [data-series='current-sunrise']")).toHaveAttribute("stroke-dasharray", /./);
     await expect(page.locator("[data-dst-marker]")).toHaveCount(2);
+    await expect(page.locator(".dst-label")).toHaveText(["DST starts", "Standard time"]);
     await expect(page.locator("[data-active-readout]")).toContainText(/Sunrise|Polar/);
   });
 
@@ -307,11 +308,16 @@ test.describe("live daylight model", () => {
     await dialog.getByRole("button", { name: "Apply settings" }).click();
     await expect(dialog).toBeVisible();
     await expect(dialog.locator("[data-tune-error]")).toContainText(/8 and 20 hours/);
+    await expect(dialog.getByLabel("Day starts")).toHaveAttribute("aria-invalid", "true");
+    await expect(dialog.getByLabel("Day ends")).toHaveAttribute("aria-invalid", "true");
+    await expect(dialog.getByLabel("Day starts")).toBeFocused();
 
     await dialog.getByLabel("Day ends").fill("21:00");
     await dialog.getByLabel("Daylight priority").fill("50");
-    await dialog.getByRole("button", { name: "Apply settings" }).click();
+    await expect(dialog.getByLabel("Daylight priority")).toHaveAttribute("aria-valuetext", "Evening");
+    await dialog.getByLabel("Daylight priority").press("Enter");
     await expect(dialog).toBeHidden();
+    await expect(page.locator("#tune-dialog [name='day_start']")).not.toHaveAttribute("aria-invalid", "true");
     await expect(page).toHaveURL(/wake=360/);
     await expect(page).toHaveURL(/sleep=1260/);
     await expect(page).toHaveURL(/bias=50/);
@@ -361,10 +367,12 @@ test.describe("live daylight model", () => {
     const target = page.locator("[data-chart='daylight'] [data-inspection-target]");
     const box = await target.boundingBox();
     expect(box).not.toBeNull();
+    const announcementBeforeHover = await page.locator("[data-chart-announcer]").textContent();
     await page.mouse.move(box!.x + 10, box!.y + box!.height / 2);
     const hovered = Number(await target.getAttribute("aria-valuenow"));
     expect(hovered).toBeLessThan(10);
     await expect(page.locator("[data-active-readout] strong")).toContainText("January");
+    await expect(page.locator("[data-chart-announcer]")).toHaveText(announcementBeforeHover ?? "");
     await page.mouse.down();
     await page.mouse.move(box!.x + box!.width * 0.75, box!.y + box!.height / 2, { steps: 4 });
     await page.mouse.up();
@@ -374,6 +382,54 @@ test.describe("live daylight model", () => {
     const clicked = Number(await page.locator("[data-chart='daylight'] [data-inspection-target]").getAttribute("aria-valuenow"));
     expect(clicked).toBeLessThan(10);
     await expect(page.locator(`[data-cursor-index='${clicked}']`)).toHaveCount(2);
+  });
+
+  test("clock adjustments use a visible seconds band without stretched SVG text", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`${path}?year=2026`);
+    const adjustment = page.locator("[data-series='daily-adjustment']");
+    const box = await adjustment.boundingBox();
+    expect(box?.height).toBeGreaterThan(20);
+    await expect(page.locator("[data-chart='clock'] [data-adjustment-band]")).toHaveAttribute("data-axis-domain", "-60,0,60 seconds");
+    await expect(page.locator("[data-chart='clock'] svg")).toHaveAttribute("preserveAspectRatio", "xMidYMid meet");
+  });
+
+  test("crossing the phone breakpoint rerenders ticks while retaining focus and date", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`${path}?year=2026`);
+    const target = page.locator("[data-chart='daylight'] [data-inspection-target]");
+    await target.focus();
+    await page.keyboard.press("Home");
+    await page.keyboard.press("ArrowRight");
+    await expect(page.locator("[data-chart='daylight'] [data-month-label]")).toHaveCount(12);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator("[data-chart='daylight'] [data-month-label]")).toHaveCount(4);
+    await expect(page.locator("[data-chart='daylight'] [data-inspection-target]")).toHaveAttribute("aria-valuenow", "1");
+    await expect(page.locator("[data-chart='daylight'] [data-inspection-target]")).toBeFocused();
+  });
+
+  test("committed interactions announce exactly once while hover remains silent", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`${path}?year=2026`);
+    await expect(page.locator("[data-gain-metric] strong")).not.toHaveText("Calculating…");
+    await page.evaluate(() => {
+      const announcer = document.querySelector("[data-chart-announcer]")!;
+      announcer.textContent = "";
+      (window as any).announcementMutations = 0;
+      new MutationObserver(() => { (window as any).announcementMutations += 1; }).observe(announcer, { childList: true, characterData: true, subtree: true });
+    });
+    const target = page.locator("[data-chart='daylight'] [data-inspection-target]");
+    const box = await target.boundingBox();
+    await page.mouse.move(box!.x + box!.width * 0.25, box!.y + box!.height / 2);
+    expect(await page.evaluate(() => (window as any).announcementMutations)).toBe(0);
+    await page.mouse.down();
+    await page.mouse.up();
+    await expect.poll(() => page.evaluate(() => (window as any).announcementMutations)).toBe(1);
+    await target.focus();
+    await page.keyboard.press("ArrowUp");
+    await expect.poll(() => page.evaluate(() => (window as any).announcementMutations)).toBe(2);
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(() => page.evaluate(() => (window as any).announcementMutations)).toBe(3);
   });
 
   test("a real touch tap inspects a date without hover", async ({ browser }) => {

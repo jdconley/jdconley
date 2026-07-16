@@ -9,6 +9,7 @@ import {
   getTickIndices,
   getChartSeries
 } from "../../js/a-better-time/chart.js";
+import { getInitialDayIndex } from "../../js/a-better-time/chart.js";
 
 describe("buildLinePath", () => {
   const scales = { x: (index) => index * 10, y: (value) => 100 - value };
@@ -67,6 +68,43 @@ describe("chart metadata", () => {
     ];
     expect(getDstTransitionIndices(days)).toEqual([1, 3]);
     expect(getDstTransitionIndices(days.map(() => ({ currentUtcOffsetMinutes: -420 })))).toEqual([]);
+  });
+
+  it("describes civil-time transition direction", async () => {
+    const { getDstTransitions } = await import("../../js/a-better-time/chart.js");
+    expect(getDstTransitions([
+      { currentUtcOffsetMinutes: -480 },
+      { currentUtcOffsetMinutes: -420 },
+      { currentUtcOffsetMinutes: -480 }
+    ])).toEqual([
+      { index: 1, label: "DST starts" },
+      { index: 2, label: "Standard time" }
+    ]);
+  });
+
+  it("uses the selected timezone calendar date and actual leap-year length", () => {
+    expect(getInitialDayIndex(2026, "America/Los_Angeles", new Date("2026-01-02T01:00:00Z"))).toBe(0);
+    expect(getInitialDayIndex(2024, "America/Los_Angeles", new Date("2025-01-01T07:30:00Z"))).toBe(365);
+    expect(getInitialDayIndex(2025, "America/Los_Angeles", new Date("2026-01-01T08:00:00Z"))).toBe(182);
+  });
+
+  it("maps vertical arrows to the same one-day slider steps", async () => {
+    const { getKeyboardDayIndex } = await import("../../js/a-better-time/chart.js");
+    expect(getKeyboardDayIndex("ArrowUp", 10, 365)).toBe(11);
+    expect(getKeyboardDayIndex("ArrowDown", 10, 365)).toBe(9);
+    expect(getKeyboardDayIndex("Home", 10, 365)).toBe(0);
+    expect(getKeyboardDayIndex("End", 10, 365)).toBe(364);
+  });
+
+  it("gives daily adjustments a distinct, meaningful seconds band", async () => {
+    const { getClockBandLayout } = await import("../../js/a-better-time/chart.js");
+    expect(getClockBandLayout(310)).toEqual(expect.objectContaining({
+      adjustmentDomain: [-60, 60],
+      adjustmentTop: expect.any(Number),
+      adjustmentBottom: expect.any(Number)
+    }));
+    const layout = getClockBandLayout(310);
+    expect(layout.adjustmentBottom - layout.adjustmentTop).toBeGreaterThan(50);
   });
 
   it("builds an accessible active-date readout for normal and polar days", () => {

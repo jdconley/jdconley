@@ -1,4 +1,4 @@
-import { createChartController, buildReadout, formatClockMinute } from "./chart.js";
+import { createChartController, buildReadout, formatClockMinute, getInitialDayIndex } from "./chart.js";
 import { buildSolarYear } from "./core/solar.js";
 import { optimizeYear } from "./core/optimizer.js";
 import { parseState, serializeState } from "./core/url-state.js";
@@ -18,14 +18,7 @@ const model = {
   activeChart: "daylight"
 };
 
-function initialDayIndex(year, dayCount = 365) {
-  const now = new Date();
-  if (year !== now.getUTCFullYear()) return Math.floor(dayCount / 2);
-  const start = Date.UTC(year, 0, 1);
-  return Math.max(0, Math.min(dayCount - 1, Math.floor((Date.UTC(year, now.getUTCMonth(), now.getUTCDate()) - start) / 86_400_000)));
-}
-
-model.activeDayIndex = initialDayIndex(model.settings.year);
+model.activeDayIndex = getInitialDayIndex(model.settings.year, model.location.tz);
 
 document.querySelectorAll("[data-open-dialog]").forEach((trigger) => {
   trigger.addEventListener("click", () => openDialog(trigger, document.getElementById(trigger.dataset.openDialog)));
@@ -43,6 +36,7 @@ document.querySelector("[data-copy-share]")?.addEventListener("click", async (ev
 
 const chartRoot = document.querySelector("[data-chart-root]");
 const readout = document.querySelector("[data-active-readout]");
+const announcer = document.querySelector("[data-chart-announcer]");
 const controller = createChartController(chartRoot, (index, commit) => {
   model.activeDayIndex = index;
   updateActiveReadout(commit);
@@ -57,9 +51,9 @@ function updateActiveReadout(announce = false) {
   if (!model.result) return;
   const day = model.result.days[model.activeDayIndex];
   const text = buildReadout(day);
-  readout.setAttribute("aria-live", announce ? "polite" : "off");
   readout.querySelector("strong").textContent = text.dateLabel;
   readout.querySelector("span").textContent = `${text.daylight} · ${text.clock}`;
+  if (announce) announcer.textContent = `${text.dateLabel}. ${text.daylight}. ${text.clock}.`;
   document.querySelector("[data-offset-insight]").textContent = signedMinute(day.proposedOffsetSeconds);
   const solarInsight = document.querySelector("[data-solar-insight]");
   solarInsight.querySelector("strong").textContent = day.solarState === "normal"
@@ -162,25 +156,38 @@ function parseInputTime(value) {
   return hour >= 0 && hour < 24 && minute >= 0 && minute < 60 ? hour * 60 + minute : null;
 }
 
+function updateBiasValueText() {
+  biasInput.setAttribute("aria-valuetext", biasLabel(Number(biasInput.value)));
+}
+
 document.querySelectorAll("[data-open-dialog='tune-dialog']").forEach((trigger) => {
   trigger.addEventListener("click", () => {
     wakeInput.value = inputTime(model.settings.wake);
     sleepInput.value = inputTime(model.settings.sleep);
     biasInput.value = String(model.settings.bias);
+    wakeInput.removeAttribute("aria-invalid");
+    sleepInput.removeAttribute("aria-invalid");
+    updateBiasValueText();
     tuneError.textContent = "";
   });
 });
+biasInput.addEventListener("input", updateBiasValueText);
 
-tuneDialog.querySelector("[data-apply-settings]").addEventListener("click", () => {
+tuneDialog.querySelector("[data-tune-form]").addEventListener("submit", (event) => {
+  event.preventDefault();
   const wake = parseInputTime(wakeInput.value);
   const sleep = parseInputTime(sleepInput.value);
   const bias = Number(biasInput.value);
   const duration = wake === null || sleep === null ? 0 : (sleep - wake + 1440) % 1440;
   if (wake === null || sleep === null || !Number.isInteger(bias) || duration < 480 || duration > 1200) {
     tuneError.textContent = "Choose a waking window between 8 and 20 hours.";
-    (wake === null ? wakeInput : sleep === null ? sleepInput : sleepInput).focus();
+    wakeInput.setAttribute("aria-invalid", "true");
+    sleepInput.setAttribute("aria-invalid", "true");
+    wakeInput.focus();
     return;
   }
+  wakeInput.removeAttribute("aria-invalid");
+  sleepInput.removeAttribute("aria-invalid");
   model.settings = { ...model.settings, wake, sleep, bias };
   tuneError.textContent = "";
   tuneDialog.querySelector(".dialog-close").click();
