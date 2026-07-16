@@ -173,6 +173,58 @@ const layouts = [
   { name: "wide-desktop", width: 1920, height: 1080, visible: "settings-rail", hidden: "mobile-actions" }
 ] as const;
 
+test("phone actions stay pinned below the tool while post-tool content scrolls", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(path);
+
+  const actions = page.locator(".mobile-actions");
+  const chart = page.locator(".chart-card");
+
+  const actionHeight = await actions.evaluate((element) => element.getBoundingClientRect().height);
+  const actionDocumentTop = await actions.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.top + window.scrollY;
+  });
+  await page.evaluate(({ actionDocumentTop, actionHeight }) => {
+    window.scrollTo(0, actionDocumentTop - (window.innerHeight - actionHeight));
+  }, { actionDocumentTop, actionHeight });
+  const boundaryScroll = await page.evaluate(() => window.scrollY);
+
+  const assertPinnedWithoutToolOverlap = async () => {
+    const [actionRect, chartRect, viewportHeight] = await Promise.all([
+      actions.boundingBox(),
+      chart.boundingBox(),
+      page.evaluate(() => window.innerHeight)
+    ]);
+    expect(actionRect).not.toBeNull();
+    expect(chartRect).not.toBeNull();
+    expect(Math.abs((actionRect?.y ?? 0) + (actionRect?.height ?? 0) - viewportHeight)).toBeLessThanOrEqual(2);
+    const overlap = Math.min(
+      (actionRect?.y ?? 0) + (actionRect?.height ?? 0),
+      (chartRect?.y ?? 0) + (chartRect?.height ?? 0)
+    ) - Math.max(actionRect?.y ?? 0, chartRect?.y ?? 0);
+    expect(overlap).toBeLessThanOrEqual(0);
+  };
+
+  await assertPinnedWithoutToolOverlap();
+  for (const offset of [200, 500]) {
+    await page.evaluate((nextScroll) => window.scrollTo(0, nextScroll), boundaryScroll + offset);
+    await assertPinnedWithoutToolOverlap();
+  }
+
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const [actionRect, postToolRect, footerRect] = await Promise.all([
+    actions.boundingBox(),
+    page.locator(".post-tool").boundingBox(),
+    page.locator(".site-footer").boundingBox()
+  ]);
+  expect(actionRect).not.toBeNull();
+  expect(postToolRect).not.toBeNull();
+  expect(footerRect).not.toBeNull();
+  expect((actionRect?.y ?? 0) + (actionRect?.height ?? 0)).toBeLessThanOrEqual((postToolRect?.y ?? 0) + (postToolRect?.height ?? 0) + 2);
+  expect((actionRect?.y ?? 0) + (actionRect?.height ?? 0)).toBeLessThanOrEqual((footerRect?.y ?? 0) + 2);
+});
+
 for (const layout of layouts) {
   test(`${layout.name} layout has intentional responsive composition`, async ({ page }) => {
     await page.setViewportSize({ width: layout.width, height: layout.height });
