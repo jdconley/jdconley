@@ -10,6 +10,9 @@ Use this guide when working in this repository. Prefer reusing project skills in
 - **Cloudflare Workers deploy / Wrangler parity**
   - Use: `.agents/skills/cloudflare-workers-ops/SKILL.md`
   - Trigger phrases: "Cloudflare Workers", "Worker deploy", "Wrangler", "D1", "Turnstile", "bindings", "dotenvx"
+- **1Password secret injection**
+  - Use: `.agents/skills/1password/SKILL.md`
+  - Trigger phrases: "1Password", "op CLI", "secret injection", "credentials from 1Password"
 - **How-this-is-built logs publishing**
   - Use: `.agents/skills/ai-build-logs-publishing/SKILL.md`
   - Trigger phrases: "publish logs", "Cursor transcripts", "how this is built"
