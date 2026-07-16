@@ -19,7 +19,7 @@
     "test:worker": "vitest run --config vitest.worker.config.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=line",
-    "test:e2e:wrangler": "E2E_SERVER=wrangler playwright test",
+    "test:e2e:wrangler": "TURNSTILE_SITE_KEY=1x00000000000000000000AA E2E_SERVER=wrangler playwright test",
     "deploy": "pnpm run build && dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'printf \"%s\" \"$TURNSTILE_SITE_KEY\" | grep -Eq \"^[A-Za-z0-9_-]{10,}$\" || { echo \"TURNSTILE_SITE_KEY is missing or malformed.\" >&2; exit 1; }; wrangler deploy --var \"TURNSTILE_SITE_KEY:$TURNSTILE_SITE_KEY\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "turndown": "^7.2.2",
     "vite": "latest",
     "vitest": "^4.1.0",
-    "wrangler": "latest"
+    "wrangler": "4.111.0"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

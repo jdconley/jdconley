@@ -727,7 +727,7 @@ test.describe("personalized sharing", () => {
     expect(canonical).toContain("place=Phoenix%2C+AZ");
     const imageUrl = new URL(canonical);
     imageUrl.pathname = "/a-better-time/share.png";
-    imageUrl.searchParams.set("v", "satori-resvg-inter-2026-07-16.1");
+    imageUrl.searchParams.set("v", "satori-resvg-inter-2026-07-16.2");
     const image = imageUrl.href;
     await expect(dialog.locator("[data-share-preview]")).toHaveAttribute("src", image);
     await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("download", "a-better-time.png");
@@ -749,6 +749,13 @@ test.describe("personalized sharing", () => {
 });
 
 test.describe("live daylight model", () => {
+  test("uses honest comparison copy when extreme Anchorage settings lose useful daylight", async ({ page }) => {
+    await page.goto(`${path}?lat=61.218&lon=-149.900&place=Anchorage%2C+AK&tz=America%2FAnchorage&wake=420&sleep=1320&bias=-100&year=2026`);
+    await expect(page.locator("[data-gain-metric] strong")).toHaveText(/−\d+ hours/);
+    await expect(page.locator("#chart-title")).toHaveText("Less useful light with these settings");
+    await expect(page.locator("[data-gain-metric] span")).toContainText("less useful daylight than current clock policy");
+  });
+
   test("renders computed chart paths and current-policy DST markers", async ({ page }) => {
     await page.goto(`${path}?lat=38.940&lon=-119.977&place=South+Lake+Tahoe%2C+CA&tz=America%2FLos_Angeles&wake=420&sleep=1320&bias=0&year=2026`);
     await expect(page.locator("[data-chart='daylight'] [data-series='proposed-sunrise']")).toHaveAttribute("d", /^M.+L/);

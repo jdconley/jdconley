@@ -7,6 +7,7 @@ import { createLocationController } from "./location.js";
 import tzLookup from "tz-lookup";
 import { createSupportController } from "./support.js";
 import { createShareController } from "./share.js";
+import { resultCopy } from "./result-copy.js";
 
 const parsed = parseState(location.search);
 const model = {
@@ -99,7 +100,10 @@ function updateResult() {
     model.activeDayIndex = Math.max(0, Math.min(model.result.days.length - 1, model.activeDayIndex));
     controller.update(model.result.days, model.activeDayIndex);
     const gain = model.result.gainedHoursRounded;
-    document.querySelector("[data-gain-metric] strong").textContent = `${gain >= 0 ? "+" : "−"}${Math.abs(gain)} hours`;
+    const copy = resultCopy(gain);
+    document.querySelector("#chart-title").textContent = copy.heading;
+    document.querySelector("[data-gain-metric] strong").textContent = copy.metric;
+    document.querySelector("[data-gain-metric] span").textContent = copy.detail;
     updateActiveReadout(true);
     updateSummary();
     history.replaceState(null, "", `${location.pathname}?${serializeState(canonicalState())}${location.hash}`);

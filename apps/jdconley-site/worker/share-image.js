@@ -9,6 +9,7 @@ import { parseState, serializeState } from "../js/a-better-time/core/url-state.j
 import { buildSolarYear } from "../js/a-better-time/core/solar.js";
 import { optimizeYear } from "../js/a-better-time/core/optimizer.js";
 import { SHARE_IMAGE_VERSION } from "../js/a-better-time/share-image-version.js";
+import { resultCopy } from "../js/a-better-time/result-copy.js";
 
 let wasmReady;
 const inFlightRenders = new Map();
@@ -40,6 +41,7 @@ function matchesEtag(header, etag) {
 
 async function renderShareImage(state) {
   const result = optimizeYear({ solarYear: buildSolarYear({ year: state.year, lat: state.lat, lon: state.lon }), timeZone: state.tz, wake: state.wake, sleep: state.sleep, bias: state.bias });
+  const copy = resultCopy(result.gainedHoursRounded);
   const chart = result.days.filter((_, index) => index % 12 === 0).map((day, index, rows) => {
     const x = 45 + index / (rows.length - 1) * 1010;
     const y = 405 - (day.proposedOffsetSeconds / 60 + 180) / 360 * 135;
@@ -48,7 +50,7 @@ async function renderShareImage(state) {
   const tree = el("div", { width: 1200, height: 630, display: "flex", flexDirection: "column", padding: "54px 68px", background: "#f7f8fa", color: "#111318", fontFamily: "Inter" }, [
     el("div", { display: "flex", justifyContent: "space-between", alignItems: "center" }, [el("div", { fontSize: 24, fontWeight: 600 }, "A Better Time"), el("div", { fontSize: 18, color: "#59616e" }, "jdconley.com")]),
     el("div", { display: "flex", marginTop: 56, justifyContent: "space-between", alignItems: "flex-end" }, [
-      el("div", { display: "flex", flexDirection: "column", width: 700 }, [el("div", { fontSize: 26, color: "#315eea", marginBottom: 14 }, state.place), el("div", { fontSize: 64, lineHeight: 1.02, fontWeight: 600, letterSpacing: "-3px" }, `${result.gainedHoursRounded >= 0 ? "+" : ""}${result.gainedHoursRounded} hours`), el("div", { fontSize: 22, color: "#59616e", marginTop: 14 }, "of useful daylight across your waking year")]),
+      el("div", { display: "flex", flexDirection: "column", width: 700 }, [el("div", { fontSize: 26, color: "#315eea", marginBottom: 14 }, state.place), el("div", { fontSize: 64, lineHeight: 1.02, fontWeight: 600, letterSpacing: "-3px" }, copy.metric), el("div", { fontSize: 22, color: "#59616e", marginTop: 14 }, copy.detail)]),
       el("div", { display: "flex", flexDirection: "column", alignItems: "flex-end", fontSize: 19, color: "#59616e" }, [el("div", {}, `${clock(state.wake)} – ${clock(state.sleep)}`), el("div", { marginTop: 8 }, biasLabel(state.bias)), el("div", { marginTop: 8 }, SHARE_CHANGE_COPY)])
     ]),
     el("svg", { width: 1064, height: 180, marginTop: 38, background: "#fff", borderRadius: 18 }, [

@@ -5,6 +5,14 @@ const root = new URL("../../../../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
 
 describe("production workflow contracts", () => {
+  it("makes Wrangler E2E self-contained and pins the tested Wrangler runtime", () => {
+    const packageJson = JSON.parse(read("apps/jdconley-site/package.json"));
+    expect(packageJson.scripts["test:e2e:wrangler"]).toContain(
+      "TURNSTILE_SITE_KEY=1x00000000000000000000AA"
+    );
+    expect(packageJson.devDependencies.wrangler).toBe("4.111.0");
+  });
+
   it("grants read-only repository contents to CI and deploy", () => {
     for (const path of [".github/workflows/ci.yml", ".github/workflows/deploy.yml"]) {
       expect(read(path)).toMatch(/permissions:\s*\n\s+contents: read/u);
