@@ -22,3 +22,13 @@ TURNSTILE_SITE_KEY = ""
 name = "SUPPORT_RATE_LIMITER"
 namespace_id = "1001"
 simple = { limit = 10, period = 60 }
+
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+fallthrough = true
+
+[[rules]]
+type = "Data"
+globs = ["**/*.woff"]
+fallthrough = true

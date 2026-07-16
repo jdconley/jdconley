@@ -41,7 +41,7 @@ describe("Worker assets", () => {
     expect(response.headers.get("etag")).toBeNull();
     expect(response.headers.get("last-modified")).toBeNull();
     expect(response.headers.get("content-length")).toBeNull();
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toBe("private, max-age=60");
 
     const unrelated = await worker.fetch(new Request("https://jdconley.test/"), env);
     expect(await unrelated.text()).toBe(html);

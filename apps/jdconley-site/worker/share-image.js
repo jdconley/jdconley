@@ -1,0 +1,53 @@
+import satori, { init as initSatori } from "satori/standalone";
+import yogaWasm from "satori/yoga.wasm";
+import { Resvg, initWasm } from "@resvg/resvg-wasm";
+import wasm from "@resvg/resvg-wasm/index_bg.wasm";
+import interRegular from "../node_modules/@fontsource/inter/files/inter-latin-400-normal.woff";
+import interBold from "../node_modules/@fontsource/inter/files/inter-latin-600-normal.woff";
+
+import { parseState, serializeState } from "../js/a-better-time/core/url-state.js";
+import { buildSolarYear } from "../js/a-better-time/core/solar.js";
+import { optimizeYear } from "../js/a-better-time/core/optimizer.js";
+
+let wasmReady;
+const ready = () => (wasmReady ??= Promise.all([initSatori(yogaWasm), initWasm(wasm)]));
+const el = (type, style, children, props = {}) => ({ type, props: { ...props, style, children } });
+export const SHARE_CHANGE_COPY = "Up to 1 minute daily jumps";
+
+function biasLabel(value) { return value < -10 ? "Morning light" : value > 10 ? "Evening light" : "Balanced light"; }
+function clock(minutes) { const h = Math.floor(minutes / 60), m = minutes % 60; return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`; }
+
+async function etag(query) {
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(query));
+  return `"${[...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("")}"`;
+}
+
+export async function handleShareImage(request) {
+  if (request.method !== "GET") return new Response(null, { status: 405, headers: { allow: "GET" } });
+  const state = parseState(new URL(request.url).search).state;
+  const query = serializeState(state);
+  const result = optimizeYear({ solarYear: buildSolarYear({ year: state.year, lat: state.lat, lon: state.lon }), timeZone: state.tz, wake: state.wake, sleep: state.sleep, bias: state.bias });
+  const chart = result.days.filter((_, index) => index % 12 === 0).map((day, index, rows) => {
+    const x = 45 + index / (rows.length - 1) * 1010;
+    const y = 405 - (day.proposedOffsetSeconds / 60 + 180) / 360 * 135;
+    return `${index ? "L" : "M"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ");
+  const tree = el("div", { width: 1200, height: 630, display: "flex", flexDirection: "column", padding: "54px 68px", background: "#f7f8fa", color: "#111318", fontFamily: "Inter" }, [
+    el("div", { display: "flex", justifyContent: "space-between", alignItems: "center" }, [el("div", { fontSize: 24, fontWeight: 600 }, "A Better Time"), el("div", { fontSize: 18, color: "#59616e" }, "jdconley.com")]),
+    el("div", { display: "flex", marginTop: 56, justifyContent: "space-between", alignItems: "flex-end" }, [
+      el("div", { display: "flex", flexDirection: "column", width: 700 }, [el("div", { fontSize: 26, color: "#315eea", marginBottom: 14 }, state.place), el("div", { fontSize: 64, lineHeight: 1.02, fontWeight: 600, letterSpacing: "-3px" }, `${result.gainedHoursRounded >= 0 ? "+" : ""}${result.gainedHoursRounded} hours`), el("div", { fontSize: 22, color: "#59616e", marginTop: 14 }, "of useful daylight across your waking year")]),
+      el("div", { display: "flex", flexDirection: "column", alignItems: "flex-end", fontSize: 19, color: "#59616e" }, [el("div", {}, `${clock(state.wake)} – ${clock(state.sleep)}`), el("div", { marginTop: 8 }, biasLabel(state.bias)), el("div", { marginTop: 8 }, SHARE_CHANGE_COPY)])
+    ]),
+    el("svg", { width: 1064, height: 180, marginTop: 38, background: "#fff", borderRadius: 18 }, [
+      { type: "path", props: { d: chart, fill: "none", stroke: "#315eea", strokeWidth: 5, strokeLinecap: "round" } },
+      { type: "line", props: { x1: 45, x2: 1055, y1: 337, y2: 337, stroke: "#ff9f0a", strokeWidth: 2, strokeDasharray: "6 8" } }
+    ], { viewBox: "0 250 1100 180" })
+  ]);
+  await ready();
+  const svg = await satori(tree, { width: 1200, height: 630, fonts: [
+    { name: "Inter", data: interRegular, weight: 400, style: "normal" },
+    { name: "Inter", data: interBold, weight: 600, style: "normal" }
+  ] });
+  const png = new Resvg(svg, { fitTo: { mode: "width", value: 1200 } }).render().asPng();
+  return new Response(png, { headers: { "content-type": "image/png", "cache-control": "public, max-age=31536000, immutable", etag: await etag(query) } });
+}

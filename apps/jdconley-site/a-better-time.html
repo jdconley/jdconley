@@ -72,7 +72,7 @@
               <h2 id="chart-title">More useful light, all year</h2>
             </div>
             <div class="share-wrap">
-              <button class="icon-button js-only" type="button" aria-label="Share this result" aria-describedby="share-tooltip" data-open-dialog="share-dialog">
+              <button class="icon-button js-only" type="button" aria-label="Share this result" aria-describedby="share-tooltip" data-share-trigger>
                 <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg>
               </button>
               <span class="tooltip" role="tooltip" id="share-tooltip">Share this result</span>
@@ -133,8 +133,10 @@
   <dialog id="share-dialog" class="js-only" aria-labelledby="share-dialog-title">
     <div class="dialog-panel">
       <header><div><p class="eyebrow">Pass it on</p><h2 id="share-dialog-title">Share your daylight plan</h2></div><button class="dialog-close" type="button" aria-label="Close share dialog">×</button></header>
-      <p>Share South Lake Tahoe’s example settings. Personalized links arrive with the live model.</p>
-      <button class="primary-button" type="button" data-copy-share>Copy share link</button>
+      <p>Pass along this exact location, waking window, and daylight preference.</p>
+      <img class="share-preview" data-share-preview alt="Preview of your personalized A Better Time result" width="600" height="315">
+      <p class="share-error" data-share-error role="status"></p>
+      <div class="share-actions"><button class="primary-button" type="button" data-copy-share>Copy link</button><a class="secondary-button" data-download-share download="a-better-time.png">Download image</a></div>
       <p class="dialog-feedback" aria-live="polite"></p>
     </div>
   </dialog>

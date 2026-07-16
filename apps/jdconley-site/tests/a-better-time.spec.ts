@@ -37,12 +37,12 @@ test.describe("A Better Time page shell", () => {
     await share.focus();
     await share.click();
     await expect(dialog).toBeVisible();
-    await expect(page.getByRole("button", { name: "Copy share link" })).toBeFocused();
+    await expect(page.getByRole("button", { name: "Copy link" })).toBeFocused();
 
     await page.keyboard.press("Shift+Tab");
     await expect(page.getByRole("button", { name: "Close share dialog" })).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(page.getByRole("button", { name: "Copy share link" })).toBeFocused();
+    await expect(page.getByRole("button", { name: "Copy link" })).toBeFocused();
 
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
@@ -689,6 +689,52 @@ test.describe("public support experience", () => {
       await expect(trigger).toBeFocused();
     });
   }
+});
+
+test.describe("personalized sharing", () => {
+  test("uses native sharing with the exact canonical query when available", async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as any).nativeShares = [];
+      Object.defineProperty(navigator, "share", { configurable: true, value: async (payload: unknown) => { (window as any).nativeShares.push(payload); } });
+    });
+    await page.goto(`${path}?year=2026&place=Phoenix%2C+AZ&lat=33.4484&lon=-112.074&tz=America%2FPhoenix`);
+    await page.getByRole("button", { name: "Share this result" }).click();
+    const shares = await page.evaluate(() => (window as any).nativeShares);
+    expect(shares).toHaveLength(1);
+    expect(shares[0].url).toMatch(/lat=33\.448&lon=-112\.074&place=Phoenix%2C\+AZ&tz=America%2FPhoenix&wake=420&sleep=1320&bias=0&year=2026$/);
+    await expect(page.getByRole("dialog", { name: "Share your daylight plan" })).toBeHidden();
+  });
+
+  test("fallback dialog copies canonical URL and exposes matching preview and download", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
+      (window as any).copiedShare = "";
+      Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (value: string) => { (window as any).copiedShare = value; } } });
+    });
+    await page.goto(`${path}?year=2026&place=Phoenix%2C+AZ&lat=33.4484&lon=-112.074&tz=America%2FPhoenix`);
+    await page.getByRole("button", { name: "Share this result" }).click();
+    const dialog = page.getByRole("dialog", { name: "Share your daylight plan" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: "Copy link" }).click();
+    const canonical = await page.evaluate(() => (window as any).copiedShare);
+    expect(canonical).toContain("place=Phoenix%2C+AZ");
+    await expect(dialog.locator("[data-share-preview]")).toHaveAttribute("src", canonical.replace("/a-better-time.html?", "/a-better-time/share.png?"));
+    await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("download", "a-better-time.png");
+    await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("href", canonical.replace("/a-better-time.html?", "/a-better-time/share.png?"));
+  });
+
+  test("keeps the icon-only accessible trigger and handles preview failure", async ({ page }) => {
+    await page.addInitScript(() => Object.defineProperty(navigator, "share", { configurable: true, value: undefined }));
+    await page.goto(path);
+    const share = page.getByRole("button", { name: "Share this result" });
+    await expect(share.locator("svg")).toBeVisible();
+    await share.hover();
+    await expect(page.getByRole("tooltip")).toHaveText("Share this result");
+    await share.click();
+    const dialog = page.getByRole("dialog", { name: "Share your daylight plan" });
+    await dialog.locator("[data-share-preview]").evaluate((image: HTMLImageElement) => image.dispatchEvent(new Event("error")));
+    await expect(dialog.locator("[data-share-error]")).toContainText("preview unavailable");
+  });
 });
 
 test.describe("live daylight model", () => {

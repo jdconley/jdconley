@@ -6,6 +6,7 @@ import { openDialog } from "./dialog.js";
 import { createLocationController } from "./location.js";
 import tzLookup from "tz-lookup";
 import { createSupportController } from "./support.js";
+import { createShareController } from "./share.js";
 
 const parsed = parseState(location.search);
 const model = {
@@ -25,16 +26,6 @@ model.activeDayIndex = getInitialDayIndex(model.settings.year, model.location.tz
 
 document.querySelectorAll("[data-open-dialog]").forEach((trigger) => {
   trigger.addEventListener("click", () => openDialog(trigger, document.getElementById(trigger.dataset.openDialog)));
-});
-
-document.querySelector("[data-copy-share]")?.addEventListener("click", async (event) => {
-  const feedback = event.currentTarget.parentElement.querySelector(".dialog-feedback");
-  try {
-    await navigator.clipboard.writeText(window.location.href);
-    feedback.textContent = "Link copied.";
-  } catch {
-    feedback.textContent = "Copy the address from your browser to share.";
-  }
 });
 
 const chartRoot = document.querySelector("[data-chart-root]");
@@ -223,4 +214,10 @@ createLocationController({
 createSupportController({
   dialog: document.getElementById("support-dialog"),
   getLocation: () => model.location.place
+});
+
+createShareController({
+  trigger: document.querySelector("[data-share-trigger]"),
+  dialog: document.getElementById("share-dialog"),
+  getUrl: () => window.location.href
 });
