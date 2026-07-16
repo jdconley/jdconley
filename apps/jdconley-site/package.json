@@ -8,14 +8,17 @@
     "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "vite build && node ./scripts/generate-llm-markdown.mjs && node ./scripts/optimize-images.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
-    "preview:cf": "dotenvx run -- wrangler pages dev dist --ip 127.0.0.1 --port 8788",
+    "preview:cf": "dotenvx run -- wrangler dev --ip 127.0.0.1 --port 8788",
     "preview:cf:build": "pnpm run build && pnpm run preview:cf",
+    "test:unit": "vitest run --config vitest.config.mjs",
+    "test:worker": "vitest run --config vitest.worker.config.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=line",
     "test:e2e:wrangler": "E2E_SERVER=wrangler playwright test",
-    "deploy": "pnpm run build && dotenvx run -- sh -c 'wrangler pages deploy dist --project-name \"$CLOUDFLARE_PAGES_PROJECT\"'"
+    "deploy": "pnpm run build && dotenvx run -- wrangler deploy"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.18.5",
     "@dotenvx/dotenvx": "latest",
     "@playwright/test": "latest",
     "html-minifier-terser": "latest",
@@ -23,6 +26,14 @@
     "sharp": "latest",
     "turndown": "^7.2.2",
     "vite": "latest",
+    "vitest": "^4.1.10",
     "wrangler": "latest"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@resvg/resvg-wasm": "^2.6.2",
+    "satori": "^0.28.0",
+    "suncalc": "^2.0.1",
+    "tz-lookup": "^6.1.25"
   }
 }

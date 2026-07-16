@@ -5,6 +5,7 @@ const port = runAgainstWrangler ? 8788 : 4173;
 
 export default defineConfig({
   testDir: "./tests",
+  testMatch: "**/*.spec.{js,ts}",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
