@@ -40,7 +40,7 @@
       <p class="hero-copy">Instead of two abrupt clock changes, imagine small, familiar jumps that keep daylight closer to the hours we actually live.</p>
       <button class="location-button js-only" type="button" data-open-dialog="location-dialog">
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        <span><small>Showing daylight for</small><strong>South Lake Tahoe, CA</strong></span>
+        <span><small>Showing daylight for</small><strong data-place-name>South Lake Tahoe, CA</strong></span>
         <span aria-hidden="true">Change</span>
       </button>
       <p class="location-note">Use your exact location or try a US city or ZIP code.</p>
@@ -49,8 +49,8 @@
     <div class="app-workspace">
       <aside class="settings-rail" data-layout="settings-rail" aria-label="Daylight settings">
         <div class="rail-heading"><p class="eyebrow">Your day</p><h2>Tune the model</h2></div>
-        <div class="setting-block"><span>Waking hours</span><strong>7:00 AM – 10:00 PM</strong></div>
-        <div class="setting-block"><span>Daylight priority</span><strong>Equal</strong><div class="balance-track" aria-hidden="true"><i></i></div><div class="balance-labels"><span>Morning</span><span>Evening</span></div></div>
+        <div class="setting-block"><span>Waking hours</span><strong data-settings-summary>7:00 AM – 10:00 PM</strong></div>
+        <div class="setting-block"><span>Daylight priority</span><strong data-bias-summary>Equal</strong><div class="balance-track" aria-hidden="true"><i data-bias-marker></i></div><div class="balance-labels"><span>Morning</span><span>Evening</span></div></div>
         <div class="setting-block"><span>Maximum daily change</span><strong>1 minute</strong></div>
         <p class="rail-note">Changes happen at 2:00 AM, like daylight saving time.</p>
         <button class="secondary-button rail-tune-button js-only" type="button" data-open-dialog="tune-dialog">Tune my day</button>
@@ -58,8 +58,8 @@
 
       <section class="result-column">
         <div class="settings-row" data-layout="settings-row" aria-label="Current daylight settings">
-          <div><span>Waking hours</span><strong>7 AM – 10 PM</strong></div>
-          <div><span>Priority</span><strong>Equal</strong></div>
+          <div><span>Waking hours</span><strong data-settings-summary>7:00 AM – 10:00 PM</strong></div>
+          <div><span>Priority</span><strong data-bias-summary>Equal</strong></div>
           <div><span>Daily jump</span><strong>≤ 1 min</strong></div>
           <button class="js-only" type="button" data-open-dialog="tune-dialog">Tune my day</button>
         </div>
@@ -79,40 +79,27 @@
           </header>
 
           <div class="gain-summary" aria-live="polite" data-gain-metric>
-            <strong>+41 minutes</strong>
-            <span>of daylight during your waking hours on an average winter day</span>
+            <strong>Calculating…</strong>
+            <span>of useful daylight across your selected waking hours this year</span>
           </div>
 
-          <section class="chart-region" role="region" aria-label="Yearly daylight comparison" tabindex="0">
-            <div class="chart-plot">
-              <div class="time-labels" aria-hidden="true"><span>10 PM</span><span>6 PM</span><span>Noon</span><span>6 AM</span></div>
-              <svg class="daylight-chart" viewBox="0 0 760 360" role="img" aria-labelledby="chart-svg-title chart-svg-desc" preserveAspectRatio="none">
-                <title id="chart-svg-title">Sunrise and sunset over one year</title>
-                <desc id="chart-svg-desc">An illustrative comparison of sunrise and sunset under current time and a clock that follows the sun. Final values will update for the selected location.</desc>
-                <g class="grid"><path d="M0 40H760M0 130H760M0 220H760M0 310H760"/><path d="M0 0V340M190 0V340M380 0V340M570 0V340M760 0V340"/></g>
-                <path class="daylight-fill" d="M0 237C100 264 190 281 290 266S470 189 570 177 685 201 760 229V92C680 67 610 57 540 70S420 131 320 137 120 92 0 91Z"/>
-                <path class="sunset-line" d="M0 91C120 92 220 147 320 137S470 83 540 70 680 67 760 92"/>
-                <path class="sunrise-line" d="M0 237C100 264 190 281 290 266S470 189 570 177 685 201 760 229"/>
-                <path class="reference-line" d="M0 218C110 245 205 262 300 247S470 176 570 165 685 187 760 211"/>
-                <path class="reference-line" d="M0 107C120 108 220 161 320 152S470 98 540 85 680 81 760 107"/>
-                <path class="today-line" d="M413 0V340"/>
-                <circle class="sun-dot" cx="413" cy="213" r="6"/>
-              </svg>
-              <div class="month-labels" aria-hidden="true"><span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span></div>
+          <section class="chart-region" role="region" aria-label="Yearly daylight comparison" data-chart-root>
+            <div class="chart-tabs js-only" role="group" aria-label="Chart view">
+              <button type="button" class="is-active" aria-pressed="true" data-chart-tab="daylight">Daylight</button>
+              <button type="button" aria-pressed="false" data-chart-tab="clock">Clock shift</button>
             </div>
-            <div class="chart-legend" aria-label="Chart legend">
-              <span><i class="legend-line sunrise"></i>Sunrise</span>
-              <span><i class="legend-line sunset"></i>Sunset</span>
-              <span><i class="legend-line reference"></i>Current time</span>
+            <div class="chart-views">
+              <section class="chart-panel" data-chart-panel="daylight" aria-label="Daylight chart"><div data-chart="daylight"></div></section>
+              <section class="chart-panel" data-chart-panel="clock" aria-label="Clock shift chart"><div data-chart="clock"></div></section>
             </div>
-            <p class="chart-readout"><strong>July 15</strong><span>Sunrise 5:43 AM · Sunset 8:31 PM · Clock offset +23 min</span></p>
+            <div class="chart-readout" data-active-readout aria-live="polite"><strong>Loading your year…</strong><span>Sunrise and sunset will appear here.</span></div>
           </section>
         </article>
       </section>
 
       <aside class="insight-rail" data-layout="insight-rail" aria-label="Key daylight insights">
-        <section><p class="eyebrow">Today</p><strong class="insight-value">+23 min</strong><span>clock offset</span></section>
-        <section><strong>5:43 AM</strong><span>sunrise</span><strong>8:31 PM</strong><span>sunset</span></section>
+        <section><p class="eyebrow">Selected day</p><strong class="insight-value" data-offset-insight>—</strong><span>clock offset</span></section>
+        <section data-solar-insight><strong>—</strong><span>sunrise and sunset</span></section>
         <section class="support-status"><span>Support is opening soon</span><p>Public supporter count will appear when the project launches.</p></section>
       </aside>
     </div>
@@ -164,8 +151,9 @@
     <div class="dialog-panel">
       <header><div><p class="eyebrow">Your schedule</p><h2 id="tune-dialog-title">Tune your day</h2></div><button class="dialog-close" type="button" aria-label="Close tuning dialog">×</button></header>
       <div class="field-row"><label>Day starts<input name="day_start" type="time" value="07:00"></label><label>Day ends<input name="day_end" type="time" value="22:00"></label></div>
-      <label>Daylight priority<input name="daylight_priority" type="range" min="0" max="100" value="50"><span class="range-labels"><span>Morning</span><span>Equal</span><span>Evening</span></span></label>
-      <button class="primary-button dialog-close-action" type="button">Apply settings</button>
+      <label>Daylight priority<input name="daylight_priority" type="range" min="-100" max="100" value="0"><span class="range-labels"><span>Morning</span><span>Equal</span><span>Evening</span></span></label>
+      <p class="field-error" data-tune-error role="alert"></p>
+      <button class="primary-button" type="button" data-apply-settings>Apply settings</button>
     </div>
   </dialog>
 

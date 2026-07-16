@@ -8,7 +8,7 @@ test.describe.configure({ mode: "serial" });
 
 test.describe("A Better Time page shell", () => {
   test("renders the complete accessible shell and metadata", async ({ page }) => {
-    await page.goto(path);
+    await page.goto(`${path}?year=2025`);
 
     await expect(page).toHaveTitle(/A Better Time/);
     await expect(page.getByRole("heading", { name: "What if the clock followed the sun?" })).toBeVisible();
@@ -16,7 +16,8 @@ test.describe("A Better Time page shell", () => {
     await expect(page.getByRole("button", { name: "Tune my day" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Show support" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Yearly daylight comparison" })).toBeVisible();
-    await expect(page.locator("[aria-live='polite'][data-gain-metric]")).toContainText(/minutes/i);
+    await expect(page.locator("[aria-live='polite'][data-gain-metric]")).toContainText(/hours/i);
+    await expect(page.locator("[data-chart-root]")).not.toContainText(/illustrative|placeholder/i);
 
     await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", "https://jdconley.com/a-better-time");
     await expect(page.locator("meta[property='og:image']")).toHaveAttribute("content", "https://jdconley.com/images/webclip.png");
@@ -229,7 +230,7 @@ for (const layout of layouts) {
   test(`${layout.name} layout has intentional responsive composition`, async ({ page }, testInfo) => {
     testInfo.snapshotSuffix = "";
     await page.setViewportSize({ width: layout.width, height: layout.height });
-    await page.goto(path);
+    await page.goto(`${path}?year=2025`);
 
     await expect(page.locator(`[data-layout='${layout.hidden}']`)).toBeHidden();
     if (layout.name === "phone") {
@@ -253,7 +254,7 @@ for (const layout of layouts) {
     if (layout.name === "phone") {
       snapshotPage = await page.context().newPage();
       await snapshotPage.setViewportSize({ width: layout.width, height: layout.height });
-      await snapshotPage.goto(path);
+      await snapshotPage.goto(`${path}?year=2025`);
     } else {
       await page.evaluate(() => {
         if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
@@ -277,4 +278,96 @@ test("phone tuning opens as a bottom sheet", async ({ page }) => {
   await expect(dialog).toBeVisible();
   await expect(dialog.locator(".dialog-panel")).toHaveCSS("border-bottom-left-radius", "0px");
   await expect(dialog.getByLabel("Day starts")).toBeFocused();
+});
+
+test.describe("live daylight model", () => {
+  test("renders computed chart paths and current-policy DST markers", async ({ page }) => {
+    await page.goto(`${path}?lat=38.940&lon=-119.977&place=South+Lake+Tahoe%2C+CA&tz=America%2FLos_Angeles&wake=420&sleep=1320&bias=0&year=2026`);
+    await expect(page.locator("[data-chart='daylight'] [data-series='proposed-sunrise']")).toHaveAttribute("d", /^M.+L/);
+    await expect(page.locator("[data-chart='daylight'] [data-series='current-sunrise']")).toHaveAttribute("stroke-dasharray", /./);
+    await expect(page.locator("[data-dst-marker]")).toHaveCount(2);
+    await expect(page.locator("[data-active-readout]")).toContainText(/Sunrise|Polar/);
+  });
+
+  test("zones without daylight saving show no policy markers", async ({ page }) => {
+    await page.goto(`${path}?lat=33.448&lon=-112.074&place=Phoenix%2C+AZ&tz=America%2FPhoenix&wake=420&sleep=1320&bias=0&year=2026`);
+    await expect(page.locator("[data-chart='daylight'] [data-series='proposed-sunrise']")).toHaveAttribute("d", /^M/);
+    await expect(page.locator("[data-dst-marker]")).toHaveCount(0);
+    await page.goto(`${path}?lat=21.307&lon=-157.858&place=Honolulu%2C+HI&tz=Pacific%2FHonolulu&wake=420&sleep=1320&bias=0&year=2026`);
+    await expect(page.locator("[data-dst-marker]")).toHaveCount(0);
+  });
+
+  test("tuning validates and then updates canonical URL and model", async ({ page }) => {
+    await page.goto(path);
+    await page.getByRole("button", { name: "Tune my day" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Tune your day" });
+    await dialog.getByLabel("Day starts").fill("06:00");
+    await dialog.getByLabel("Day ends").fill("11:00");
+    await dialog.getByRole("button", { name: "Apply settings" }).click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator("[data-tune-error]")).toContainText(/8 and 20 hours/);
+
+    await dialog.getByLabel("Day ends").fill("21:00");
+    await dialog.getByLabel("Daylight priority").fill("50");
+    await dialog.getByRole("button", { name: "Apply settings" }).click();
+    await expect(dialog).toBeHidden();
+    await expect(page).toHaveURL(/wake=360/);
+    await expect(page).toHaveURL(/sleep=1260/);
+    await expect(page).toHaveURL(/bias=50/);
+    await expect(page.locator("[data-settings-summary]").first()).toContainText("6:00 AM");
+  });
+
+  test("keyboard inspection coordinates both desktop charts", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`${path}?year=2026`);
+    const target = page.locator("[data-chart='daylight'] [data-inspection-target]");
+    await expect(page.getByRole("slider", { name: "Inspect daylight by date" })).toBeVisible();
+    await target.focus();
+    await page.keyboard.press("Home");
+    await expect(target).toHaveAttribute("aria-valuenow", "0");
+    await page.keyboard.press("ArrowRight");
+    await expect(target).toHaveAttribute("aria-valuenow", "1");
+    await expect(page.locator("[data-cursor-index='1']")).toHaveCount(2);
+    await page.keyboard.press("ArrowLeft");
+    await expect(target).toHaveAttribute("aria-valuenow", "0");
+    await page.keyboard.press("End");
+    await expect(target).toHaveAttribute("aria-valuenow", "364");
+  });
+
+  test("phone switches between daylight and clock shift charts", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(path);
+    await expect(page.locator("[data-chart-panel='daylight']")).toBeVisible();
+    await expect(page.locator("[data-chart-panel='clock']")).toBeHidden();
+    await page.getByRole("button", { name: "Clock shift" }).click();
+    await expect(page.locator("[data-chart-panel='clock']")).toBeVisible();
+    await expect(page.locator("[data-chart-panel='daylight']")).toBeHidden();
+  });
+
+  test("phone reduces date ticks while desktop keeps monthly context", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(path);
+    await expect(page.locator("[data-chart='daylight'] [data-month-label]")).toHaveCount(4);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.reload();
+    await expect(page.locator("[data-chart='daylight'] [data-month-label]")).toHaveCount(12);
+  });
+
+  test("pointer drag and click inspect the same linked date", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(`${path}?year=2026`);
+    const target = page.locator("[data-chart='daylight'] [data-inspection-target]");
+    const box = await target.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.move(box!.x + 10, box!.y + box!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box!.x + box!.width * 0.75, box!.y + box!.height / 2, { steps: 4 });
+    await page.mouse.up();
+    const dragged = Number(await page.locator("[data-chart='daylight'] [data-inspection-target]").getAttribute("aria-valuenow"));
+    expect(dragged).toBeGreaterThan(250);
+    await page.locator("[data-chart='clock'] [data-inspection-target]").click({ position: { x: 5, y: box!.height / 2 } });
+    const clicked = Number(await page.locator("[data-chart='daylight'] [data-inspection-target]").getAttribute("aria-valuenow"));
+    expect(clicked).toBeLessThan(10);
+    await expect(page.locator(`[data-cursor-index='${clicked}']`)).toHaveCount(2);
+  });
 });
