@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const APP_DIRECTORY = fileURLToPath(new URL("../", import.meta.url));
 const DATABASE_NAME = "a-better-time";
 const WIDGET_NAME = "A Better Time - jdconley.com";
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 export const TURNSTILE_DOMAINS = Object.freeze([
   "jdconley.com",
   "www.jdconley.com",
@@ -28,9 +29,9 @@ export function selectTurnstileWidget(widgets, name = "A Better Time - jdconley.
 }
 
 export function renderWranglerConfig(config, databaseId) {
-  if (typeof databaseId !== "string" || !/^[A-Za-z0-9_-]+$/u.test(databaseId)) throw new Error("Invalid D1 database UUID");
+  if (typeof databaseId !== "string" || !UUID_PATTERN.test(databaseId)) throw new Error("Invalid D1 database UUID");
   const headers = [...config.matchAll(/^[ \t]*\[\[d1_databases\]\]\s*(?:#.*)?$/gmu)];
-  const candidates = [];
+  const namedBlocks = [];
   for (const header of headers) {
     const start = header.index;
     const remainder = config.slice(start + header[0].length);
@@ -38,12 +39,17 @@ export function renderWranglerConfig(config, databaseId) {
     const end = nextHeader ? start + header[0].length + nextHeader.index : config.length;
     const block = config.slice(start, end);
     if (!/^[ \t]*database_name\s*=\s*(["'])a-better-time\1\s*(?:#.*)?$/mu.test(block)) continue;
-    for (const match of block.matchAll(/^([ \t]*database_id\s*=\s*)(["'])([^\r\n]*?)\2(\s*(?:#.*)?$)/gmu)) {
-      candidates.push({ start: start + match.index, match });
-    }
+    namedBlocks.push({ start, block });
   }
-  if (candidates.length !== 1) throw new Error(`Expected exactly one D1 database_id assignment, received ${candidates.length}`);
-  const [{ start, match }] = candidates;
+  if (namedBlocks.length !== 1) throw new Error(`Expected exactly one named D1 database block, received ${namedBlocks.length}`);
+  const [{ start: blockStart, block }] = namedBlocks;
+  const bindings = [...block.matchAll(/^[ \t]*binding\s*=\s*(["'])([^\r\n]*?)\1\s*(?:#.*)?$/gmu)];
+  if (bindings.length !== 1 || bindings[0][2] !== "DB") throw new Error("Named D1 database block must use binding DB exactly once");
+  const identifiers = [...block.matchAll(/^([ \t]*database_id\s*=\s*)(["'])([^\r\n]*?)\2(\s*(?:#.*)?$)/gmu)];
+  if (identifiers.length !== 1) throw new Error(`Expected exactly one D1 database_id assignment, received ${identifiers.length}`);
+  const [match] = identifiers;
+  if (!UUID_PATTERN.test(match[3])) throw new Error("Existing D1 database_id is not a standard UUID");
+  const start = blockStart + match.index;
   const replacement = `${match[1]}${match[2]}${databaseId}${match[2]}${match[4]}`;
   return `${config.slice(0, start)}${replacement}${config.slice(start + match[0].length)}`;
 }
@@ -103,9 +109,15 @@ function validateEnvironment(env) {
   for (const name of ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "SUPPORT_IP_HMAC_SECRET", "SITE_URL"]) {
     if (!String(env[name] ?? "").trim()) throw new Error(`${name} is required`);
   }
+  if (!/^[0-9a-f]{32}$/iu.test(env.CLOUDFLARE_ACCOUNT_ID)) throw new Error("CLOUDFLARE_ACCOUNT_ID must be exactly 32 hexadecimal characters");
   let siteUrl;
-  try { siteUrl = new URL(env.SITE_URL); } catch { throw new Error("SITE_URL must be a valid URL"); }
-  if (siteUrl.protocol !== "https:") throw new Error("SITE_URL must use https");
+  try { siteUrl = new URL(env.SITE_URL); } catch { throw new Error("SITE_URL must be the canonical https://jdconley.com origin"); }
+  if (!["https://jdconley.com", "https://jdconley.com/"].includes(env.SITE_URL) || siteUrl.protocol !== "https:" ||
+    siteUrl.hostname !== "jdconley.com" || siteUrl.port || siteUrl.username || siteUrl.password ||
+    siteUrl.pathname !== "/" || siteUrl.search || siteUrl.hash) {
+    throw new Error("SITE_URL must be the canonical https://jdconley.com origin");
+  }
+  if (new TextEncoder().encode(env.SUPPORT_IP_HMAC_SECRET).byteLength < 32) throw new Error("SUPPORT_IP_HMAC_SECRET must contain at least 32 bytes");
 }
 
 function normalizeRunJson(result) {
@@ -138,7 +150,7 @@ async function queryLocationCount(run, configPath) {
   return Number(extractQueryRows(result)[0]?.[0]?.count ?? -1);
 }
 
-async function cloudflareRequest(fetchImpl, env, pathname, init = {}) {
+async function cloudflareEnvelope(fetchImpl, env, pathname, init = {}) {
   const response = await fetchImpl(`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${pathname}`, {
     ...init,
     headers: {
@@ -149,12 +161,37 @@ async function cloudflareRequest(fetchImpl, env, pathname, init = {}) {
   });
   let envelope;
   try { envelope = await response.json(); } catch { throw new Error(`Cloudflare API returned invalid JSON (${response.status ?? "unknown status"})`); }
-  return assertCloudflareEnvelope(envelope);
+  assertCloudflareEnvelope(envelope);
+  return envelope;
+}
+
+async function cloudflareRequest(fetchImpl, env, pathname, init = {}) {
+  return assertCloudflareEnvelope(await cloudflareEnvelope(fetchImpl, env, pathname, init));
+}
+
+async function listCloudflareResources(fetchImpl, env, pathname, perPage = 1000) {
+  const resources = [];
+  let page = 1;
+  for (;;) {
+    const separator = pathname.includes("?") ? "&" : "?";
+    const envelope = await cloudflareEnvelope(fetchImpl, env, `${pathname}${separator}per_page=${perPage}&page=${page}`);
+    const pageResources = assertCloudflareEnvelope(envelope);
+    if (!Array.isArray(pageResources)) throw new Error("Cloudflare list response did not contain an array");
+    resources.push(...pageResources);
+
+    const info = envelope.result_info ?? {};
+    const currentPage = Number(info.current_page ?? info.page ?? page);
+    const totalPages = Number(info.total_pages ?? (Number.isFinite(Number(info.total_count)) && Number(info.per_page) > 0
+      ? Math.ceil(Number(info.total_count) / Number(info.per_page)) : Number.NaN));
+    const hasMore = Number.isFinite(totalPages) ? currentPage < totalPages : pageResources.length === perPage;
+    if (!hasMore) return resources;
+    page = Number.isFinite(currentPage) && currentPage >= page ? currentPage + 1 : page + 1;
+  }
 }
 
 function databaseId(database) {
   const id = database?.uuid ?? database?.id;
-  if (!id) throw new Error(`Cloudflare D1 database ${DATABASE_NAME} has no UUID`);
+  if (!UUID_PATTERN.test(id ?? "")) throw new Error(`Cloudflare D1 database ${DATABASE_NAME} has no standard UUID`);
   return id;
 }
 
@@ -195,7 +232,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
   validateEnvironment(env);
 
   try {
-    let databases = await cloudflareRequest(fetchImpl, env, "/d1/database");
+    let databases = await listCloudflareResources(fetchImpl, env, "/d1/database");
     let database = selectDatabase(databases, DATABASE_NAME);
     const plannedMutations = [];
     if (!database) {
@@ -205,15 +242,16 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
           method: "POST",
           body: JSON.stringify({ name: DATABASE_NAME, primary_location_hint: "wnam" })
         });
-        databases = await cloudflareRequest(fetchImpl, env, "/d1/database");
+        databases = await listCloudflareResources(fetchImpl, env, "/d1/database");
         database = selectDatabase(databases, DATABASE_NAME);
         if (!database) throw new Error(`Cloudflare did not return ${DATABASE_NAME} after creating it`);
       }
     }
+    if (database) databaseId(database);
 
     if (dryRun) {
       plannedMutations.push("Apply remote D1 migrations", "Build and reconcile the production location index");
-      const widgets = await cloudflareRequest(fetchImpl, env, "/challenges/widgets");
+      const widgets = await listCloudflareResources(fetchImpl, env, "/challenges/widgets");
       const widget = selectTurnstileWidget(widgets, WIDGET_NAME);
       if (!widget) plannedMutations.push(`Create Turnstile widget ${WIDGET_NAME}`);
       else if (needsTurnstileUpdate(widget, TURNSTILE_DOMAINS)) plannedMutations.push(`Update Turnstile widget ${WIDGET_NAME}`);
@@ -239,7 +277,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
       await run("pnpm", ["exec", "wrangler", "d1", "execute", DATABASE_NAME, "--remote", "--config", wranglerConfigPath, "--command", upsert, "--yes"], { cwd: APP_DIRECTORY });
     }
 
-    const widgets = await cloudflareRequest(fetchImpl, env, "/challenges/widgets");
+    const widgets = await listCloudflareResources(fetchImpl, env, "/challenges/widgets");
     let widget = selectTurnstileWidget(widgets, WIDGET_NAME);
     if (!widget) {
       widget = await cloudflareRequest(fetchImpl, env, "/challenges/widgets", {
@@ -258,8 +296,10 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
     }
 
     const { sitekey, secret } = widgetCredentials(widget);
-    log(`::add-mask::${sitekey}`);
-    log(`::add-mask::${secret}`);
+    if (env.GITHUB_ACTIONS === "true") {
+      log(`::add-mask::${sitekey}`);
+      log(`::add-mask::${secret}`);
+    }
     await run("pnpm", ["exec", "wrangler", "secret", "bulk", "--config", wranglerConfigPath], {
       cwd: APP_DIRECTORY,
       input: JSON.stringify({ TURNSTILE_SECRET_KEY: secret, SUPPORT_IP_HMAC_SECRET: env.SUPPORT_IP_HMAC_SECRET })
