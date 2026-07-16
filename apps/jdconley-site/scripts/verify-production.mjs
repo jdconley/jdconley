@@ -4,6 +4,11 @@ import { pathToFileURL } from "node:url";
 
 const PRODUCTION_ORIGIN = "https://jdconley.com";
 const DEFAULT_TIMEOUT_MS = 10_000;
+const DEFAULT_BYTE_CAPS = Object.freeze({
+  html: 2 * 1024 * 1024,
+  json: 256 * 1024,
+  png: 5 * 1024 * 1024
+});
 const PERSONALIZED_QUERY = "lat=38.940&lon=-119.977&place=South+Lake+Tahoe%2C+CA&tz=America%2FLos_Angeles&wake=420&sleep=1320&bias=15&year=2026";
 const LOCATION = Object.freeze({
   place: "96150, CA",
@@ -43,19 +48,90 @@ function validateTimeout(timeoutMs) {
   return timeoutMs;
 }
 
+function resolveByteCaps(overrides = {}) {
+  if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) {
+    throw new Error("Production verification byteCaps must be an object");
+  }
+  const unknown = Object.keys(overrides).filter((key) => !Object.hasOwn(DEFAULT_BYTE_CAPS, key));
+  if (unknown.length) throw new Error(`Production verification byteCaps contains unknown family ${unknown[0]}`);
+  const caps = { ...DEFAULT_BYTE_CAPS, ...overrides };
+  for (const [family, value] of Object.entries(caps)) {
+    if (!Number.isInteger(value) || value < 1 || value > 100 * 1024 * 1024) {
+      throw new Error(`Production verification ${family} byte cap must be an integer from 1 to 104857600`);
+    }
+  }
+  return caps;
+}
+
 async function request(fetchImpl, url, init, family, timeoutMs, inspect) {
   const controller = new AbortController();
   let response;
+  let reader;
+  let readerCleaned = false;
   let timedOut = false;
   const timeoutError = () => new VerificationError(
     `${family} response verification failed: timed out after ${timeoutMs}ms`
   );
+  const acquireReader = () => {
+    if (reader) return reader;
+    if (!response?.body) fail(family, "response body is missing");
+    reader = response.body.getReader();
+    return reader;
+  };
+  const cleanupReader = (cancel, reason) => {
+    if (readerCleaned) return;
+    if (!reader && cancel && response?.body && !response.body.locked) reader = response.body.getReader();
+    if (!reader) return;
+    readerCleaned = true;
+    if (cancel) {
+      try {
+        Promise.resolve(reader.cancel(reason)).catch(() => {});
+      } catch {
+        // Cancellation is best-effort after the reader has already failed.
+      }
+    }
+    try {
+      reader.releaseLock();
+    } catch {
+      // A failed stream can already have released its lock.
+    }
+  };
+  const readBody = async (byteCap) => {
+    const ownedReader = acquireReader();
+    const declaredLength = response.headers.get("content-length");
+    if (/^\d+$/u.test(declaredLength ?? "") && Number(declaredLength) > byteCap) {
+      fail(family, `body exceeds ${byteCap} byte cap`);
+    }
+    const chunks = [];
+    let total = 0;
+    for (;;) {
+      let next;
+      try {
+        next = await ownedReader.read();
+      } catch {
+        fail(family, "body read failed");
+      }
+      if (next.done) break;
+      if (!(next.value instanceof Uint8Array)) fail(family, "body read returned an invalid chunk");
+      if (next.value.byteLength > byteCap - total) fail(family, `body exceeds ${byteCap} byte cap`);
+      if (next.value.byteLength === 0) continue;
+      chunks.push(next.value.slice());
+      total += next.value.byteLength;
+    }
+    const bytes = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return bytes;
+  };
   let timer;
   const deadline = new Promise((_, reject) => {
     timer = setTimeout(() => {
       timedOut = true;
       controller.abort();
-      Promise.resolve(response?.body?.cancel()).catch(() => {});
+      cleanupReader(true, "production verification deadline exceeded");
       reject(timeoutError());
     }, timeoutMs);
   });
@@ -66,8 +142,11 @@ async function request(fetchImpl, url, init, family, timeoutMs, inspect) {
         redirect: "manual",
         signal: controller.signal
       });
-      return await inspect(response);
+      const result = await inspect(response, readBody);
+      cleanupReader(!reader && Boolean(response.body), "response body was not consumed");
+      return result;
     } catch (error) {
+      cleanupReader(true, timedOut ? "production verification deadline exceeded" : "response verification failed");
       if (timedOut) throw timeoutError();
       if (error instanceof VerificationError) throw error;
       fail(family, "request or body read failed");
@@ -91,10 +170,19 @@ function expectContentType(response, expected, family) {
   if (actual !== expected) fail(family, `expected ${expected} content type, received ${actual ?? "missing"}`);
 }
 
-async function readJson(response, family) {
-  expectContentType(response, "application/json", family);
+function decodeUtf8(bytes, family) {
   try {
-    return await response.json();
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    fail(family, "body contains invalid UTF-8");
+  }
+}
+
+async function readJson(response, family, readBody, byteCap) {
+  expectContentType(response, "application/json", family);
+  const text = decodeUtf8(await readBody(byteCap), family);
+  try {
+    return JSON.parse(text);
   } catch {
     fail(family, "invalid JSON");
   }
@@ -127,10 +215,10 @@ function validateSupporters(payload) {
   return payload;
 }
 
-async function supporterSnapshot(fetchImpl, base, timeoutMs) {
-  return request(fetchImpl, `${base}/api/a-better-time/supporters`, {}, "Supporter", timeoutMs, async (response) => {
+async function supporterSnapshot(fetchImpl, base, timeoutMs, byteCaps) {
+  return request(fetchImpl, `${base}/api/a-better-time/supporters`, {}, "Supporter", timeoutMs, async (response, readBody) => {
     expectStatus(response, 200, "Supporter", "GET /api/a-better-time/supporters");
-    return validateSupporters(await readJson(response, "Supporter"));
+    return validateSupporters(await readJson(response, "Supporter", readBody, byteCaps.json));
   });
 }
 
@@ -202,11 +290,13 @@ export async function verifyProduction({
   origin,
   siteKey,
   marker = randomUUID(),
-  timeoutMs = DEFAULT_TIMEOUT_MS
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  byteCaps: byteCapOverrides
 } = {}) {
   if (typeof fetchImpl !== "function") throw new Error("Production verification fetch implementation is required");
   const base = canonicalOrigin(origin);
   const deadline = validateTimeout(timeoutMs);
+  const byteCaps = resolveByteCaps(byteCapOverrides);
   if (!/^[A-Za-z0-9_-]{10,}$/u.test(siteKey ?? "")) {
     throw new Error("Production verification site key is missing or malformed");
   }
@@ -214,17 +304,17 @@ export async function verifyProduction({
     throw new Error("Production verification marker is missing or malformed");
   }
 
-  await request(fetchImpl, `${base}/`, {}, "Document", deadline, async (response) => {
+  await request(fetchImpl, `${base}/`, {}, "Document", deadline, async (response, readBody) => {
     expectStatus(response, 200, "Document", "GET /");
     expectContentType(response, "text/html", "Document");
-    const body = await response.text();
+    const body = decodeUtf8(await readBody(byteCaps.html), "Document");
     if (!meaningfulHtml(body)) fail("Document", "expected meaningful apex HTML");
   });
 
-  await request(fetchImpl, `${base}/a-better-time`, {}, "Document", deadline, async (response) => {
+  await request(fetchImpl, `${base}/a-better-time`, {}, "Document", deadline, async (response, readBody) => {
     expectStatus(response, 200, "Document", "GET /a-better-time");
     expectContentType(response, "text/html", "Document");
-    const body = await response.text();
+    const body = decodeUtf8(await readBody(byteCaps.html), "Document");
     if (!meaningfulHtml(body) || !/<main\b[^>]*\bid=["']main["'][^>]*>/iu.test(body) || !/A Better Time/iu.test(body)) {
       fail("Document", "rendered tool does not contain the expected tool marker");
     }
@@ -242,12 +332,12 @@ export async function verifyProduction({
     }
   });
 
-  await request(fetchImpl, `${base}/api/a-better-time/locations?q=96150`, {}, "Location", deadline, async (response) => {
+  await request(fetchImpl, `${base}/api/a-better-time/locations?q=96150`, {}, "Location", deadline, async (response, readBody) => {
     expectStatus(response, 200, "Location", "GET ZIP 96150");
-    validateLocation(await readJson(response, "Location"));
+    validateLocation(await readJson(response, "Location", readBody, byteCaps.json));
   });
 
-  const before = await supporterSnapshot(fetchImpl, base, deadline);
+  const before = await supporterSnapshot(fetchImpl, base, deadline, byteCaps);
 
   const staleShareUrl = `${base}/a-better-time/share.png?${PERSONALIZED_QUERY}&v=${STALE_SHARE_VERSION}`;
   const shareImageUrl = await request(fetchImpl, staleShareUrl, {}, "Share image", deadline, async (response) => {
@@ -270,10 +360,10 @@ export async function verifyProduction({
     return redirected;
   });
 
-  await request(fetchImpl, shareImageUrl.href, {}, "Share image", deadline, async (response) => {
+  await request(fetchImpl, shareImageUrl.href, {}, "Share image", deadline, async (response, readBody) => {
     expectStatus(response, 200, "Share image", "GET current version");
     expectContentType(response, "image/png", "Share image");
-    const imageBytes = new Uint8Array(await response.arrayBuffer());
+    const imageBytes = await readBody(byteCaps.png);
     if (!validPng(imageBytes)) fail("Share image", "body is not a structurally valid PNG");
   });
 
@@ -286,15 +376,15 @@ export async function verifyProduction({
       consent: true,
       turnstileToken: INVALID_TURNSTILE_TOKEN
     })
-  }, "Supporter mutation", deadline, async (response) => {
+  }, "Supporter mutation", deadline, async (response, readBody) => {
     expectStatus(response, 403, "Supporter mutation", "POST invalid Turnstile token");
-    const rejection = await readJson(response, "Supporter mutation");
+    const rejection = await readJson(response, "Supporter mutation", readBody, byteCaps.json);
     if (!hasExactKeys(rejection, ["error"]) || rejection.error !== "turnstile_failed") {
       fail("Supporter mutation", "expected error turnstile_failed");
     }
   });
 
-  const after = await supporterSnapshot(fetchImpl, base, deadline);
+  const after = await supporterSnapshot(fetchImpl, base, deadline, byteCaps);
   if (after.count < before.count) {
     throw new Error(`Supporter state verification failed: public count decreased from ${before.count} to ${after.count}`);
   }
@@ -310,6 +400,7 @@ export async function verifyProductionCli({
   fetchImpl = globalThis.fetch,
   marker,
   timeoutMs,
+  byteCaps,
   log = console.log
 } = {}) {
   const origin = env.SITE_URL;
@@ -321,7 +412,8 @@ export async function verifyProductionCli({
     origin,
     siteKey: env.TURNSTILE_SITE_KEY,
     marker,
-    timeoutMs: timeoutMs ?? DEFAULT_TIMEOUT_MS
+    timeoutMs: timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    byteCaps
   });
   log(`Production verification passed with ${result.supporterCount} public supporters.`);
   return result;

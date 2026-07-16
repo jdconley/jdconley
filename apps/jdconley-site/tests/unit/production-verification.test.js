@@ -142,16 +142,93 @@ describe("production verification", () => {
   });
 
   test("times out stalled body consumption", async () => {
+    let cancellations = 0;
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(new TextEncoder().encode("<!doctype html><html><body>"));
+      },
+      cancel() {
+        cancellations += 1;
       }
     });
+    const stalledResponse = new Response(stream, { headers: { "content-type": "text/html" } });
     const { fetchImpl } = harness({
-      home: () => new Response(stream, { headers: { "content-type": "text/html" } })
+      home: () => stalledResponse
     });
     await expect(verifyProduction(options(fetchImpl, { timeoutMs: 15 })))
       .rejects.toThrow(/Document response.*timed out after 15ms/iu);
+    expect(cancellations).toBe(1);
+    expect(stalledResponse.body.locked).toBe(false);
+  });
+
+  test("fails an oversized stream early, cancels its source, and releases its lock", async () => {
+    let cancellations = 0;
+    const oversizedBytes = new TextEncoder().encode(`${homeHtml()}${"x".repeat(2048)}`);
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(oversizedBytes);
+      },
+      cancel() {
+        cancellations += 1;
+      }
+    });
+    const oversizedResponse = new Response(stream, { headers: { "content-type": "text/html" } });
+    const { fetchImpl } = harness({ home: () => oversizedResponse });
+    const started = Date.now();
+    await expect(verifyProduction(options(fetchImpl, {
+      timeoutMs: 250,
+      byteCaps: { html: 64 }
+    }))).rejects.toThrow(/Document response.*exceeds 64 byte cap/iu);
+    expect(Date.now() - started).toBeLessThan(150);
+    expect(cancellations).toBe(1);
+    expect(oversizedResponse.body.locked).toBe(false);
+  });
+
+  test.each([
+    ["JSON", { json: 16 }, {}, /Location response.*exceeds 16 byte cap/iu],
+    ["PNG", { png: 32 }, {}, /Share image response.*exceeds 32 byte cap/iu]
+  ])("enforces the configurable %s response byte cap", async (_family, byteCaps, overrides, message) => {
+    const { fetchImpl } = harness(overrides);
+    await expect(verifyProduction(options(fetchImpl, { byteCaps }))).rejects.toThrow(message);
+  });
+
+  test("releases the owned reader after successful body validation", async () => {
+    let cancellations = 0;
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode(homeHtml()));
+        controller.close();
+      },
+      cancel() {
+        cancellations += 1;
+      }
+    });
+    const successfulResponse = new Response(stream, {
+      headers: { "content-type": "text/html" }
+    });
+    const { fetchImpl } = harness({
+      home: () => successfulResponse
+    });
+    await expect(verifyProduction(options(fetchImpl))).resolves.toMatchObject({ supporterCount: 7 });
+    expect(cancellations).toBe(0);
+    expect(successfulResponse.body.locked).toBe(false);
+  });
+
+  test("rejects invalid UTF-8 without exposing decoded response content", async () => {
+    const prefix = new TextEncoder().encode(homeHtml());
+    const bytes = new Uint8Array(prefix.length + 2);
+    bytes.set(prefix);
+    bytes.set([0xc3, 0x28], prefix.length);
+    const { fetchImpl } = harness({
+      home: () => new Response(bytes, { headers: { "content-type": "text/html" } })
+    });
+    await expect(verifyProduction(options(fetchImpl))).rejects.toThrow(/Document response.*invalid UTF-8/iu);
+  });
+
+  test("uses one explicitly owned stream reader instead of convenience body buffering", async () => {
+    const source = await readFile(fileURLToPath(new URL("../../scripts/verify-production.mjs", import.meta.url)), "utf8");
+    expect(source).toContain(".getReader()");
+    expect(source).not.toMatch(/response\.(?:text|json|arrayBuffer)\s*\(/u);
   });
 
   test.each([
