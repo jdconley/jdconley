@@ -18,7 +18,8 @@ Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years
 
 ## Highlights
 
-- **AfterHour** Head of Engineering. Consumer finance social, AI trading, AI product development workflows.
+- **Meanwhile** Co-Founder. AI-native custom software agency for SMB operators. Lake Tahoe AI + Adaptiv.
+- **AfterHour** Head of Engineering, 2022–2026. Consumer finance social, AI trading, AI product development workflows.
 - **Brava**: VP / Head of Engineering (software). Complex consumer IoT + custom Linux OS; acquired in 2019 by [Middleby](https://www.google.com/finance/quote/MIDD:NASDAQ) (`$MIDD`).
 - **RealCrowd**: Co-founder / CTO. Direct commercial real estate investing marketplace (YC Summer 2013).
 - **Disney / Playdom**: Principal engineer; shipped profitable games and platform tech.
@@ -34,7 +35,9 @@ Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years
 
 ## What I’m up to now
 
-I’m working on AfterHour, doing a little consulting, and investing (including through **Pioneer Fund** / **Orange Fund**). I’m also exploring AI (and a bunch of other buzzwords) with a builder’s lens.
+I started **[Meanwhile](https://meanwhile.so)** in 2026. We build custom AI-native software for the operators SaaS forgot: restaurants, charters, dog trainers, CRE syndicators. The folks stuck with templates for thirty years because a real dev shop wanted a year of their revenue. AI changed that math. We ship a fully branded stack in days and run it monthly. Two brands today: **[Lake Tahoe AI](https://laketahoeai.com)** for hyper-local SMBs, **[Adaptiv](https://tryadaptiv.com)** for commercial real estate LP capital. Same factory underneath both.
+
+Previously Head of Engineering at AfterHour. Still doing a little advising and investing (incl. **Pioneer Fund** / **Orange Fund**).
 
 ## Recent projects
 
