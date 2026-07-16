@@ -561,7 +561,14 @@ test.describe("public support experience", () => {
   test("passes the Turnstile token, updates count on success, and confirms duplicates", async ({ page }) => {
     const posts: unknown[] = [];
     let postCount = 0;
-    await page.addInitScript(() => { (window as any).__abtTurnstile = { getToken: async () => "turnstile-token" }; });
+    await page.addInitScript(() => {
+      let index = 0;
+      (window as any).turnstileResets = 0;
+      (window as any).__abtTurnstile = {
+        getToken: async () => `turnstile-token-${++index}`,
+        reset: () => { (window as any).turnstileResets += 1; }
+      };
+    });
     await page.route("**/api/a-better-time/supporters", async (route) => {
       if (route.request().method() === "GET") return route.fulfill({ json: { count: 128, recent: [] } });
       posts.push(route.request().postDataJSON());
@@ -577,10 +584,32 @@ test.describe("public support experience", () => {
     await dialog.getByRole("button", { name: "Add my support" }).click();
     await expect(dialog.locator("[data-support-confirmation]")).toContainText("Thanks for supporting");
     await expect(page.locator("[data-support-count]").first()).toHaveText("129");
-    expect(posts[0]).toMatchObject({ firstName: "Jamie", location: "South Lake Tahoe, CA", consent: true, turnstileToken: "turnstile-token" });
+    expect(posts[0]).toMatchObject({ firstName: "Jamie", location: "South Lake Tahoe, CA", consent: true, turnstileToken: "turnstile-token-1" });
 
     await dialog.getByRole("button", { name: "Add my support" }).click();
     await expect(dialog.locator("[data-support-confirmation]")).toContainText("already recorded");
+    expect(posts[1]).toMatchObject({ turnstileToken: "turnstile-token-2" });
+    expect(await page.evaluate(() => (window as any).turnstileResets)).toBe(2);
+  });
+
+  test("maps malformed and network submission failures to friendly unavailable copy", async ({ page }) => {
+    let failure = "malformed";
+    await page.addInitScript(() => { (window as any).__abtTurnstile = { getToken: async () => "token", reset: () => {} }; });
+    await page.route("**/api/a-better-time/supporters", async (route) => {
+      if (route.request().method() === "GET") return route.fulfill({ json: { count: 1, recent: [] } });
+      if (failure === "malformed") return route.fulfill({ status: 500, body: "not-json" });
+      return route.abort("failed");
+    });
+    await page.goto(path);
+    await page.getByRole("button", { name: "Show support" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Show your support" });
+    await dialog.getByRole("textbox", { name: "First name" }).fill("Jamie");
+    await dialog.getByLabel(/display.*publicly/i).check();
+    await dialog.getByRole("button", { name: "Add my support" }).click();
+    await expect(dialog.locator("[data-support-error]")).toHaveText("We couldn’t add your support right now.");
+    failure = "network";
+    await dialog.getByRole("button", { name: "Add my support" }).click();
+    await expect(dialog.locator("[data-support-error]")).toHaveText("We couldn’t add your support right now.");
   });
 
   for (const viewport of [

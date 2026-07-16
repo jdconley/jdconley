@@ -16,6 +16,7 @@ migrations_dir = "migrations"
 
 [vars]
 SUPPORT_ORIGIN = "https://jdconley.com"
+TURNSTILE_SITE_KEY = ""
 
 [[ratelimits]]
 name = "SUPPORT_RATE_LIMITER"

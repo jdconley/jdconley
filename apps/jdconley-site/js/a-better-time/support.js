@@ -20,13 +20,12 @@ function loadTurnstile() {
 function managedTurnstile() {
   let widgetId;
   let token = "";
+  let api;
   return {
     async getToken(container) {
       const sitekey = document.querySelector("meta[name='turnstile-site-key']")?.content;
       if (!sitekey) throw new Error("Spam protection is not configured yet.");
-      const api = await loadTurnstile();
-      if (token) return token;
-      if (widgetId !== undefined) api.reset(widgetId);
+      api = await loadTurnstile();
       return new Promise((resolve, reject) => {
         widgetId = api.render(container, {
           sitekey,
@@ -36,6 +35,11 @@ function managedTurnstile() {
           "expired-callback"() { token = ""; }
         });
       });
+    },
+    reset() {
+      token = "";
+      if (api && widgetId !== undefined) api.remove(widgetId);
+      widgetId = undefined;
     }
   };
 }
@@ -128,9 +132,11 @@ export function createSupportController({
     }
     if (!form.reportValidity()) return;
     submit.disabled = true;
+    let tokenRequested = false;
     try {
+      tokenRequested = true;
       const token = await turnstile?.getToken?.(dialog.querySelector("[data-turnstile-slot]"));
-      if (!token) throw new Error("Complete the spam check and try again.");
+      if (!token) throw new Error("turnstile");
       const response = await fetchImpl(ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -141,8 +147,14 @@ export function createSupportController({
           turnstileToken: token
         })
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error === "rate_limited" ? "Please wait a minute and try again." : "We couldn’t add your support right now.");
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error("unavailable");
+      }
+      if (!response.ok) throw new Error(result?.error === "rate_limited" ? "rate_limited" : "unavailable");
+      if (!Number.isInteger(result.count) || !["created", "duplicate"].includes(result.status)) throw new Error("unavailable");
       statuses.forEach((status) => {
         status.setAttribute("aria-busy", "false");
         status.querySelector("[data-support-count]").textContent = String(result.count);
@@ -152,8 +164,13 @@ export function createSupportController({
         ? "Your support was already recorded for this internet connection."
         : "Thanks for supporting a better time.";
     } catch (caught) {
-      error.textContent = caught.message || "We couldn’t add your support right now.";
+      error.textContent = caught?.message === "rate_limited"
+        ? "Please wait a minute and try again."
+        : caught?.message === "turnstile"
+          ? "Complete the spam check and try again."
+          : "We couldn’t add your support right now.";
     } finally {
+      if (tokenRequested) turnstile?.reset?.();
       submit.disabled = false;
     }
   });
