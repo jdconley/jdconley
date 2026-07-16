@@ -362,6 +362,28 @@ test.describe("location personalization", () => {
     expect(containment).toEqual({ alaska: true, hawaii: true, dc: true, canada: false, mexico: false, puertoRico: false });
   });
 
+  for (const location of [
+    { name: "Bowbells, ND", latitude: 48.803, longitude: -102.246, tz: "America/Chicago" },
+    { name: "Crosby, ND", latitude: 48.914, longitude: -103.295, tz: "America/Chicago" },
+    { name: "Portal, ND", latitude: 48.996, longitude: -102.551, tz: "America/Chicago" },
+    { name: "Redford, TX", latitude: 29.45, longitude: -104.18, tz: "America/Chicago" },
+    { name: "Calais, ME", latitude: 45.189, longitude: -67.279, tz: "America/New_York" },
+    { name: "Phoenix, AZ", latitude: 33.448, longitude: -112.074, tz: "America/Phoenix" },
+    { name: "Honolulu, HI", latitude: 21.307, longitude: -157.858, tz: "Pacific/Honolulu" },
+    { name: "Adak, AK", latitude: 51.88, longitude: -176.658, tz: "America/Adak" }
+  ]) {
+    test(`uses the local U.S. civil zone for precise coordinates in ${location.name}`, async ({ context, page }) => {
+      await page.goto(path);
+      await context.grantPermissions(["geolocation"], { origin: new URL(page.url()).origin });
+      await context.setGeolocation(location);
+      await page.getByRole("button", { name: /Showing daylight for/ }).click();
+      await page.getByRole("button", { name: "Use my precise location" }).click();
+
+      await expect(page.getByRole("dialog", { name: "Choose your location" })).toBeHidden();
+      await expect(page).toHaveURL(new RegExp(`tz=${location.tz.replace("/", "%2F")}`));
+    });
+  }
+
   test("explains denied geolocation inline and focuses manual search", async ({ page }) => {
     await page.goto(path);
     await page.getByRole("button", { name: /Showing daylight for/ }).click();
@@ -449,6 +471,43 @@ test.describe("location personalization", () => {
     await expect(page.getByRole("option", { name: "Portland, OR" })).toBeVisible();
     await page.getByRole("heading", { name: "Choose your location" }).click();
     await expect(page.getByRole("option", { name: "Portland, OR" })).toBeHidden();
+  });
+
+  test("dismissal during debounce cancels the pending search", async ({ page }) => {
+    const calls: string[] = [];
+    await page.route("**/api/a-better-time/locations**", (route) => {
+      calls.push(route.request().url());
+      return route.fulfill({ json: { results: [{ place: "Portland, OR", lat: 45.537, lon: -122.65, tz: "America/Los_Angeles" }] } });
+    });
+    await page.goto(path);
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    await page.getByRole("combobox", { name: "City or ZIP code" }).fill("Portland");
+    await page.waitForTimeout(100);
+    await page.getByRole("heading", { name: "Choose your location" }).click();
+    await page.waitForTimeout(300);
+
+    expect(calls).toEqual([]);
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toBeHidden();
+  });
+
+  test("closing the dialog aborts an in-flight search so its result cannot reopen", async ({ page }) => {
+    let requestStarted!: () => void;
+    const started = new Promise<void>((resolve) => { requestStarted = resolve; });
+    await page.route("**/api/a-better-time/locations**", async (route) => {
+      requestStarted();
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      await route.fulfill({ json: { results: [{ place: "Portland, OR", lat: 45.537, lon: -122.65, tz: "America/Los_Angeles" }] } });
+    });
+    await page.goto(path);
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    await page.getByRole("combobox", { name: "City or ZIP code" }).fill("Portland");
+    await started;
+    await page.getByRole("button", { name: "Close location dialog" }).click();
+    await page.waitForTimeout(500);
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toBeHidden();
+    await expect(page.locator("[data-location-status]")).not.toContainText("Searching");
   });
 });
 

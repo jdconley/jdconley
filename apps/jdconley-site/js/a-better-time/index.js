@@ -207,9 +207,9 @@ updateResult();
 createLocationController({
   root: document.getElementById("location-dialog"),
   timezoneLookup: tzLookup,
-  containsUsLocation: async (lat, lon) => {
-    const { isIn50StatesAndDc } = await import("./us-containment.js");
-    return isIn50StatesAndDc(lat, lon);
+  resolvePreciseTimeZone: async (lat, lon) => {
+    const { resolveUsCivilTimeZone } = await import("./us-containment.js");
+    return resolveUsCivilTimeZone(lat, lon, tzLookup(lat, lon));
   },
   onLocation(nextLocation) {
     model.location = { ...model.location, ...nextLocation };

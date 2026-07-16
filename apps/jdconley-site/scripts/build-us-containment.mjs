@@ -42,10 +42,15 @@ function simplify(points, tolerance = TOLERANCE) {
 export function buildContainmentPolygons(featureCollection) {
   return featureCollection.features
     .filter((feature) => INCLUDED_ZONES.has(feature.properties.zone))
-    .flatMap((feature) => feature.geometry.type === "Polygon" ? [feature.geometry.coordinates] : feature.geometry.coordinates)
-    .map((polygon) => polygon.map((ring) => simplify(ring).map(([longitude, latitude]) => [
-      Number(longitude.toFixed(4)), Number(latitude.toFixed(4))
-    ])));
+    .flatMap((feature) => {
+      const polygons = feature.geometry.type === "Polygon" ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+      return polygons.map((polygon) => ({
+        zone: feature.properties.zone,
+        rings: polygon.map((ring) => simplify(ring).map(([longitude, latitude]) => [
+          Number(longitude.toFixed(4)), Number(latitude.toFixed(4))
+        ]))
+      }));
+    });
 }
 
 export async function generateContainmentModule({ fetcher = fetch } = {}) {

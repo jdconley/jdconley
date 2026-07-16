@@ -20,7 +20,7 @@ export function createLocationController({
   fetchImpl = globalThis.fetch?.bind(globalThis),
   geolocation = globalThis.navigator?.geolocation,
   timezoneLookup,
-  containsUsLocation = () => true
+  resolvePreciseTimeZone = async (lat, lon) => timezoneLookup(lat, lon)
 }) {
   const preciseButton = root.querySelector("[data-use-location]");
   const input = root.querySelector("[name='location_search']");
@@ -32,6 +32,7 @@ export function createLocationController({
   let options = [];
   let activeIndex = -1;
   let destroyed = false;
+  let searchGeneration = 0;
 
   function setStatus(message) {
     status.textContent = message;
@@ -44,6 +45,16 @@ export function createLocationController({
     results.hidden = true;
     input.setAttribute("aria-expanded", "false");
     input.removeAttribute("aria-activedescendant");
+  }
+
+  function cancelPendingSearch() {
+    searchGeneration += 1;
+    clearTimeout(debounceTimer);
+    debounceTimer = undefined;
+    requestController?.abort();
+    requestController = undefined;
+    dismissResults();
+    if (status.textContent === "Searching…") setStatus("");
   }
 
   function markActive(index) {
@@ -95,7 +106,7 @@ export function createLocationController({
     setStatus("");
   }
 
-  async function search(query) {
+  async function search(query, generation) {
     requestController?.abort();
     requestController = new AbortController();
     setStatus("Searching…");
@@ -107,24 +118,24 @@ export function createLocationController({
       if (!response.ok) throw new Error("Location search unavailable");
       const payload = await response.json();
       if (!Array.isArray(payload.results)) throw new Error("Invalid location response");
+      if (generation !== searchGeneration || destroyed) return;
       renderResults(payload.results);
     } catch (error) {
-      if (error.name === "AbortError") return;
+      if (error.name === "AbortError" || generation !== searchGeneration || destroyed) return;
       dismissResults();
       setStatus("We couldn’t search right now. Your current chart is unchanged; please try again.");
     }
   }
 
   function onInput() {
-    clearTimeout(debounceTimer);
-    requestController?.abort();
-    dismissResults();
+    cancelPendingSearch();
     const query = input.value.trim();
     if (query.length < 2) {
       setStatus(query ? "Enter at least two characters." : "");
       return;
     }
-    debounceTimer = setTimeout(() => search(query), SEARCH_DELAY_MS);
+    const generation = searchGeneration;
+    debounceTimer = setTimeout(() => search(query, generation), SEARCH_DELAY_MS);
   }
 
   function onKeydown(event) {
@@ -137,15 +148,15 @@ export function createLocationController({
     } else if (event.key === "Enter" && activeIndex >= 0) {
       event.preventDefault();
       choose(options[activeIndex]);
-    } else if (event.key === "Escape" && !results.hidden) {
+    } else if (event.key === "Escape" && (!results.hidden || debounceTimer || requestController)) {
       event.preventDefault();
       event.stopPropagation();
-      dismissResults();
+      cancelPendingSearch();
     }
   }
 
   function onDocumentPointerdown(event) {
-    if (!searchRegion?.contains(event.target)) dismissResults();
+    if (!searchRegion?.contains(event.target)) cancelPendingSearch();
   }
 
   async function usePreciseLocation() {
@@ -156,12 +167,13 @@ export function createLocationController({
       if (destroyed) return;
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      if (!await containsUsLocation(lat, lon)) {
+      const timeZone = await resolvePreciseTimeZone(lat, lon);
+      if (!timeZone) {
         setStatus("This experiment currently covers the 50 states and Washington, D.C. Search for a U.S. city or ZIP instead.");
         input.focus();
         return;
       }
-      choose({ place: "Current location", lat, lon, tz: timezoneLookup(lat, lon) });
+      choose({ place: "Current location", lat, lon, tz: timeZone });
     } catch {
       if (destroyed) return;
       setStatus("We couldn’t access your location. If access was denied, search for a U.S. city or ZIP instead.");
@@ -175,17 +187,18 @@ export function createLocationController({
   input.addEventListener("input", onInput);
   input.addEventListener("keydown", onKeydown);
   document.addEventListener("pointerdown", onDocumentPointerdown);
+  root.addEventListener("close", cancelPendingSearch);
 
   return {
     usePreciseLocation,
     destroy() {
       destroyed = true;
-      clearTimeout(debounceTimer);
-      requestController?.abort();
+      cancelPendingSearch();
       preciseButton.removeEventListener("click", usePreciseLocation);
       input.removeEventListener("input", onInput);
       input.removeEventListener("keydown", onKeydown);
       document.removeEventListener("pointerdown", onDocumentPointerdown);
+      root.removeEventListener("close", cancelPendingSearch);
     }
   };
 }
