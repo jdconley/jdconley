@@ -59,14 +59,29 @@ describe("buildSolarYear", () => {
     });
   });
 
-  it("keeps Utqiagvik polar-day transitions classified as polar day", () => {
+  it("keeps Utqiagvik polar-day transitions bounded around the first polar day", () => {
     const year = buildSolarYear({
       year: 2026,
       lat: 71.2906,
       lon: -156.7886
     });
 
-    for (const index of [129, 130, 131, 211]) {
+    expect(year[129]).toMatchObject({
+      date: "2026-05-10",
+      state: "normal",
+      sunriseUtcMs: expect.any(Number),
+      sunsetUtcMs: expect.any(Number)
+    });
+    expect(Number.isFinite(year[129].sunriseUtcMs)).toBe(true);
+    expect(Number.isFinite(year[129].sunsetUtcMs)).toBe(true);
+    expect(year[129].daylightSeconds).toBeGreaterThan(0);
+    expect(year[129].daylightSeconds).toBeLessThan(86_400);
+    expect(year[129].sunsetUtcMs).toBeGreaterThan(year[129].sunriseUtcMs);
+    expect(year[129].daylightSeconds).toBe(
+      (year[129].sunsetUtcMs - year[129].sunriseUtcMs) / 1000
+    );
+
+    for (const index of [130, 131, 211]) {
       expect(year[index]).toMatchObject({
         state: "polar-day",
         sunriseUtcMs: null,
@@ -74,7 +89,6 @@ describe("buildSolarYear", () => {
         daylightSeconds: 86_400
       });
     }
-    expect(year[129].date).toBe("2026-05-10");
     expect(year[130].date).toBe("2026-05-11");
     expect(year[131].date).toBe("2026-05-12");
     expect(year[211].date).toBe("2026-07-31");
