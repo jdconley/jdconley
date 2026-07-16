@@ -50,6 +50,67 @@ function hasValidCircularChanges(offsets, maximum) {
   });
 }
 
+function compareSchedules(left, right, ideals) {
+  const leftError = left.reduce(
+    (sum, value, index) => sum + (value - ideals[index]) ** 2,
+    0
+  );
+  const rightError = right.reduce(
+    (sum, value, index) => sum + (value - ideals[index]) ** 2,
+    0
+  );
+  if (Math.abs(leftError - rightError) > 1e-9) return leftError - rightError;
+  const leftMagnitude = left.reduce((sum, value) => sum + Math.abs(value), 0);
+  const rightMagnitude = right.reduce(
+    (sum, value) => sum + Math.abs(value),
+    0
+  );
+  if (leftMagnitude !== rightMagnitude) return leftMagnitude - rightMagnitude;
+  for (let index = 0; index < left.length; index += 1) {
+    if (left[index] !== right[index]) return left[index] - right[index];
+  }
+  return 0;
+}
+
+function optimizeIntegerOffsets(continuous, ideals, cap) {
+  // Integral difference-bound polyhedra have the proximity property for
+  // separable convex objectives: an integer optimum is found by choosing a
+  // floor or ceiling of each continuous optimum coordinate. The two-state
+  // circular dynamic program makes that choice globally, including tie-breaks.
+  const candidates = Array.from(continuous, (value) => {
+    const lower = Math.floor(value) || 0;
+    const upper = Math.ceil(value) || 0;
+    return lower === upper ? [lower] : [lower, upper];
+  });
+  let best = null;
+
+  for (const first of candidates[0]) {
+    let paths = new Map([[first, [first]]]);
+    for (let day = 1; day < candidates.length; day += 1) {
+      const nextPaths = new Map();
+      for (const value of candidates[day]) {
+        for (const [previous, path] of paths) {
+          if (Math.abs(value - previous) > cap) continue;
+          const candidate = [...path, value];
+          const incumbent = nextPaths.get(value);
+          if (!incumbent || compareSchedules(candidate, incumbent, ideals) < 0) {
+            nextPaths.set(value, candidate);
+          }
+        }
+      }
+      paths = nextPaths;
+    }
+    for (const path of paths.values()) {
+      if (Math.abs(path.at(-1) - first) > cap) continue;
+      if (!best || compareSchedules(path, best, ideals) < 0) best = path;
+    }
+  }
+  if (!best) {
+    throw new Error("could not produce a valid integer circular schedule");
+  }
+  return best;
+}
+
 export function constrainCircularOffsets(ideals, maxDailyChangeSeconds = 60) {
   if (!Array.isArray(ideals) || ideals.length === 0) {
     throw new TypeError("ideals must be a non-empty array");
@@ -57,88 +118,80 @@ export function constrainCircularOffsets(ideals, maxDailyChangeSeconds = 60) {
   if (!ideals.every(Number.isFinite)) {
     throw new TypeError("every ideal offset must be finite");
   }
-  if (
-    !Number.isFinite(maxDailyChangeSeconds) ||
-    maxDailyChangeSeconds <= 0
-  ) {
-    throw new RangeError("maxDailyChangeSeconds must be positive and finite");
+  if (!Number.isInteger(maxDailyChangeSeconds) || maxDailyChangeSeconds <= 0) {
+    throw new RangeError(
+      "maxDailyChangeSeconds must be a positive integer"
+    );
   }
   if (ideals.length === 1) return [roundOffset(ideals[0])];
 
   // The slight sub-second margin makes nearest-integer rounding preserve the
   // public integer cap even when neighboring coordinates round apart.
-  const projectionCap = Math.max(
-    maxDailyChangeSeconds / 2,
-    maxDailyChangeSeconds - 0.001
-  );
+  const projectionCap = maxDailyChangeSeconds - 0.001;
   // A deterministic accelerated dual pass supplies a close starting point;
   // Dykstra below remains the convergence authority and final projection.
-  let dual = Array(ideals.length).fill(0);
-  let momentum = dual.slice();
+  const length = ideals.length;
+  let dual = new Float64Array(length);
+  let nextDual = new Float64Array(length);
+  const momentum = new Float64Array(length);
+  const dualTranspose = new Float64Array(length);
+  const idealChanges = new Float64Array(length);
   let momentumScale = 1;
-  const idealChanges = ideals.map(
-    (ideal, day) =>
-      ideal - ideals[(day - 1 + ideals.length) % ideals.length]
-  );
+  for (let day = 0; day < length; day += 1) {
+    idealChanges[day] = ideals[day] - ideals[(day - 1 + length) % length];
+  }
   for (let iteration = 0; iteration < 50_000; iteration += 1) {
-    const dualTranspose = momentum.map(
-      (value, day) => value - momentum[(day + 1) % momentum.length]
-    );
-    const gradient = momentum.map(
-      (_, edge) =>
+    for (let day = 0; day < length; day += 1) {
+      dualTranspose[day] = momentum[day] - momentum[(day + 1) % length];
+    }
+    let dualChange = 0;
+    for (let edge = 0; edge < length; edge += 1) {
+      const gradient =
         dualTranspose[edge] -
-        dualTranspose[(edge - 1 + momentum.length) % momentum.length] -
-        idealChanges[edge]
-    );
-    const nextDual = momentum.map((value, edge) => {
-      const stepped = value - gradient[edge] / 4;
+        dualTranspose[(edge - 1 + length) % length] -
+        idealChanges[edge];
+      const stepped = momentum[edge] - gradient / 4;
       const magnitude = Math.max(0, Math.abs(stepped) - projectionCap / 4);
-      return Math.sign(stepped) * magnitude;
-    });
+      const value = Math.sign(stepped) * magnitude;
+      nextDual[edge] = value;
+      dualChange = Math.max(dualChange, Math.abs(value - dual[edge]));
+    }
     const nextScale = (1 + Math.sqrt(1 + 4 * momentumScale ** 2)) / 2;
-    momentum = nextDual.map(
-      (value, edge) =>
-        value + ((momentumScale - 1) / nextScale) * (value - dual[edge])
-    );
-    const dualChange = Math.max(
-      ...nextDual.map((value, edge) => Math.abs(value - dual[edge]))
-    );
+    const momentumWeight = (momentumScale - 1) / nextScale;
+    for (let edge = 0; edge < length; edge += 1) {
+      momentum[edge] =
+        nextDual[edge] + momentumWeight * (nextDual[edge] - dual[edge]);
+    }
+    const reusable = dual;
     dual = nextDual;
+    nextDual = reusable;
     momentumScale = nextScale;
     if (dualChange < 1e-11) break;
+    if ((iteration + 1) % 1000 === 0) {
+      momentum.set(dual);
+      momentumScale = 1;
+    }
   }
-  const dualTranspose = dual.map(
-    (value, day) => value - dual[(day + 1) % dual.length]
-  );
-  const offsets = ideals.map((ideal, day) => ideal - dualTranspose[day]);
-  const constraints = Array.from({ length: ideals.length }, (_, current) => ({
-    current,
-    previous: (current - 1 + ideals.length) % ideals.length,
-    currentCorrection: 0,
-    previousCorrection: 0
-  }));
+  const offsets = new Float64Array(length);
+  for (let day = 0; day < length; day += 1) {
+    dualTranspose[day] = dual[day] - dual[(day + 1) % length];
+    offsets[day] = ideals[day] - dualTranspose[day];
+  }
 
   // Warm-start Dykstra with a feasible primal point and matching dual
   // corrections. This preserves the original least-squares target while
   // avoiding slow propagation around long active stretches of the cycle.
-  for (let edge = 0; edge < constraints.length; edge += 1) {
-    constraints[edge].currentCorrection = dual[edge];
-    constraints[edge].previousCorrection = -dual[edge];
-  }
+  const corrections = dual.slice();
+  const before = new Float64Array(length);
 
   let converged = false;
   let finalCoordinateChange = Infinity;
   for (let sweep = 0; sweep < 20_000; sweep += 1) {
-    const before = offsets.slice();
-    for (const constraint of constraints) {
-      const {
-        current,
-        previous,
-        currentCorrection,
-        previousCorrection
-      } = constraint;
-      const currentInput = offsets[current] + currentCorrection;
-      const previousInput = offsets[previous] + previousCorrection;
+    before.set(offsets);
+    for (let current = 0; current < length; current += 1) {
+      const previous = (current - 1 + length) % length;
+      const currentInput = offsets[current] + corrections[current];
+      const previousInput = offsets[previous] - corrections[current];
       const difference = currentInput - previousInput;
       const violation = Math.abs(difference) - projectionCap;
       const adjustment = violation > 0 ? violation / 2 : 0;
@@ -148,13 +201,16 @@ export function constrainCircularOffsets(ideals, maxDailyChangeSeconds = 60) {
 
       offsets[current] = projectedCurrent;
       offsets[previous] = projectedPrevious;
-      constraint.currentCorrection = currentInput - projectedCurrent;
-      constraint.previousCorrection = previousInput - projectedPrevious;
+      corrections[current] = currentInput - projectedCurrent;
     }
 
-    const maxCoordinateChange = Math.max(
-      ...offsets.map((offset, index) => Math.abs(offset - before[index]))
-    );
+    let maxCoordinateChange = 0;
+    for (let day = 0; day < length; day += 1) {
+      maxCoordinateChange = Math.max(
+        maxCoordinateChange,
+        Math.abs(offsets[day] - before[day])
+      );
+    }
     finalCoordinateChange = maxCoordinateChange;
     if (maxCoordinateChange < 1e-7) {
       converged = true;
@@ -168,8 +224,8 @@ export function constrainCircularOffsets(ideals, maxDailyChangeSeconds = 60) {
     );
   }
 
+  const integerCap = maxDailyChangeSeconds;
   const integerOffsets = offsets.map(roundOffset);
-  const integerCap = Math.floor(maxDailyChangeSeconds);
 
   // Normally the projection margin makes these no-ops. They are kept as a
   // deterministic guard against floating-point edge cases at integer ties.
@@ -191,10 +247,14 @@ export function constrainCircularOffsets(ideals, maxDailyChangeSeconds = 60) {
     }
   }
 
-  if (!hasValidCircularChanges(integerOffsets, integerCap)) {
+  // The repaired rounding is deliberately not returned: the exact discrete
+  // optimization is authoritative, while these passes guard the specified
+  // deterministic rounding path against floating-point boundary behavior.
+  const optimizedIntegers = optimizeIntegerOffsets(offsets, ideals, integerCap);
+  if (!hasValidCircularChanges(optimizedIntegers, integerCap)) {
     throw new Error("could not produce a valid integer circular schedule");
   }
-  return integerOffsets;
+  return optimizedIntegers;
 }
 
 function parseDateUtc(date) {
@@ -209,11 +269,6 @@ function parseDateUtc(date) {
     throw new RangeError(`invalid solar row date: ${date}`);
   }
   return utcMs;
-}
-
-function normalizeMinute(minute) {
-  const normalized = minute % MINUTES_PER_DAY;
-  return normalized < 0 ? normalized + MINUTES_PER_DAY : normalized;
 }
 
 function wakingDurationSeconds(wake, sleep) {
@@ -313,8 +368,8 @@ function interpolateMissingCircular(values) {
 /**
  * Optimizes one buildSolarYear() result for a stable, DST-free proposed clock.
  * Clock inputs are civil minutes after midnight; offsets and gains are seconds.
- * Sunrise and sunset output minutes are wrapped into the [0, 1440) display day;
- * overlap calculations retain their actual date boundaries across midnight.
+ * Sunrise and sunset output minutes remain relative to the source date and may
+ * be below 0 or above 1440; consumers can clip them without losing day identity.
  */
 export function optimizeYear({ solarYear, timeZone, wake, sleep, bias }) {
   if (!Array.isArray(solarYear) || solarYear.length === 0) {
@@ -363,6 +418,17 @@ export function optimizeYear({ solarYear, timeZone, wake, sleep, bias }) {
         `normal solar row ${row.date} must contain finite events`
       );
     }
+    const eventDaylightSeconds =
+      (row.sunsetUtcMs - row.sunriseUtcMs) / 1000;
+    if (
+      eventDaylightSeconds <= 0 ||
+      eventDaylightSeconds > SECONDS_PER_DAY ||
+      Math.abs(eventDaylightSeconds - row.daylightSeconds) > 1e-6
+    ) {
+      throw new RangeError(
+        `normal solar row ${row.date} must have ordered events and consistent bounded daylight`
+      );
+    }
     const standardSunriseMinute =
       (row.sunriseUtcMs - dateUtcValues[day]) / MS_PER_MINUTE +
       standardUtcOffsetMinutes;
@@ -406,20 +472,16 @@ export function optimizeYear({ solarYear, timeZone, wake, sleep, bias }) {
       const standardSunsetMinute =
         (row.sunsetUtcMs - dateUtcMs) / MS_PER_MINUTE +
         standardUtcOffsetMinutes;
-      proposedSunriseMinute = normalizeMinute(
-        standardSunriseMinute + proposedOffsetSeconds / 60
-      );
-      proposedSunsetMinute = normalizeMinute(
-        standardSunsetMinute + proposedOffsetSeconds / 60
-      );
-      currentSunriseMinute = normalizeMinute(
+      proposedSunriseMinute =
+        standardSunriseMinute + proposedOffsetSeconds / 60;
+      proposedSunsetMinute =
+        standardSunsetMinute + proposedOffsetSeconds / 60;
+      currentSunriseMinute =
         (row.sunriseUtcMs - dateUtcMs) / MS_PER_MINUTE +
-          getOffsetMinutes(row.sunriseUtcMs, timeZone)
-      );
-      currentSunsetMinute = normalizeMinute(
+        getOffsetMinutes(row.sunriseUtcMs, timeZone);
+      currentSunsetMinute =
         (row.sunsetUtcMs - dateUtcMs) / MS_PER_MINUTE +
-          getOffsetMinutes(row.sunsetUtcMs, timeZone)
-      );
+        getOffsetMinutes(row.sunsetUtcMs, timeZone);
       proposedOverlap = proposedOverlapSeconds(
         row,
         dateUtcMs,
