@@ -38,6 +38,7 @@ I’m working on AfterHour, doing a little consulting, and investing (including 
 
 ## Recent projects
 
+- **[A Better Time](https://www.jdconley.com/a-better-time)** — A gentler clock that follows the sun. Explore your location’s optimal time.
 - **[wodbrains](https://github.com/jdconley/wodbrains)** — Builds a smart timer from any workout: paste text, drop a screenshot, share a URL, or describe what you want.
 - **[deadhand](https://github.com/jdconley/deadhand)** — Remote command and control for Cursor AI local agents.
 - **[jdconley](https://github.com/jdconley/jdconley)** — This repo: jdconley.com plus build-in-public logs and tooling.

@@ -22,6 +22,20 @@ test("critical contact and profile links are present", async ({ page }) => {
   await expect(page.locator('a[href="https://www.linkedin.com/in/jdconley"]')).toBeVisible();
 });
 
+test("links to A Better Time from Vibe coded projects", async ({ page }) => {
+  await page.goto("/");
+  const project = page.getByRole("link", { name: /A Better Time/ });
+  await expect(project).toBeVisible();
+  await expect(project).toHaveAttribute("href", "/a-better-time");
+  await expect(project).toContainText(
+    "A gentler clock that follows the sun · Explore your location’s optimal time."
+  );
+  await expect(project.getByRole("img", { name: /daylight visualizer/ })).toHaveAttribute(
+    "src",
+    "/images/a-better-time-card.png"
+  );
+});
+
 test("404 page renders expected message", async ({ page }) => {
   await page.goto("/404.html");
 
