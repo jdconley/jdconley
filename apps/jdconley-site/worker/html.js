@@ -1,5 +1,6 @@
 const SITE_KEY_META = '<meta name="turnstile-site-key" content="">';
 import { parseState, serializeState } from "../js/a-better-time/core/url-state.js";
+import { normalizeUsState } from "../js/a-better-time/us-state.js";
 import { shareImageUrl } from "./share-image.js";
 
 function escapeAttribute(value) {
@@ -28,7 +29,7 @@ export async function injectRuntimeConfig(response, env, requestUrl) {
   );
   if (requestUrl) {
     const url = new URL(requestUrl);
-    const state = parseState(url.search).state;
+    const state = normalizeUsState(parseState(url.search)).state;
     const query = serializeState(state);
     const canonical = `https://jdconley.com/a-better-time?${query}`;
     const image = shareImageUrl(query);

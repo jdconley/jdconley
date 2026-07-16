@@ -10,6 +10,7 @@ import { buildSolarYear } from "../js/a-better-time/core/solar.js";
 import { optimizeYear } from "../js/a-better-time/core/optimizer.js";
 import { SHARE_IMAGE_VERSION } from "../js/a-better-time/share-image-version.js";
 import { resultCopy } from "../js/a-better-time/result-copy.js";
+import { normalizeUsState } from "../js/a-better-time/us-state.js";
 
 let wasmReady;
 const inFlightRenders = new Map();
@@ -78,7 +79,7 @@ export function createShareImageHandler({
     }
 
     const requestUrl = new URL(request.url);
-    const state = parseState(requestUrl.search).state;
+    const state = normalizeUsState(parseState(requestUrl.search)).state;
     const query = serializeState(state);
     const requestedVersions = requestUrl.searchParams.getAll("v");
     if (requestedVersions.length !== 1 || requestedVersions[0] !== version) {

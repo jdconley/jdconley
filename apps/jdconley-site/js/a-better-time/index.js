@@ -9,7 +9,9 @@ import { createSupportController } from "./support.js";
 import { createShareController } from "./share.js";
 import { resultCopy } from "./result-copy.js";
 
-const parsed = parseState(location.search);
+const parsedInput = parseState(location.search);
+const { normalizeUsState } = await import("./us-state.js");
+const parsed = normalizeUsState(parsedInput);
 const model = {
   location: { ...parsed.state },
   settings: {
@@ -110,13 +112,16 @@ function updateResult() {
   }, 16);
 }
 
-function showResetNotice(fields) {
-  if (!fields.length) return;
+function showResetNotice({ resetFields, locationReset }) {
+  if (!resetFields.length && !locationReset) return;
   const notice = document.createElement("div");
   notice.className = "reset-notice";
   notice.setAttribute("role", "status");
   const text = document.createElement("span");
-  text.textContent = `Some shared settings were reset: ${fields.join(", ")}.`;
+  const messages = [];
+  if (locationReset) messages.push("Shared locations are limited to the 50 states and Washington, D.C., so this location was reset to South Lake Tahoe, CA.");
+  if (resetFields.length) messages.push(`Some shared settings were reset: ${resetFields.join(", ")}.`);
+  text.textContent = messages.join(" ");
   const dismiss = document.createElement("button");
   dismiss.type = "button";
   dismiss.setAttribute("aria-label", "Dismiss reset notice");
@@ -195,7 +200,7 @@ tuneDialog.querySelector("[data-tune-form]").addEventListener("submit", (event) 
   updateResult();
 });
 
-showResetNotice(parsed.resetFields);
+showResetNotice(parsed);
 chartRoot.dataset.activeChart = model.activeChart;
 updateSummary();
 updateResult();
@@ -223,5 +228,9 @@ createSupportController({
 createShareController({
   trigger: document.querySelector("[data-share-trigger]"),
   dialog: document.getElementById("share-dialog"),
-  getUrl: () => window.location.href
+  getUrl: () => {
+    const url = new URL(window.location.href);
+    url.search = serializeState(canonicalState());
+    return url.href;
+  }
 });

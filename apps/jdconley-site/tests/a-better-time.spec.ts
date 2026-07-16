@@ -256,6 +256,7 @@ const layouts = [
 test("phone actions stay pinned below the tool while post-tool content scrolls", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(path);
+  await expect(page.locator("[data-gain-metric] strong")).not.toHaveText("Calculating…");
 
   const actions = page.locator(".mobile-actions");
   const chart = page.locator(".chart-card");
@@ -361,6 +362,35 @@ test("phone tuning opens as a bottom sheet", async ({ page }) => {
 });
 
 test.describe("location personalization", () => {
+  for (const location of [
+    { name: "Canada", lat: 49.2827, lon: -123.1207, place: "Vancouver, BC", tz: "America/Vancouver" },
+    { name: "Puerto Rico", lat: 18.2208, lon: -66.5901, place: "San Juan, PR", tz: "America/Puerto_Rico" }
+  ]) {
+    test(`resets a shared ${location.name} location while preserving valid schedule settings`, async ({ page }) => {
+      await page.goto(`${path}?lat=${location.lat}&lon=${location.lon}&place=${encodeURIComponent(location.place)}&tz=${encodeURIComponent(location.tz)}&wake=480&sleep=1380&bias=35&year=2026`);
+
+      await expect(page).toHaveURL(/lat=38\.940&lon=-119\.977&place=South\+Lake\+Tahoe%2C\+CA&tz=America%2FLos_Angeles/);
+      await expect(page).toHaveURL(/wake=480&sleep=1380&bias=35&year=2026/);
+      await expect(page.locator("[data-place-name]").first()).toHaveText("South Lake Tahoe, CA");
+      const notice = page.getByRole("status").filter({ hasText: "50 states and Washington, D.C." });
+      await expect(notice).toContainText("reset");
+      await expect(notice.getByRole("button", { name: "Dismiss reset notice" })).toBeVisible();
+    });
+  }
+
+  for (const location of [
+    { name: "Phoenix", lat: 33.448, lon: -112.074, place: "Phoenix, AZ", expected: "America%2FPhoenix" },
+    { name: "Bowbells border", lat: 48.803, lon: -102.246, place: "Bowbells, ND", expected: "America%2FChicago" }
+  ]) {
+    test(`corrects a mismatched shared time zone for ${location.name}`, async ({ page }) => {
+      await page.goto(`${path}?lat=${location.lat}&lon=${location.lon}&place=${encodeURIComponent(location.place)}&tz=America%2FNew_York&wake=420&sleep=1320&bias=0&year=2026`);
+
+      await expect(page).toHaveURL(new RegExp(`tz=${location.expected}`));
+      await expect(page.locator("[data-place-name]").first()).toHaveText(location.place);
+      await expect(page).not.toHaveURL(/tz=America%2FNew_York/);
+    });
+  }
+
   test("uses precise Tahoe coordinates locally and only rounds the shared URL", async ({ context, page }) => {
     const exact = { latitude: 38.9487374, longitude: -119.9507952 };
     await page.goto(path);
@@ -800,7 +830,7 @@ test.describe("personalized sharing", () => {
     expect(canonical).toContain("place=Phoenix%2C+AZ");
     const imageUrl = new URL(canonical);
     imageUrl.pathname = "/a-better-time/share.png";
-    imageUrl.searchParams.set("v", "satori-resvg-inter-2026-07-16.2");
+    imageUrl.searchParams.set("v", "satori-resvg-inter-2026-07-16.3");
     const image = imageUrl.href;
     await expect(dialog.locator("[data-share-preview]")).toHaveAttribute("src", image);
     await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("download", "a-better-time.png");

@@ -269,6 +269,58 @@ describe("personalized sharing", () => {
     expect(html).not.toContain("nope");
   });
 
+  it.each([
+    ["Canada", "49.283", "-123.121", "Vancouver, BC", "America/Vancouver"],
+    ["Puerto Rico", "18.221", "-66.590", "San Juan, PR", "America/Puerto_Rico"]
+  ])("resets %s metadata location while preserving valid settings", async (_name, lat, lon, place, tz) => {
+    const response = await worker.fetch(new Request(`https://jdconley.test/a-better-time?lat=${lat}&lon=${lon}&place=${encodeURIComponent(place)}&tz=${encodeURIComponent(tz)}&wake=480&sleep=1380&bias=35&year=2026`), env);
+    const html = await response.text();
+    const { document } = parseHTML(html);
+    const canonical = new URL(document.querySelector('link[rel="canonical"]').getAttribute("href"));
+    expect(Object.fromEntries(canonical.searchParams)).toMatchObject({
+      lat: "38.940", lon: "-119.977", place: "South Lake Tahoe, CA", tz: "America/Los_Angeles",
+      wake: "480", sleep: "1380", bias: "35", year: "2026"
+    });
+    expect(document.title).toBe("A Better Time for South Lake Tahoe, CA");
+    const image = new URL(document.querySelector('meta[property="og:image"]').getAttribute("content"));
+    expect(image.searchParams.get("place")).toBe("South Lake Tahoe, CA");
+  });
+
+  it.each([
+    ["Phoenix", "33.448", "-112.074", "Phoenix, AZ", "America/Phoenix"],
+    ["Bowbells border", "48.803", "-102.246", "Bowbells, ND", "America/Chicago"],
+    ["Honolulu", "21.307", "-157.858", "Honolulu, HI", "Pacific/Honolulu"],
+    ["Adak", "51.880", "-176.658", "Adak, AK", "America/Adak"]
+  ])("normalizes mismatched metadata time zone for %s", async (_name, lat, lon, place, expectedTz) => {
+    const response = await worker.fetch(new Request(`https://jdconley.test/a-better-time?lat=${lat}&lon=${lon}&place=${encodeURIComponent(place)}&tz=America%2FNew_York&year=2026`), env);
+    const html = await response.text();
+    const { document } = parseHTML(html);
+    const canonical = new URL(document.querySelector('link[rel="canonical"]').getAttribute("href"));
+    expect(canonical.searchParams.get("tz")).toBe(expectedTz);
+  });
+
+  it("normalizes foreign image redirects and preserves valid settings", async () => {
+    const response = await worker.fetch(new Request("https://jdconley.test/a-better-time/share.png?lat=49.283&lon=-123.121&place=Vancouver%2C+BC&tz=America%2FVancouver&wake=480&sleep=1380&bias=35&year=2026&v=stale"), env);
+    const location = new URL(response.headers.get("location"));
+    expect(response.status).toBe(302);
+    expect(Object.fromEntries(location.searchParams)).toMatchObject({
+      lat: "38.940", lon: "-119.977", place: "South Lake Tahoe, CA", tz: "America/Los_Angeles",
+      wake: "480", sleep: "1380", bias: "35", year: "2026", v: shareImage.SHARE_IMAGE_VERSION
+    });
+  });
+
+  it("passes only normalized U.S. state into image rendering and cache keys", async () => {
+    const render = vi.fn(async () => new Uint8Array([20]));
+    const cache = { match: vi.fn().mockResolvedValue(undefined), put: vi.fn().mockResolvedValue(undefined) };
+    const handler = shareImage.createShareImageHandler({ render, cache, version: "test-us-state-v1" });
+    const response = await handler(new Request("https://example.test/a-better-time/share.png?lat=33.448&lon=-112.074&place=Phoenix%2C+AZ&tz=America%2FNew_York&year=2026&v=test-us-state-v1"));
+
+    expect(response.status).toBe(200);
+    expect(render).toHaveBeenCalledWith(expect.objectContaining({ lat: 33.448, lon: -112.074, place: "Phoenix, AZ", tz: "America/Phoenix" }));
+    expect(cache.put.mock.calls[0][0].url).toContain("tz=America%2FPhoenix");
+    expect(cache.put.mock.calls[0][0].url).not.toContain("New_York");
+  });
+
   it("preserves replacement tokens, quotes, ampersands, and markup-like place text exactly", async () => {
     const place = 'Cash $& Carry "$1" <sun> & Friends';
     const response = await worker.fetch(new Request(`https://jdconley.test/a-better-time?place=${encodeURIComponent(place)}&year=2026`), env);
