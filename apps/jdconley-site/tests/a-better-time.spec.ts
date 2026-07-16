@@ -106,11 +106,62 @@ test.describe("A Better Time page shell", () => {
         border: styles.getPropertyValue("--abt-border").trim(),
         radiusSm: styles.getPropertyValue("--abt-radius-sm").trim(),
         radiusLg: styles.getPropertyValue("--abt-radius-lg").trim(),
+        sunsetLine: styles.getPropertyValue("--abt-sunset-line").trim(),
+        referenceLine: styles.getPropertyValue("--abt-reference-line").trim(),
+        axis: styles.getPropertyValue("--abt-axis").trim(),
         css: [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules]).map((rule) => rule.cssText).join(" ")
       };
     });
-    expect(tokens).toMatchObject({ ink: "#111318", canvas: "#f7f8fa", surface: "#fff", action: "#315eea", sunrise: "#2385ff", sunset: "#ff9f0a", reference: "#a5aab3", border: "#e2e5ea", radiusSm: "12px", radiusLg: "20px" });
+    expect(tokens).toMatchObject({ ink: "#111318", canvas: "#f7f8fa", surface: "#fff", action: "#315eea", sunrise: "#2385ff", sunset: "#ff9f0a", reference: "#a5aab3", border: "#e2e5ea", radiusSm: "12px", radiusLg: "20px", sunsetLine: "#9c4a00", referenceLine: "#68707d", axis: "#59616e" });
     expect(tokens.css).not.toContain("gradient(");
+    expect(tokens.css).toContain("transition: opacity 0.15s, transform 0.15s");
+  });
+
+  test("all form controls expose stable names and useful examples", async ({ page }) => {
+    await page.goto(path);
+    const controls = page.locator("input");
+    await expect(controls).toHaveCount(6);
+    for (let index = 0; index < await controls.count(); index += 1) {
+      await expect(controls.nth(index)).toHaveAttribute("name", /.+/);
+    }
+    await expect(page.locator("input[name='supporter_name']")).toHaveAttribute("placeholder", "e.g. Jamie…");
+    await expect(page.locator("input[name='location_search']")).toHaveAttribute("placeholder", "e.g. Phoenix or 85001…");
+    await expect(page.locator("input[name='location_search']")).toHaveAttribute("autocomplete", "off");
+  });
+
+  test("fallback dialogs isolate every outside body sibling and restore them", async ({ browser }) => {
+    const context = await browser.newContext();
+    await context.addInitScript(() => {
+      HTMLDialogElement.prototype.showModal = undefined;
+      HTMLDialogElement.prototype.close = undefined;
+    });
+    const page = await context.newPage();
+    await page.goto(path);
+    const trigger = page.getByRole("button", { name: "Share this result" });
+    await trigger.click();
+    const isolated = await page.evaluate(() => [...document.body.children]
+      .filter((node) => node.id !== "share-dialog" && node.tagName !== "SCRIPT")
+      .every((node) => node.inert));
+    expect(isolated).toBeTruthy();
+    await page.keyboard.press("Escape");
+    const remainingInert = await page.evaluate(() => [...document.body.children]
+      .filter((node) => node.id !== "share-dialog" && node.tagName !== "SCRIPT")
+      .filter((node) => node.inert)
+      .map((node) => node.id || node.tagName));
+    expect(remainingInert).toEqual([]);
+    await expect(trigger).toBeFocused();
+    await context.close();
+  });
+
+  test("no-JS fallback hides dead controls but keeps the model readable", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    await page.goto(path);
+    await expect(page.getByRole("heading", { name: "What if the clock followed the sun?" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Yearly daylight comparison" })).toBeVisible();
+    expect(await page.locator("noscript").textContent()).toContain("South Lake Tahoe");
+    await expect(page.locator(".js-only:visible")).toHaveCount(0);
+    await context.close();
   });
 });
 
@@ -123,12 +174,20 @@ const layouts = [
 ] as const;
 
 for (const layout of layouts) {
-  test(`${layout.name} layout has intentional responsive composition`, async ({ page }, testInfo) => {
+  test(`${layout.name} layout has intentional responsive composition`, async ({ page }) => {
     await page.setViewportSize({ width: layout.width, height: layout.height });
     await page.goto(path);
 
-    await expect(page.locator(`[data-layout='${layout.visible}']`)).toBeVisible();
     await expect(page.locator(`[data-layout='${layout.hidden}']`)).toBeHidden();
+    if (layout.name === "phone") {
+      await page.locator(".mobile-actions").scrollIntoViewIfNeeded();
+      const [card, actions] = await Promise.all([
+        page.locator(".chart-card").boundingBox(),
+        page.locator(".mobile-actions").boundingBox()
+      ]);
+      expect(actions && card && actions.y >= card.y + card.height).toBeTruthy();
+    }
+    await expect(page.locator(`[data-layout='${layout.visible}']`)).toBeVisible();
     await expect(page.getByRole("button", { name: "Tune my day" })).toBeVisible();
     const sizes = await page.evaluate(() => ({
       document: document.documentElement.scrollWidth,
@@ -137,7 +196,23 @@ for (const layout of layouts) {
     }));
     expect(sizes.document).toBeLessThanOrEqual(sizes.viewport);
     if (layout.name === "wide-desktop") expect(sizes.workspace).toBeLessThan(1600);
-    await page.screenshot({ path: testInfo.outputPath(`${layout.name}.png`), fullPage: true });
+    let snapshotPage = page;
+    if (layout.name === "phone") {
+      snapshotPage = await page.context().newPage();
+      await snapshotPage.setViewportSize({ width: layout.width, height: layout.height });
+      await snapshotPage.goto(path);
+    } else {
+      await page.evaluate(() => {
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+      });
+    }
+    await snapshotPage.locator(".skip-link").evaluate((element) => element.remove());
+    await expect(snapshotPage).toHaveScreenshot(`${layout.name}.png`, {
+      animations: "disabled",
+      fullPage: layout.name !== "phone",
+      maxDiffPixelRatio: 0.01
+    });
+    if (snapshotPage !== page) await snapshotPage.close();
   });
 }
 
