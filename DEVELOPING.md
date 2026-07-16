@@ -160,50 +160,52 @@ The dry run validates inputs, discovers D1 and Turnstile resources, and reports 
 GitHub Actions is the normal deployment path. For a deliberate manual recovery, capture the reconciler outputs, deploy them together, verify, and clean up:
 
 ```bash
-set -euo pipefail
-VITE_SITE_URL="$SITE_URL" pnpm run build:site
+(
+  set -euo pipefail
+  VITE_SITE_URL="$SITE_URL" pnpm run build:site
 
-config_path=
-output_file=
-cleanup_reconciliation_files() {
-  candidate="${config_path:-}"
-  if [[ -z "$candidate" && -n "${output_file:-}" && -f "$output_file" ]]; then
-    candidate="$(sed -n 's/^WRANGLER_CONFIG=//p' "$output_file" 2>/dev/null || true)"
-  fi
-  if [[ -n "$candidate" ]]; then
-    pnpm --filter @jdconley/jdconley-site run production:reconcile:cleanup "$candidate" >/dev/null 2>&1 || true
-  fi
-  if [[ -n "${output_file:-}" ]]; then
-    rm -f -- "$output_file" >/dev/null 2>&1 || true
-  fi
-}
-output_file="$(mktemp)"
-trap cleanup_reconciliation_files EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
-chmod 600 "$output_file"
+  config_path=
+  output_file=
+  cleanup_reconciliation_files() {
+    candidate="${config_path:-}"
+    if [[ -z "$candidate" && -n "${output_file:-}" && -f "$output_file" ]]; then
+      candidate="$(sed -n 's/^WRANGLER_CONFIG=//p' "$output_file" 2>/dev/null || true)"
+    fi
+    if [[ -n "$candidate" ]]; then
+      pnpm --filter @jdconley/jdconley-site run production:reconcile:cleanup "$candidate" >/dev/null 2>&1 || true
+    fi
+    if [[ -n "${output_file:-}" ]]; then
+      rm -f -- "$output_file" >/dev/null 2>&1 || true
+    fi
+  }
+  output_file="$(mktemp)"
+  trap cleanup_reconciliation_files EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  chmod 600 "$output_file"
 
-GITHUB_OUTPUT="$output_file" op run -- pnpm --filter @jdconley/jdconley-site run production:reconcile
-config_path="$(sed -n 's/^WRANGLER_CONFIG=//p' "$output_file")"
-secrets_file="$(sed -n 's/^WRANGLER_SECRETS_FILE=//p' "$output_file")"
-site_key="$(sed -n 's/^TURNSTILE_SITE_KEY=//p' "$output_file")"
-if [[ -z "$config_path" || -z "$secrets_file" || -z "$site_key" ]]; then
-  echo "Reconciliation did not emit every required deploy output." >&2
-  exit 1
-fi
+  GITHUB_OUTPUT="$output_file" op run -- pnpm --filter @jdconley/jdconley-site run production:reconcile
+  config_path="$(sed -n 's/^WRANGLER_CONFIG=//p' "$output_file")"
+  secrets_file="$(sed -n 's/^WRANGLER_SECRETS_FILE=//p' "$output_file")"
+  site_key="$(sed -n 's/^TURNSTILE_SITE_KEY=//p' "$output_file")"
+  if [[ -z "$config_path" || -z "$secrets_file" || -z "$site_key" ]]; then
+    echo "Reconciliation did not emit every required deploy output." >&2
+    exit 1
+  fi
 
-op run -- pnpm --filter @jdconley/jdconley-site exec wrangler deploy \
-  --config "$config_path" --secrets-file "$secrets_file" \
-  --var "TURNSTILE_SITE_KEY:$site_key" --var "SUPPORT_ORIGIN:$SITE_URL"
-SITE_URL="$SITE_URL" TURNSTILE_SITE_KEY="$site_key" \
-  pnpm --filter @jdconley/jdconley-site run production:verify
-pnpm --filter @jdconley/jdconley-site run production:reconcile:cleanup "$config_path"
-config_path=
-rm -f -- "$output_file"
-trap - EXIT INT TERM
+  op run -- pnpm --filter @jdconley/jdconley-site exec wrangler deploy \
+    --config "$config_path" --secrets-file "$secrets_file" \
+    --var "TURNSTILE_SITE_KEY:$site_key" --var "SUPPORT_ORIGIN:$SITE_URL"
+  SITE_URL="$SITE_URL" TURNSTILE_SITE_KEY="$site_key" \
+    pnpm --filter @jdconley/jdconley-site run production:verify
+  pnpm --filter @jdconley/jdconley-site run production:reconcile:cleanup "$config_path"
+  config_path=
+  rm -f -- "$output_file"
+  trap - EXIT INT TERM
+)
 ```
 
-The manual sequence builds `dist` with the same canonical site URL before any production mutation. Its EXIT/signal traps are installed as soon as the protected output file exists; they remove the generated directory (including the secrets file) and output file after a deploy/verification error or interruption without printing their contents. The happy path cleans explicitly, clears the path, removes the output file, and then disarms the traps.
+The recipe runs in a subshell: it inherits the exported 1Password references/session and site URL, while strict mode, local variables, and traps cannot alter or exit the authenticated parent shell. It builds `dist` with the same canonical site URL before any production mutation. Its EXIT/signal traps are installed as soon as the protected output file exists; they remove the generated directory (including the secrets file) and output file after a deploy/verification error or interruption without printing their contents. The happy path cleans explicitly, clears the path, removes the output file, and then disarms the traps.
 
 Reconciliation creates `jdconley-production-*` under `$RUNNER_TEMP` (or the OS temp directory), with mode-`0600` Wrangler and secrets files. An internal failure removes that directory; after successful reconciliation the workflow's final cleanup removes it even if deploy or verification fails. The location importer likewise deletes its generated mode-`0600` SQL directory in `finally`.
 

@@ -56,7 +56,7 @@ description: Use when operating or troubleshooting this repository's Cloudflare 
 - Reconcile: `pnpm --filter @jdconley/jdconley-site run production:reconcile` (set `GITHUB_OUTPUT` to a protected temp file to capture config/secrets/site-key paths).
 - Verify: `pnpm --filter @jdconley/jdconley-site run production:verify` with `SITE_URL` and `TURNSTILE_SITE_KEY`.
 - Cleanup: `pnpm --filter @jdconley/jdconley-site run production:reconcile:cleanup <absolute-generated-wrangler-path>`.
-- Install an EXIT/signal trap immediately after creating the output file; it must recover the config path when available, run the cleanup command quietly, and delete the output file on deploy/verify failure or interruption. Explicitly clean and disarm the trap only after a successful verification.
+- Run the strict-mode recovery recipe in a subshell so it inherits exported credentials but contains its variables and EXIT/signal traps. Install the traps immediately after creating the output file; they must recover the config path when available, run cleanup quietly, and delete the output file on deploy/verify failure or interruption. Explicitly clean and disarm them only after a successful verification.
 - Reconciliation failure cleans generated files, but earlier D1/widget mutations can persist; fix and rerun. Worker rollback does not reverse D1 migrations or imports.
 
 ## Verification checklist
