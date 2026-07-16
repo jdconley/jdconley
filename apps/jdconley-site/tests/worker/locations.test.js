@@ -117,6 +117,10 @@ describe("production resource state migration upgrades", () => {
 
     const columns = await env.UPGRADE_DB.prepare("PRAGMA table_info(production_resource_state)").all();
     expect(columns.results.map(({ name }) => name)).toEqual(["resource_name", "checksum", "row_count", "updated_at"]);
+    const insertState = env.UPGRADE_DB.prepare("INSERT INTO production_resource_state(resource_name,checksum,row_count,updated_at) VALUES(?,?,?,?)");
+    await expect(insertState.bind(null, "b".repeat(64), 1, "2026-07-16T00:00:00.000Z").run()).rejects.toThrow();
+    await insertState.bind("locations", "b".repeat(64), 1, "2026-07-16T00:00:00.000Z").run();
+    await expect(insertState.bind("locations", "c".repeat(64), 2, "2026-07-16T01:00:00.000Z").run()).rejects.toThrow();
     expect(await env.UPGRADE_DB.prepare("SELECT COUNT(*) AS count FROM locations").first("count")).toBe(1);
     expect(await env.UPGRADE_DB.prepare("SELECT COUNT(*) AS count FROM supporters").first("count")).toBe(1);
   });
