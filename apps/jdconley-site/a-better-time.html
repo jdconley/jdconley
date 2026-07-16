@@ -163,8 +163,12 @@
   <dialog id="location-dialog" class="js-only" aria-labelledby="location-dialog-title">
     <div class="dialog-panel">
       <header><div><p class="eyebrow">United States</p><h2 id="location-dialog-title">Choose your location</h2></div><button class="dialog-close" type="button" aria-label="Close location dialog">×</button></header>
-      <button class="secondary-button" type="button">Use my precise location</button>
-      <label>City or ZIP code<input name="location_search" type="search" autocomplete="off" placeholder="e.g. Phoenix or 85001…"></label>
+      <button class="secondary-button" type="button" data-use-location>Use my precise location</button>
+      <div class="location-search" data-location-search>
+        <label>City or ZIP code<input name="location_search" type="search" autocomplete="off" placeholder="e.g. Phoenix or 85001…" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-results"></label>
+        <ul class="location-results" id="location-results" role="listbox" data-location-results hidden></ul>
+      </div>
+      <p class="location-status" data-location-status role="status" aria-live="polite"></p>
     </div>
   </dialog>
 

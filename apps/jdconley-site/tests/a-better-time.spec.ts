@@ -280,6 +280,135 @@ test("phone tuning opens as a bottom sheet", async ({ page }) => {
   await expect(dialog.getByLabel("Day starts")).toBeFocused();
 });
 
+test.describe("location personalization", () => {
+  test("uses precise Tahoe coordinates locally and only rounds the shared URL", async ({ context, page }) => {
+    const exact = { latitude: 38.9487374, longitude: -119.9507952 };
+    await page.goto(path);
+    await context.grantPermissions(["geolocation"], { origin: new URL(page.url()).origin });
+    await context.setGeolocation(exact);
+    const locationRequests: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/a-better-time/locations")) locationRequests.push(request.url());
+    });
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    await page.getByRole("button", { name: "Use my precise location" }).click();
+
+    await expect(page.getByRole("dialog", { name: "Choose your location" })).toBeHidden();
+    await expect(page.locator("[data-place-name]").first()).toHaveText("Current location");
+    await expect(page).toHaveURL(/lat=38\.949/);
+    await expect(page).toHaveURL(/lon=-119\.951/);
+    expect(locationRequests).toEqual([]);
+
+    const retained = await page.evaluate(async ({ latitude, longitude }) => {
+      const { createLocationController } = await import("/js/a-better-time/location.js");
+      const host = document.createElement("div");
+      host.innerHTML = `<button data-use-location></button><input name="location_search"><p data-location-status></p><ul data-location-results></ul>`;
+      document.body.append(host);
+      let selected: { lat: number; lon: number } | null = null;
+      const controller = createLocationController({
+        root: host,
+        geolocation: { getCurrentPosition(success: PositionCallback) { success({ coords: { latitude, longitude } } as GeolocationPosition); } },
+        timezoneLookup: () => "America/Los_Angeles",
+        onLocation(location: { lat: number; lon: number }) { selected = location; }
+      });
+      await controller.usePreciseLocation();
+      controller.destroy();
+      host.remove();
+      return selected;
+    }, exact);
+    expect(retained).toMatchObject({ lat: exact.latitude, lon: exact.longitude });
+  });
+
+  test("explains denied geolocation inline and focuses manual search", async ({ page }) => {
+    await page.goto(path);
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    await page.getByRole("button", { name: "Use my precise location" }).click();
+
+    await expect(page.locator("[data-location-status]")).toContainText(/denied|couldn.t access/i);
+    await expect(page.getByRole("combobox", { name: "City or ZIP code" })).toBeFocused();
+    await expect(page.getByRole("dialog", { name: "Choose your location" })).toBeVisible();
+  });
+
+  test("debounces Portland search and disambiguates results by state", async ({ page }) => {
+    const calls: string[] = [];
+    await page.route("**/api/a-better-time/locations**", async (route) => {
+      calls.push(route.request().url());
+      await route.fulfill({ json: { results: [
+        { place: "Portland, OR", lat: 45.537, lon: -122.65, tz: "America/Los_Angeles" },
+        { place: "Portland, ME", lat: 43.633, lon: -70.185, tz: "America/New_York" }
+      ] } });
+    });
+    await page.goto(path);
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    const input = page.getByRole("combobox", { name: "City or ZIP code" });
+    await input.fill("Portland");
+    await page.waitForTimeout(200);
+    expect(calls).toHaveLength(0);
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toBeVisible();
+    await expect(page.getByRole("option", { name: "Portland, ME" })).toBeVisible();
+    expect(calls).toHaveLength(1);
+
+    await input.press("ArrowDown");
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toHaveAttribute("aria-selected", "true");
+    await input.press("Enter");
+    await expect(page.locator("[data-place-name]").first()).toHaveText("Portland, OR");
+    await expect(page).toHaveURL(/place=Portland%2C\+OR/);
+  });
+
+  test("selects exact ZIP 96150", async ({ page }) => {
+    await page.route("**/api/a-better-time/locations**", (route) => route.fulfill({ json: { results: [
+      { place: "96150, CA", lat: 38.87332, lon: -120.068481, tz: "America/Los_Angeles" }
+    ] } }));
+    await page.goto(path);
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    await page.getByRole("combobox", { name: "City or ZIP code" }).fill("96150");
+    await page.getByRole("option", { name: "96150, CA" }).click();
+
+    await expect(page.locator("[data-place-name]").first()).toHaveText("96150, CA");
+    await expect(page).toHaveURL(/lat=38\.873/);
+    await expect(page).toHaveURL(/lon=-120\.068/);
+  });
+
+  test("shows no-results and API errors without changing the chart", async ({ page }) => {
+    let fail = false;
+    await page.route("**/api/a-better-time/locations**", (route) => fail
+      ? route.fulfill({ status: 503, json: { error: "Unavailable" } })
+      : route.fulfill({ json: { results: [] } }));
+    await page.goto(path);
+    const chartBefore = await page.locator("[data-series='proposed-sunrise']").getAttribute("d");
+    const placeBefore = await page.locator("[data-place-name]").first().textContent();
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    const input = page.getByRole("combobox", { name: "City or ZIP code" });
+    await input.fill("Nowhere");
+    await expect(page.locator("[data-location-status]")).toContainText("No U.S. cities or ZIP codes found");
+    expect(await page.locator("[data-series='proposed-sunrise']").getAttribute("d")).toBe(chartBefore);
+
+    fail = true;
+    await input.fill("Broken");
+    await expect(page.locator("[data-location-status]")).toContainText(/couldn.t search/i);
+    await expect(page.locator("[data-place-name]").first()).toHaveText(placeBefore ?? "");
+    expect(await page.locator("[data-series='proposed-sunrise']").getAttribute("d")).toBe(chartBefore);
+  });
+
+  test("dismisses suggestions with Escape and click-outside", async ({ page }) => {
+    await page.route("**/api/a-better-time/locations**", (route) => route.fulfill({ json: { results: [
+      { place: "Portland, OR", lat: 45.537, lon: -122.65, tz: "America/Los_Angeles" }
+    ] } }));
+    await page.goto(path);
+    await page.getByRole("button", { name: /Showing daylight for/ }).click();
+    const input = page.getByRole("combobox", { name: "City or ZIP code" });
+    await input.fill("Portland");
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toBeVisible();
+    await input.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Choose your location" })).toBeVisible();
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toBeHidden();
+    await input.fill("Portland");
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toBeVisible();
+    await page.getByRole("heading", { name: "Choose your location" }).click();
+    await expect(page.getByRole("option", { name: "Portland, OR" })).toBeHidden();
+  });
+});
+
 test.describe("live daylight model", () => {
   test("renders computed chart paths and current-policy DST markers", async ({ page }) => {
     await page.goto(`${path}?lat=38.940&lon=-119.977&place=South+Lake+Tahoe%2C+CA&tz=America%2FLos_Angeles&wake=420&sleep=1320&bias=0&year=2026`);

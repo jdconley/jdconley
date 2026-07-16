@@ -3,6 +3,8 @@ import { buildSolarYear } from "./core/solar.js";
 import { optimizeYear } from "./core/optimizer.js";
 import { parseState, serializeState } from "./core/url-state.js";
 import { openDialog } from "./dialog.js";
+import { createLocationController } from "./location.js";
+import tzLookup from "tz-lookup";
 
 const parsed = parseState(location.search);
 const model = {
@@ -201,3 +203,14 @@ showResetNotice(parsed.resetFields);
 chartRoot.dataset.activeChart = model.activeChart;
 updateSummary();
 updateResult();
+
+createLocationController({
+  root: document.getElementById("location-dialog"),
+  timezoneLookup: tzLookup,
+  onLocation(nextLocation) {
+    model.location = { ...model.location, ...nextLocation };
+    model.activeDayIndex = getInitialDayIndex(model.settings.year, model.location.tz);
+    updateSummary();
+    updateResult();
+  }
+});
