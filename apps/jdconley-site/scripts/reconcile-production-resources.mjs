@@ -1,4 +1,4 @@
-import { appendFile, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { appendFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -212,11 +212,16 @@ async function defaultOutput(env, key, value) {
   if (env.GITHUB_OUTPUT) await appendFile(env.GITHUB_OUTPUT, `${key}=${value}\n`, "utf8");
 }
 
+export async function cleanupReconciledConfig(configPath, { remove = rm } = {}) {
+  if (typeof configPath !== "string" || !configPath) throw new Error("A reconciled Wrangler config path is required for cleanup");
+  await remove(configPath, { force: true });
+}
+
 export async function reconcileProductionResources(options = {}, injected = {}) {
   const env = options.env ?? process.env;
   const dryRun = options.dryRun === true;
   const dependencies = Object.fromEntries(
-    ["fetch", "run", "read", "write", "temp", "output", "log"]
+    ["fetch", "run", "read", "write", "remove", "temp", "output", "log"]
       .filter((name) => typeof options[name] === "function")
       .map((name) => [name, options[name]])
   );
@@ -225,12 +230,14 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
   const run = dependencies.run ?? realRun;
   const read = dependencies.read ?? readFile;
   const write = dependencies.write ?? writeFile;
+  const remove = dependencies.remove ?? rm;
   const temp = dependencies.temp ?? (() => realTemp(env));
   const output = dependencies.output ?? ((key, value) => defaultOutput(env, key, value));
   const log = dependencies.log ?? console.log;
 
   validateEnvironment(env);
 
+  let wranglerConfigPath;
   try {
     let databases = await listCloudflareResources(fetchImpl, env, "/d1/database");
     let database = selectDatabase(databases, DATABASE_NAME);
@@ -262,7 +269,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
 
     const sourceConfig = await read(path.join(APP_DIRECTORY, "wrangler.toml"), "utf8");
     const reconciledConfig = renderWranglerConfig(sourceConfig, databaseId(database));
-    const wranglerConfigPath = await temp("wrangler-production", env);
+    wranglerConfigPath = await temp("wrangler-production", env);
     await write(wranglerConfigPath, reconciledConfig, { mode: 0o600 });
 
     await run("pnpm", ["exec", "wrangler", "d1", "migrations", "apply", DATABASE_NAME, "--remote", "--config", wranglerConfigPath], { cwd: APP_DIRECTORY });
@@ -308,14 +315,23 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
     await output("TURNSTILE_SITE_KEY", sitekey);
     return { wranglerConfigPath, turnstileSiteKey: sitekey };
   } catch (error) {
-    throw new Error(redactError(error));
+    const message = redactError(error);
+    if (wranglerConfigPath) {
+      try { await cleanupReconciledConfig(wranglerConfigPath, { remove }); }
+      catch (cleanupError) { throw new Error(`${message}; reconciled config cleanup failed: ${redactError(cleanupError)}`); }
+    }
+    throw new Error(message);
   }
 }
 
 const isCli = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
 if (isCli) {
-  const dryRun = process.argv.slice(2).includes("--dry-run");
-  const unknown = process.argv.slice(2).filter((argument) => argument !== "--dry-run");
-  if (unknown.length) throw new Error("Usage: reconcile-production-resources.mjs [--dry-run]");
-  await reconcileProductionResources({ dryRun });
+  const args = process.argv.slice(2);
+  if (args[0] === "--cleanup" && args.length === 2) await cleanupReconciledConfig(args[1]);
+  else {
+    const dryRun = args.includes("--dry-run");
+    const unknown = args.filter((argument) => argument !== "--dry-run");
+    if (unknown.length) throw new Error("Usage: reconcile-production-resources.mjs [--dry-run] | --cleanup <config-path>");
+    await reconcileProductionResources({ dryRun });
+  }
 }

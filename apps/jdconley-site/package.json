@@ -17,6 +17,7 @@
     "locations:import:remote": "node ./scripts/import-location-index.mjs --remote",
     "production:reconcile": "node ./scripts/reconcile-production-resources.mjs",
     "production:reconcile:dry-run": "pnpm run production:reconcile -- --dry-run",
+    "production:reconcile:cleanup": "node ./scripts/reconcile-production-resources.mjs --cleanup",
     "test:unit": "vitest run --config vitest.config.mjs",
     "test:worker": "vitest run --config vitest.worker.config.mjs",
     "test:e2e": "playwright test",

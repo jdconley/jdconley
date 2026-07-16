@@ -5,6 +5,7 @@ import { importLocations, parseImportArguments } from "../../scripts/import-loca
 
 import {
   assertCloudflareEnvelope,
+  cleanupReconciledConfig,
   needsLocationImport,
   needsTurnstileUpdate,
   reconcileProductionResources,
@@ -68,7 +69,8 @@ function harness({ databases = [{ name: "a-better-time", uuid: databaseUuid }], 
   const temp = async () => { events.push(["temp"]); return "/runner-temp/wrangler.production.toml"; };
   const output = async (...args) => { events.push(["output", ...args]); };
   const log = (...args) => { events.push(["log", ...args]); };
-  return { events, dependencies: { fetch, run, read, write, temp, output, log } };
+  const remove = async (...args) => { events.push(["remove", ...args]); };
+  return { events, dependencies: { fetch, run, read, write, temp, output, log, remove } };
 }
 
 describe("production reconciliation helpers", () => {
@@ -131,6 +133,9 @@ describe("production reconciliation orchestration", () => {
     });
     expect(() => parseImportArguments(["--remote", "--config"])).toThrow(/usage/i);
     expect(() => parseImportArguments(["--remote", "--config", "one", "--config", "two"])).toThrow(/usage/i);
+    expect(() => parseImportArguments(["--remote", "--config", "x", "x"])).toThrow(/usage/i);
+    expect(() => parseImportArguments(["--remote", "x", "--config", "x"])).toThrow(/usage/i);
+    expect(() => parseImportArguments(["x", "--remote", "--config", "x"])).toThrow(/usage/i);
   });
 
   test("the location importer forwards the reconciled config and cleans temporary SQL after failure", async () => {
@@ -150,6 +155,15 @@ describe("production reconciliation orchestration", () => {
     const packageJson = JSON.parse(await readFile(fileURLToPath(new URL("../../package.json", import.meta.url)), "utf8"));
     expect(packageJson.scripts["production:reconcile"]).toBe("node ./scripts/reconcile-production-resources.mjs");
     expect(packageJson.scripts["production:reconcile:dry-run"]).toBe("pnpm run production:reconcile -- --dry-run");
+    expect(packageJson.scripts["production:reconcile:cleanup"]).toBe("node ./scripts/reconcile-production-resources.mjs --cleanup");
+  });
+
+  test("exports a cleanup operation backed by an injected filesystem removal", async () => {
+    const calls = [];
+    await cleanupReconciledConfig("/runner-temp/reconciliation/wrangler.toml", {
+      remove: async (...args) => { calls.push(args); }
+    });
+    expect(calls).toEqual([["/runner-temp/reconciliation/wrangler.toml", { force: true }]]);
   });
 
   test("validates all required environment before doing work", async () => {
@@ -182,7 +196,7 @@ describe("production reconciliation orchestration", () => {
     expect(events.some(([type, _command, args]) => type === "run" && args.includes("locations:import:remote"))).toBe(false);
   });
 
-  test("creates missing resources, imports changed locations, persists state, and publishes outputs in order", async () => {
+  test("creates missing resources, publishes outputs in order, and retains the config for deployment", async () => {
     const { events, dependencies } = harness({ databases: [], widgets: [], state: null, actualCount: 0 });
     const result = await reconcileProductionResources({ env: validEnv }, dependencies);
 
@@ -212,6 +226,20 @@ describe("production reconciliation orchestration", () => {
     expect(logs).not.toContain("new-widget-secret");
     const stateWrite = events.find(([type, _command, args]) => type === "run" && args.some((argument) => argument.includes?.("INSERT INTO production_resource_state")));
     expect(stateWrite[2]).toContain("--yes");
+    expect(events.some(([type]) => type === "remove")).toBe(false);
+  });
+
+  test("cleans the temporary Wrangler config when orchestration fails after creating it", async () => {
+    const { events, dependencies } = harness();
+    const originalRun = dependencies.run;
+    dependencies.run = async (command, args, options) => {
+      if (args.includes("migrations")) throw new Error("migration failed");
+      return originalRun(command, args, options);
+    };
+    await expect(reconcileProductionResources({ env: validEnv }, dependencies)).rejects.toThrow("migration failed");
+    expect(events.filter(([type]) => type === "remove")).toEqual([
+      ["remove", "/runner-temp/wrangler.production.toml", { force: true }]
+    ]);
   });
 
   test("does not persist location state when post-import verification fails", async () => {

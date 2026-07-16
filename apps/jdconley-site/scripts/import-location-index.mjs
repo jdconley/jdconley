@@ -9,21 +9,30 @@ const APP_DIRECTORY = fileURLToPath(new URL("../", import.meta.url));
 const COLUMNS = ["kind", "search_name", "display_name", "state_code", "zip", "latitude", "longitude", "time_zone", "population"];
 
 export function parseImportArguments(args) {
-  const separators = args.filter((arg) => arg === "--");
-  const normalized = args.filter((arg) => arg !== "--");
-  const modes = normalized.filter((arg) => arg === "--local" || arg === "--remote");
-  const fixtures = normalized.filter((arg) => arg === "--fixtures");
-  const configIndexes = normalized.flatMap((arg, index) => arg === "--config" ? [index] : []);
-  const configIndex = configIndexes[0];
-  const config = configIndex === undefined ? undefined : normalized[configIndex + 1];
-  const recognized = new Set(["--local", "--remote", "--fixtures"]);
-  if (configIndex !== undefined) { recognized.add("--config"); recognized.add(config); }
-  const unknown = normalized.filter((arg) => !recognized.has(arg));
-  if (modes.length !== 1 || fixtures.length > 1 || separators.length > 1 || configIndexes.length > 1 ||
-    (configIndex !== undefined && (!config || config.startsWith("--"))) || unknown.length > 0) {
+  let mode;
+  let fixtures = false;
+  let config;
+  let separators = 0;
+  let valid = true;
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === "--") separators += 1;
+    else if (argument === "--local" || argument === "--remote") {
+      if (mode) valid = false;
+      mode = argument;
+    } else if (argument === "--fixtures") {
+      if (fixtures) valid = false;
+      fixtures = true;
+    } else if (argument === "--config") {
+      const value = args[index + 1];
+      if (config !== undefined || !value || value.startsWith("--")) valid = false;
+      else { config = value; index += 1; }
+    } else valid = false;
+  }
+  if (!valid || !mode || separators > 1) {
     throw new Error("Usage: import-location-index.mjs (--local|--remote) [--fixtures] [--config <path>]");
   }
-  return { mode: modes[0], fixtures: fixtures.length === 1, ...(config ? { config } : {}) };
+  return { mode, fixtures, ...(config ? { config } : {}) };
 }
 
 function sqlLiteral(value) {
