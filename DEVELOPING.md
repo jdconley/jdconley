@@ -83,14 +83,16 @@ cp apps/jdconley-site/.env.example apps/jdconley-site/.env
 Set values in `apps/jdconley-site/.env`:
 
 - `VITE_SITE_URL` (example: `https://jdconley.com`)
+- `SITE_URL` (the canonical production origin; reconciliation requires exactly `https://jdconley.com`)
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
-- `TURNSTILE_SITE_KEY` (public site key; production deploys read this from a GitHub repository variable)
+- `SUPPORT_IP_HMAC_SECRET` (at least 32 bytes, with no control characters; required only for production reconciliation)
+- `TURNSTILE_SITE_KEY` (public site key for local preview/testing; production reconciliation discovers it)
 - `SUPPORT_ORIGIN` (defaults to `https://jdconley.com`)
 
-Wrangler commands are wrapped with `dotenvx run` in pnpm scripts, so these values are loaded automatically.
+The local preview and direct deploy scripts use `dotenvx`. The production reconciliation commands intentionally require explicit environment injection; use `op run` as shown below.
 
-`TURNSTILE_SECRET_KEY` and `SUPPORT_IP_HMAC_SECRET` are Worker secrets. Provision them with Wrangler; never store them in `.env.example`, workflow YAML, or git.
+`TURNSTILE_SECRET_KEY` and `SUPPORT_IP_HMAC_SECRET` are Worker secrets. `.env.example` names the HMAC variable but contains no value. Never commit either value; prefer the 1Password injection pattern below over storing production credentials in `.env`.
 
 ## Local Wrangler Testing
 
@@ -123,45 +125,72 @@ Run smoke tests against local Wrangler runtime:
 pnpm run test:e2e:wrangler:site
 ```
 
-## Cloudflare Deploy (CLI)
+## Cloudflare Production Delivery
 
-First-time production provisioning:
+Production is Worker-first. `apps/jdconley-site/wrangler.toml` deploys the Worker, Static Assets, D1 and rate-limit bindings, plus the apex and `www` Custom Domains. The Worker runs first for the tool/API paths declared in `assets.run_worker_first`; Cloudflare Pages and `CLOUDFLARE_PAGES_PROJECT` are obsolete, and the deploy token does not need Pages access.
 
-```bash
-pnpm --filter @jdconley/jdconley-site exec wrangler d1 create a-better-time
-```
+Create one custom Cloudflare API token, restricted to the target account, with only these account permissions (dashboard/API names):
 
-The D1 create command returns a production UUID. Immediately replace the all-zero `database_id` sentinel in `apps/jdconley-site/wrangler.toml` with that UUID and commit the config. Then continue:
+- D1 Edit / `D1 Write`: discover or create `a-better-time`, apply migrations, query state, import locations, and record reconciliation state.
+- Turnstile Edit / `Turnstile Sites Write`: list, read, create, and update the hostname-restricted managed widget. Reconciliation never calls the secret-rotation endpoint.
+- Workers Scripts Edit / `Workers Scripts Write`: upload the Worker and Static Assets, bind D1/rate limiting, deploy secrets, and maintain the configured Worker Custom Domains.
 
-```bash
-pnpm --filter @jdconley/jdconley-site exec wrangler d1 migrations apply a-better-time --remote
-pnpm --filter @jdconley/jdconley-site run locations:build
-pnpm --filter @jdconley/jdconley-site run locations:import:remote
-pnpm --filter @jdconley/jdconley-site exec wrangler secret put TURNSTILE_SECRET_KEY
-pnpm --filter @jdconley/jdconley-site exec wrangler secret put SUPPORT_IP_HMAC_SECRET
-pnpm run deploy:site
-```
+The current flow does not require Pages, KV, R2, DNS, Workers Routes, broad Account Settings, or user-level permissions. Cloudflare's permission labels can change; confirm the token still has the three capabilities above when replacing it.
 
-`locations:build` downloads the checksum-pinned public sources before import. Verify the remote migration/import row counts and a representative location query before deploying. Rotating `SUPPORT_IP_HMAC_SECRET` intentionally resets supporter duplicate identity because existing IP hashes can no longer match.
+The reconciler discovers the named D1 database and writes its UUID only to a generated Wrangler config. It applies committed migrations, builds the checksum-pinned location index, and compares the generated NDJSON checksum and manifest count with both `production_resource_state` and `COUNT(*) FROM locations`. It skips the destructive import only when checksum, recorded count, and actual count all match. Otherwise it validates the generated data, replaces the locations, verifies the final count, and only then upserts the state row.
 
-Create a Cloudflare Turnstile widget for `jdconley.com` (plus any intended preview hostname). Store its public key in the GitHub repository variable `TURNSTILE_SITE_KEY`; enter its secret only through the Wrangler command above. Cloudflare test keys are for CI/local testing only. The deploy workflow validates that the repository variable is non-empty and well formed before Wrangler runs.
+The same run discovers or creates the Turnstile widget and stages `TURNSTILE_SECRET_KEY` plus the stable `SUPPORT_IP_HMAC_SECRET` in one mode-`0600` secrets file. `wrangler deploy --secrets-file` uploads both with the Worker deployment; do not run routine `wrangler secret put` commands before it. Never rotate `SUPPORT_IP_HMAC_SECRET` during a normal deploy. A rotation does not delete supporter rows, but old IP HMACs can no longer match, so duplicate identity continuity is lost and previous visitors can appear new.
 
-First deploy and verify the Worker on its preview/`workers.dev` endpoint. Then attach `jdconley.com` as a Custom Domain for cutover. Preserve and verify the existing `www.jdconley.com` redirect to the canonical apex, including path and query. Keep the former Pages deployment available briefly for rollback, verify DNS/TLS and the Worker route, then smoke-test static assets, personalized metadata/image, location search, supporter count/submission, Turnstile, and the `SUPPORT_ORIGIN` binding on the production hostname.
+### Manual reconciliation and recovery
 
-For later deployments:
+Inject production credentials from 1Password without putting values in shell history or a file. Replace only the `op://` references:
 
 ```bash
-pnpm run logs:sync:site
-pnpm run deploy:site
+export CLOUDFLARE_API_TOKEN='op://<vault>/<item>/CLOUDFLARE_API_TOKEN'
+export CLOUDFLARE_ACCOUNT_ID='op://<vault>/<item>/CLOUDFLARE_ACCOUNT_ID'
+export SUPPORT_IP_HMAC_SECRET='op://<vault>/<item>/SUPPORT_IP_HMAC_SECRET'
+export SITE_URL=https://jdconley.com
+
+op run -- pnpm --filter @jdconley/jdconley-site run production:reconcile:dry-run
 ```
 
-This executes:
+The dry run validates inputs, discovers D1 and Turnstile resources, and reports planned stages without writing files or mutating Cloudflare. It does not apply migrations, build/query the location index, or prove that an import will be skipped.
 
-- Vite production build
-- Post-build image optimization
-- `wrangler deploy` for `apps/jdconley-site/worker/index.js`, with `dist` served by the Worker Static Assets binding
+GitHub Actions is the normal deployment path. For a deliberate manual recovery, capture the reconciler outputs, deploy them together, verify, and clean up:
+
+```bash
+output_file="$(mktemp)"
+chmod 600 "$output_file"
+GITHUB_OUTPUT="$output_file" op run -- pnpm --filter @jdconley/jdconley-site run production:reconcile
+config_path="$(sed -n 's/^WRANGLER_CONFIG=//p' "$output_file")"
+secrets_file="$(sed -n 's/^WRANGLER_SECRETS_FILE=//p' "$output_file")"
+site_key="$(sed -n 's/^TURNSTILE_SITE_KEY=//p' "$output_file")"
+
+op run -- pnpm --filter @jdconley/jdconley-site exec wrangler deploy \
+  --config "$config_path" --secrets-file "$secrets_file" \
+  --var "TURNSTILE_SITE_KEY:$site_key" --var "SUPPORT_ORIGIN:$SITE_URL"
+SITE_URL="$SITE_URL" TURNSTILE_SITE_KEY="$site_key" \
+  pnpm --filter @jdconley/jdconley-site run production:verify
+pnpm --filter @jdconley/jdconley-site run production:reconcile:cleanup "$config_path"
+rm -f "$output_file"
+```
+
+Reconciliation creates `jdconley-production-*` under `$RUNNER_TEMP` (or the OS temp directory), with mode-`0600` Wrangler and secrets files. An internal failure removes that directory; after successful reconciliation the workflow's final cleanup removes it even if deploy or verification fails. Manual operators must run the cleanup command and delete their output file. The location importer likewise deletes its generated mode-`0600` SQL directory in `finally`.
+
+Migrations, a completed location import, and Turnstile configuration changes may persist if a later stage fails; they are intentionally idempotent, so fix the cause and rerun reconciliation. The location state row is not advanced until the imported count verifies. A deploy or smoke-test failure does not automatically roll back the Worker or D1. If production must be restored immediately, roll back the Worker version in Cloudflare, then run `production:verify`; D1 migrations/imports are forward-only and need a separate, reviewed data recovery plan.
 
 ## GitHub Actions CI/CD
+
+Before merging a release to `main`, run the local gates in CI order:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run build:site
+pnpm run test:unit:site
+pnpm run test:worker:site
+pnpm run test:e2e:site
+pnpm run test:e2e:wrangler:site
+```
 
 - CI workflow: `.github/workflows/ci.yml`
   - Runs on PRs and pushes to `main`
@@ -169,20 +198,21 @@ This executes:
   - Uses committed fixture locations, local D1, and the Turnstile test site key
 - Deploy workflow: `.github/workflows/deploy.yml`
   - Runs only after the `CI` workflow succeeds for `main`; there is no manual bypass
-  - Checks out the triggering CI commit and rejects it if `origin/main` has advanced
+  - Accepts only a successful push to `main` whose `workflow_run.head_repository.full_name` equals `github.repository`, checks out that CI commit, and rejects it if `origin/main` has advanced
   - Serializes production deploys without cancelling an in-progress deploy; the stale-head guard prevents an older queued completion from deploying afterward
-  - Builds and deploys the Cloudflare Worker with Wrangler
+  - Rechecks the triggering SHA before reconciliation and again before deployment
+  - Runs frozen install, build, reconciliation, atomic secrets-file Worker deploy, production verification, and cleanup in that order
 
 Required GitHub configuration:
 
 - **Repository Secrets**
   - `CLOUDFLARE_API_TOKEN`
   - `CLOUDFLARE_ACCOUNT_ID`
+  - `SUPPORT_IP_HMAC_SECRET`
 - **Repository Variables**
-  - `TURNSTILE_SITE_KEY`
-  - `SITE_URL` (optional but recommended)
+  - `SITE_URL` (optional; defaults to and must resolve to `https://jdconley.com` for production reconciliation)
 
-`TURNSTILE_SECRET_KEY` and `SUPPORT_IP_HMAC_SECRET` must be provisioned directly as Worker secrets outside the workflow. The workflow never contains their values.
+Create `SUPPORT_IP_HMAC_SECRET` once with at least 32 bytes and store it as the GitHub secret above. The reconciler reuses it on every deployment and obtains the existing Turnstile secret from Cloudflare; neither value belongs in workflow YAML or git. Merging to `main` is the release trigger only after the branch has passed the local gates in this document. The deploy workflow's event-provenance and repeated current-SHA checks prevent a PR run, fork run, manual run, or stale successful CI completion from mutating production.
 
 ## Notes / Known limitations from Webflow export
 
