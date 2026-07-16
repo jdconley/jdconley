@@ -2,7 +2,7 @@ import * as SunCalc from "suncalc";
 
 const SECONDS_PER_DAY = 86_400;
 const MS_PER_MINUTE = 60_000;
-const SUNRISE_ALTITUDE_RADIANS = (-0.833 * Math.PI) / 180;
+const SUNRISE_ALTITUDE_DEGREES = -0.833;
 
 function assertSolarInputs({ year, lat, lon }) {
   if (!Number.isInteger(year) || year < 1000 || year > 9999) {
@@ -20,7 +20,14 @@ function isValidDate(value) {
   return value instanceof Date && Number.isFinite(value.getTime());
 }
 
-function inferPolarState(dayUtcMs, lat, lon) {
+function inferPolarState(dayUtcMs, lat, lon, events) {
+  if (events.alwaysUp === true && events.alwaysDown !== true) {
+    return "polar-day";
+  }
+  if (events.alwaysDown === true && events.alwaysUp !== true) {
+    return "polar-night";
+  }
+
   const solarNoonUtcMs = dayUtcMs + 12 * 60 * MS_PER_MINUTE - lon * 4 * MS_PER_MINUTE;
   const solarMidnightUtcMs = solarNoonUtcMs - 12 * 60 * MS_PER_MINUTE;
   const noonAltitude = SunCalc.getPosition(new Date(solarNoonUtcMs), lat, lon).altitude;
@@ -30,10 +37,13 @@ function inferPolarState(dayUtcMs, lat, lon) {
     lon
   ).altitude;
 
-  return noonAltitude > SUNRISE_ALTITUDE_RADIANS &&
-    midnightAltitude > SUNRISE_ALTITUDE_RADIANS
-    ? "polar-day"
-    : "polar-night";
+  const noonMargin = noonAltitude - SUNRISE_ALTITUDE_DEGREES;
+  const midnightMargin = midnightAltitude - SUNRISE_ALTITUDE_DEGREES;
+
+  if (noonMargin > 0 && midnightMargin > 0) return "polar-day";
+  if (noonMargin <= 0 && midnightMargin <= 0) return "polar-night";
+
+  return noonMargin + midnightMargin > 0 ? "polar-day" : "polar-night";
 }
 
 function formatUtcDate(utcMs) {
@@ -60,23 +70,27 @@ export function buildSolarYear({ year, lat, lon }) {
     );
     const sunriseUtcMs = events.sunrise?.getTime();
     const sunsetUtcMs = events.sunset?.getTime();
+    const daylightSeconds = (sunsetUtcMs - sunriseUtcMs) / 1000;
 
     if (
+      events.alwaysUp !== true &&
+      events.alwaysDown !== true &&
       isValidDate(events.sunrise) &&
       isValidDate(events.sunset) &&
-      sunsetUtcMs > sunriseUtcMs
+      daylightSeconds > 0 &&
+      daylightSeconds <= SECONDS_PER_DAY
     ) {
       days.push({
         date,
         state: "normal",
         sunriseUtcMs,
         sunsetUtcMs,
-        daylightSeconds: (sunsetUtcMs - sunriseUtcMs) / 1000
+        daylightSeconds
       });
       continue;
     }
 
-    const state = inferPolarState(dayUtcMs, lat, lon);
+    const state = inferPolarState(dayUtcMs, lat, lon, events);
     days.push({
       date,
       state,
