@@ -19,10 +19,16 @@ test.describe("A Better Time page shell", () => {
     await expect(page.locator("[aria-live='polite'][data-gain-metric]")).toContainText(/hours/i);
     await expect(page.locator("[data-chart-root]")).not.toContainText(/illustrative|placeholder/i);
 
-    await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", "https://jdconley.com/a-better-time");
-    await expect(page.locator("meta[property='og:image']")).toHaveAttribute("content", "https://jdconley.com/images/webclip.png");
-    await expect(page.locator("meta[name='twitter:image']")).toHaveAttribute("content", "https://jdconley.com/images/webclip.png");
-    const fallbackImage = await page.request.get("/images/webclip.png");
+    const expectedCanonical = process.env.E2E_SERVER === "wrangler"
+      ? /https:\/\/jdconley\.com\/a-better-time\?lat=.+&year=\d{4}$/
+      : "https://jdconley.com/a-better-time";
+    await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", expectedCanonical);
+    const expectedImage = process.env.E2E_SERVER === "wrangler"
+      ? /https:\/\/jdconley\.com\/a-better-time\/share\.png\?.+&v=/
+      : "https://jdconley.com/images/a-better-time-share-fallback.png";
+    await expect(page.locator("meta[property='og:image']")).toHaveAttribute("content", expectedImage);
+    await expect(page.locator("meta[name='twitter:image']")).toHaveAttribute("content", expectedImage);
+    const fallbackImage = await page.request.get("/images/a-better-time-share-fallback.png");
     expect(fallbackImage.ok()).toBeTruthy();
     expect(fallbackImage.headers()["content-type"]).toBe("image/png");
     expect(await page.locator("script[type='application/ld+json']").textContent()).toContain("WebApplication");
@@ -229,6 +235,7 @@ test("phone actions stay pinned below the tool while post-tool content scrolls",
 for (const layout of layouts) {
   test(`${layout.name} layout has intentional responsive composition`, async ({ page }, testInfo) => {
     testInfo.snapshotSuffix = "";
+    await page.context().route("**/api/a-better-time/supporters", (route) => route.abort());
     await page.setViewportSize({ width: layout.width, height: layout.height });
     await page.goto(`${path}?year=2025`);
 
@@ -718,7 +725,10 @@ test.describe("personalized sharing", () => {
     await dialog.getByRole("button", { name: "Copy link" }).click();
     const canonical = await page.evaluate(() => (window as any).copiedShare);
     expect(canonical).toContain("place=Phoenix%2C+AZ");
-    const image = `${canonical.replace("/a-better-time.html?", "/a-better-time/share.png?")}&v=satori-resvg-inter-2026-07-16.1`;
+    const imageUrl = new URL(canonical);
+    imageUrl.pathname = "/a-better-time/share.png";
+    imageUrl.searchParams.set("v", "satori-resvg-inter-2026-07-16.1");
+    const image = imageUrl.href;
     await expect(dialog.locator("[data-share-preview]")).toHaveAttribute("src", image);
     await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("download", "a-better-time.png");
     await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("href", image);

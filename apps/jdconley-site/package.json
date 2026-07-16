@@ -8,7 +8,7 @@
     "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "vite build && node ./scripts/generate-llm-markdown.mjs && node ./scripts/optimize-images.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
-    "preview:cf": "dotenvx run -- wrangler dev --ip 127.0.0.1 --port 8788",
+    "preview:cf": "dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'wrangler dev --ip 127.0.0.1 --port 8788 --var \"TURNSTILE_SITE_KEY:${TURNSTILE_SITE_KEY:-}\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'",
     "preview:cf:build": "pnpm run build && pnpm run preview:cf",
     "db:migrate:local": "wrangler d1 migrations apply a-better-time --local",
     "locations:build": "node ./scripts/build-location-index.mjs",
@@ -20,7 +20,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=line",
     "test:e2e:wrangler": "E2E_SERVER=wrangler playwright test",
-    "deploy": "pnpm run build && dotenvx run -- wrangler deploy"
+    "deploy": "pnpm run build && dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'printf \"%s\" \"$TURNSTILE_SITE_KEY\" | grep -Eq \"^[A-Za-z0-9_-]{10,}$\" || { echo \"TURNSTILE_SITE_KEY is missing or malformed.\" >&2; exit 1; }; wrangler deploy --var \"TURNSTILE_SITE_KEY:$TURNSTILE_SITE_KEY\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.18.5",
