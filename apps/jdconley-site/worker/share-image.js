@@ -11,6 +11,8 @@ import { optimizeYear } from "../js/a-better-time/core/optimizer.js";
 import { SHARE_IMAGE_VERSION } from "../js/a-better-time/share-image-version.js";
 
 let wasmReady;
+const inFlightRenders = new Map();
+const MAX_IN_FLIGHT_RENDERS = 64;
 const ready = () => (wasmReady ??= Promise.all([initSatori(yogaWasm), initWasm(wasm)]));
 const el = (type, style, children, props = {}) => ({ type, props: { ...props, style, children } });
 export const SHARE_CHANGE_COPY = "Up to 1 minute daily jumps";
@@ -72,8 +74,19 @@ export function createShareImageHandler({
       return new Response(null, { status: 405, headers: { allow: "GET" } });
     }
 
-    const state = parseState(new URL(request.url).search).state;
+    const requestUrl = new URL(request.url);
+    const state = parseState(requestUrl.search).state;
     const query = serializeState(state);
+    const requestedVersions = requestUrl.searchParams.getAll("v");
+    if (requestedVersions.length !== 1 || requestedVersions[0] !== version) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          location: shareImageUrl(query, version),
+          "cache-control": "no-store"
+        }
+      });
+    }
     const etag = await shareImageEtag(query, version);
     const responseHeaders = {
       "content-type": "image/png",
@@ -95,14 +108,30 @@ export function createShareImageHandler({
     }
     if (cached) return cached;
 
-    const png = await render(state);
-    const response = new Response(png, { headers: responseHeaders });
-    try {
-      await edgeCache.put(cacheKey, response.clone());
-    } catch {
-      // Edge caching is an optimization; a rendered image remains usable.
+    const flightKey = `${version}\n${query}`;
+    let flight = inFlightRenders.get(flightKey);
+    if (!flight) {
+      const renderAndCache = async () => {
+        const png = await render(state);
+        const response = new Response(png, { headers: responseHeaders });
+        try {
+          await edgeCache.put(cacheKey, response.clone());
+        } catch {
+          // Edge caching is an optimization; a rendered image remains usable.
+        }
+        return response;
+      };
+      if (inFlightRenders.size < MAX_IN_FLIGHT_RENDERS) {
+        flight = renderAndCache();
+        inFlightRenders.set(flightKey, flight);
+        flight.finally(() => {
+          if (inFlightRenders.get(flightKey) === flight) inFlightRenders.delete(flightKey);
+        }).catch(() => {});
+      } else {
+        flight = renderAndCache();
+      }
     }
-    return response;
+    return (await flight).clone();
   };
 }
 

@@ -11,6 +11,67 @@ const env = {
 };
 
 describe("personalized sharing", () => {
+  it("single-flights concurrent normalized cache misses", async () => {
+    let releaseRender;
+    const renderGate = new Promise((resolve) => { releaseRender = resolve; });
+    const render = vi.fn(async () => {
+      await renderGate;
+      return new Uint8Array([10, 11]);
+    });
+    const cache = {
+      match: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn().mockResolvedValue(undefined)
+    };
+    const version = "test-single-flight-v1";
+    const handler = shareImage.createShareImageHandler({ render, cache, version });
+    const first = handler(new Request(`https://example.test/a-better-time/share.png?year=2026&lat=nope&v=${version}`));
+    const second = handler(new Request(`https://other.test/a-better-time/share.png?unused=1&lat=also-nope&year=2026&v=${version}`));
+    await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(1));
+    releaseRender();
+
+    const [firstResponse, secondResponse] = await Promise.all([first, second]);
+    expect(new Uint8Array(await firstResponse.arrayBuffer())).toEqual(new Uint8Array([10, 11]));
+    expect(new Uint8Array(await secondResponse.arrayBuffer())).toEqual(new Uint8Array([10, 11]));
+    expect(cache.put).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans up failed single-flights so the next request retries", async () => {
+    let rejectRender;
+    const failedRender = new Promise((_resolve, reject) => { rejectRender = reject; });
+    const render = vi.fn()
+      .mockImplementationOnce(() => failedRender)
+      .mockResolvedValueOnce(new Uint8Array([12]));
+    const cache = {
+      match: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn().mockResolvedValue(undefined)
+    };
+    const version = "test-single-flight-retry-v1";
+    const handler = shareImage.createShareImageHandler({ render, cache, version });
+    const request = () => new Request(`https://example.test/a-better-time/share.png?year=2026&v=${version}`);
+
+    const attempts = [handler(request()), handler(request())];
+    await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(1));
+    rejectRender(new Error("first render failed"));
+    const failures = await Promise.allSettled(attempts);
+    expect(failures.map(({ status }) => status)).toEqual(["rejected", "rejected"]);
+    expect(render).toHaveBeenCalledTimes(1);
+    expect((await handler(request())).status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    ["missing", ""],
+    ["stale", "&v=old-renderer"],
+    ["extraneous", `&v=${shareImage.SHARE_IMAGE_VERSION}&v=extra`]
+  ])("redirects %s renderer versions to the exact canonical image URL", async (_label, versionQuery) => {
+    const requestUrl = `https://jdconley.test/a-better-time/share.png?year=2026${versionQuery}`;
+    const response = await worker.fetch(new Request(requestUrl), env);
+    const canonicalQuery = "lat=38.940&lon=-119.977&place=South+Lake+Tahoe%2C+CA&tz=America%2FLos_Angeles&wake=420&sleep=1320&bias=0&year=2026";
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe(shareImage.shareImageUrl(canonicalQuery));
+    expect(response.headers.get("cache-control")).not.toContain("immutable");
+  });
+
   it("exposes a versioned share-image cache contract", () => {
     expect(shareImage.SHARE_IMAGE_VERSION).toMatch(/^[a-z0-9._-]+$/u);
     expect(shareImage.createShareImageHandler).toBeTypeOf("function");
@@ -24,8 +85,8 @@ describe("personalized sharing", () => {
       render,
       version: "test-normalization-v1"
     });
-    const first = await handler(new Request("https://example.test/a-better-time/share.png?year=2026&lat=nope&bias=500&unused=first"));
-    const second = await handler(new Request("https://other.test/a-better-time/share.png?unused=second&bias=oops&lat=also-nope&year=2026"));
+    const first = await handler(new Request("https://example.test/a-better-time/share.png?year=2026&lat=nope&bias=500&unused=first&v=test-normalization-v1"));
+    const second = await handler(new Request("https://other.test/a-better-time/share.png?unused=second&bias=oops&lat=also-nope&year=2026&v=test-normalization-v1"));
 
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
@@ -38,7 +99,7 @@ describe("personalized sharing", () => {
     const render = vi.fn(async () => new Uint8Array([4, 5, 6]));
     const version = "test-conditional-v1";
     const handler = shareImage.createShareImageHandler({ render, version });
-    const url = "https://example.test/a-better-time/share.png?year=2026&lat=nope";
+    const url = `https://example.test/a-better-time/share.png?year=2026&lat=nope&v=${version}`;
     const initial = await handler(new Request(url));
     const etag = initial.headers.get("etag");
     const conditional = await handler(new Request(url, {
@@ -62,9 +123,12 @@ describe("personalized sharing", () => {
     );
 
     const render = vi.fn(async () => new Uint8Array([7]));
-    const request = new Request(`https://example.test/a-better-time/share.png?${query}`);
-    const first = await shareImage.createShareImageHandler({ render, version: firstVersion })(request);
-    const second = await shareImage.createShareImageHandler({ render, version: secondVersion })(request);
+    const first = await shareImage.createShareImageHandler({ render, version: firstVersion })(
+      new Request(`https://example.test/a-better-time/share.png?${query}&v=${firstVersion}`)
+    );
+    const second = await shareImage.createShareImageHandler({ render, version: secondVersion })(
+      new Request(`https://example.test/a-better-time/share.png?${query}&v=${secondVersion}`)
+    );
     expect(first.headers.get("etag")).not.toBe(second.headers.get("etag"));
     expect(render).toHaveBeenCalledTimes(2);
   });
@@ -77,7 +141,7 @@ describe("personalized sharing", () => {
       render,
       version: "test-error-v1"
     });
-    const request = () => new Request("https://example.test/a-better-time/share.png?year=2026");
+    const request = () => new Request("https://example.test/a-better-time/share.png?year=2026&v=test-error-v1");
 
     await expect(handler(request())).rejects.toThrow("render failed");
     expect((await handler(request())).status).toBe(200);
@@ -102,10 +166,10 @@ describe("personalized sharing", () => {
         put: vi.fn().mockRejectedValue(new Error("cache write failed"))
       }
     });
-    const request = () => new Request("https://example.test/a-better-time/share.png?year=2026");
+    const request = (version) => new Request(`https://example.test/a-better-time/share.png?year=2026&v=${version}`);
 
-    expect((await readFailure(request())).status).toBe(200);
-    expect((await writeFailure(request())).status).toBe(200);
+    expect((await readFailure(request("test-cache-read-error-v1"))).status).toBe(200);
+    expect((await writeFailure(request("test-cache-write-error-v1"))).status).toBe(200);
     expect(render).toHaveBeenCalledTimes(2);
   });
 
@@ -155,7 +219,7 @@ describe("personalized sharing", () => {
   });
 
   it("renders a cached 1200x630 PNG with canonical ETag", async () => {
-    const response = await worker.fetch(new Request("https://jdconley.test/a-better-time/share.png?year=2026&place=Phoenix%2C+AZ&lat=33.4484&lon=-112.074&tz=America%2FPhoenix"), env);
+    const response = await worker.fetch(new Request(`https://jdconley.test/a-better-time/share.png?year=2026&place=Phoenix%2C+AZ&lat=33.4484&lon=-112.074&tz=America%2FPhoenix&v=${shareImage.SHARE_IMAGE_VERSION}`), env);
     const bytes = new Uint8Array(await response.arrayBuffer());
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("image/png");
