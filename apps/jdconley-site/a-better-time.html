@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>A Better Time — What if the clock followed the sun?</title>
+  <meta name="description" content="Explore a gentler alternative to daylight saving time that keeps more sunlight in the hours you are awake.">
+  <link rel="canonical" href="https://jdconley.com/a-better-time">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="A Better Time">
+  <meta property="og:description" content="See what your year could feel like if the clock followed the sun.">
+  <meta property="og:image" content="https://jdconley.com/images/a-better-time-share.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="A Better Time">
+  <meta name="twitter:description" content="See what your year could feel like if the clock followed the sun.">
+  <meta name="twitter:image" content="https://jdconley.com/images/a-better-time-share.png">
+  <link rel="icon" href="images/favicon.png">
+  <link rel="apple-touch-icon" href="images/webclip.png">
+  <link rel="preload" href="/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/a-better-time.css">
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"A Better Time","url":"https://jdconley.com/a-better-time","applicationCategory":"LifestyleApplication","operatingSystem":"Any","description":"An interactive model for clocks that follow local daylight."}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the daylight model</a>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="JD Conley home">
+      <img src="images/headshot-256x256.png" alt="" width="34" height="34">
+      <span>JD Conley</span>
+    </a>
+    <span class="project-label">An experiment in civil time</span>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="eyebrow">A better time</p>
+      <h1 id="hero-title">What if the clock followed the sun?</h1>
+      <p class="hero-copy">Instead of two abrupt clock changes, imagine small, familiar jumps that keep daylight closer to the hours we actually live.</p>
+      <button class="location-button" type="button" data-open-dialog="location-dialog">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <span><small>Showing daylight for</small><strong>South Lake Tahoe, CA</strong></span>
+        <span aria-hidden="true">Change</span>
+      </button>
+      <p class="location-note">Use your exact location or try a US city or ZIP code.</p>
+    </section>
+
+    <div class="app-workspace">
+      <aside class="settings-rail" data-layout="settings-rail" aria-label="Daylight settings">
+        <div class="rail-heading"><p class="eyebrow">Your day</p><h2>Tune the model</h2></div>
+        <div class="setting-block"><span>Waking hours</span><strong>7:00 AM – 10:00 PM</strong></div>
+        <div class="setting-block"><span>Daylight priority</span><strong>Equal</strong><div class="balance-track" aria-hidden="true"><i></i></div><div class="balance-labels"><span>Morning</span><span>Evening</span></div></div>
+        <div class="setting-block"><span>Maximum daily change</span><strong>1 minute</strong></div>
+        <p class="rail-note">Changes happen at 2:00 AM, like daylight saving time.</p>
+      </aside>
+
+      <section class="result-column">
+        <div class="settings-row" data-layout="settings-row" aria-label="Current daylight settings">
+          <div><span>Waking hours</span><strong>7 AM – 10 PM</strong></div>
+          <div><span>Priority</span><strong>Equal</strong></div>
+          <div><span>Daily jump</span><strong>≤ 1 min</strong></div>
+          <button type="button" data-open-dialog="tune-dialog">Adjust</button>
+        </div>
+
+        <article class="chart-card" aria-labelledby="chart-title">
+          <header class="chart-header">
+            <div>
+              <p class="eyebrow">Your daylight year</p>
+              <h2 id="chart-title">More useful light, all year</h2>
+            </div>
+            <div class="share-wrap">
+              <button class="icon-button" type="button" aria-label="Share this result" aria-describedby="share-tooltip" data-open-dialog="share-dialog">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg>
+              </button>
+              <span class="tooltip" role="tooltip" id="share-tooltip">Share this result</span>
+            </div>
+          </header>
+
+          <div class="gain-summary" aria-live="polite" data-gain-metric>
+            <strong>+41 minutes</strong>
+            <span>of daylight during your waking hours on an average winter day</span>
+          </div>
+
+          <section class="chart-region" role="region" aria-label="Yearly daylight comparison" tabindex="0">
+            <div class="chart-plot">
+              <div class="time-labels" aria-hidden="true"><span>10 PM</span><span>6 PM</span><span>Noon</span><span>6 AM</span></div>
+              <svg class="daylight-chart" viewBox="0 0 760 360" role="img" aria-labelledby="chart-svg-title chart-svg-desc" preserveAspectRatio="none">
+                <title id="chart-svg-title">Sunrise and sunset over one year</title>
+                <desc id="chart-svg-desc">An illustrative comparison of sunrise and sunset under current time and a clock that follows the sun. Final values will update for the selected location.</desc>
+                <g class="grid"><path d="M0 40H760M0 130H760M0 220H760M0 310H760"/><path d="M0 0V340M190 0V340M380 0V340M570 0V340M760 0V340"/></g>
+                <path class="daylight-fill" d="M0 237C100 264 190 281 290 266S470 189 570 177 685 201 760 229V92C680 67 610 57 540 70S420 131 320 137 120 92 0 91Z"/>
+                <path class="sunset-line" d="M0 91C120 92 220 147 320 137S470 83 540 70 680 67 760 92"/>
+                <path class="sunrise-line" d="M0 237C100 264 190 281 290 266S470 189 570 177 685 201 760 229"/>
+                <path class="reference-line" d="M0 218C110 245 205 262 300 247S470 176 570 165 685 187 760 211"/>
+                <path class="reference-line" d="M0 107C120 108 220 161 320 152S470 98 540 85 680 81 760 107"/>
+                <path class="today-line" d="M413 0V340"/>
+                <circle class="sun-dot" cx="413" cy="213" r="6"/>
+              </svg>
+              <div class="month-labels" aria-hidden="true"><span>Jan</span><span>Apr</span><span>Jul</span><span>Oct</span><span>Dec</span></div>
+            </div>
+            <div class="chart-legend" aria-label="Chart legend">
+              <span><i class="legend-line sunrise"></i>Sunrise</span>
+              <span><i class="legend-line sunset"></i>Sunset</span>
+              <span><i class="legend-line reference"></i>Current time</span>
+            </div>
+            <p class="chart-readout"><strong>July 15</strong><span>Sunrise 5:43 AM · Sunset 8:31 PM · Clock offset +23 min</span></p>
+          </section>
+        </article>
+      </section>
+
+      <aside class="insight-rail" data-layout="insight-rail" aria-label="Key daylight insights">
+        <section><p class="eyebrow">Today</p><strong class="insight-value">+23 min</strong><span>clock offset</span></section>
+        <section><strong>5:43 AM</strong><span>sunrise</span><strong>8:31 PM</strong><span>sunset</span></section>
+        <section class="support-status"><span>Support is opening soon</span><p>Public supporter count will appear when the project launches.</p></section>
+      </aside>
+    </div>
+
+    <section class="editorial">
+      <p class="eyebrow">The idea</p>
+      <h2>Keep noon near the middle of our day.</h2>
+      <div class="editorial-grid">
+        <p>Our clocks are a coordination tool. They do not have to drift far from the sun—or force everyone through a one-hour jolt twice a year.</p>
+        <p>This model uses DST-style jumps at 2:00 AM, capped at one minute per day. It balances morning and evening light around the waking hours you choose.</p>
+      </div>
+    </section>
+
+    <section class="closing-cta">
+      <div><p class="eyebrow">A more human clock</p><h2>Would you live on a time that followed the sun?</h2><p>Support will be public by first name and location. The count is not live yet.</p></div>
+      <button class="primary-button desktop-support" type="button" data-open-dialog="support-dialog">Show support</button>
+    </section>
+  </main>
+
+  <div class="mobile-actions" data-layout="mobile-actions" aria-label="Page actions">
+    <button class="secondary-button" type="button" data-open-dialog="tune-dialog">Tune my day</button>
+    <button class="primary-button mobile-support" type="button" data-open-dialog="support-dialog">Show support</button>
+  </div>
+
+  <footer class="site-footer"><span>Built by <a href="/">JD Conley</a></span><span>An exploration, not a policy proposal—yet.</span></footer>
+
+  <dialog id="share-dialog" aria-labelledby="share-dialog-title">
+    <div class="dialog-panel">
+      <header><div><p class="eyebrow">Pass it on</p><h2 id="share-dialog-title">Share your daylight plan</h2></div><button class="dialog-close" type="button" aria-label="Close share dialog">×</button></header>
+      <p>Share South Lake Tahoe’s example settings. Personalized links arrive with the live model.</p>
+      <button class="primary-button" type="button" data-copy-share>Copy share link</button>
+      <p class="dialog-feedback" aria-live="polite"></p>
+    </div>
+  </dialog>
+
+  <dialog id="support-dialog" aria-labelledby="support-dialog-title">
+    <div class="dialog-panel">
+      <header><div><p class="eyebrow">Coming soon</p><h2 id="support-dialog-title">Show your support</h2></div><button class="dialog-close" type="button" aria-label="Close support dialog">×</button></header>
+      <p>The public support list is being readied. No supporter count is shown until real submissions are available.</p>
+      <label>First name<input type="text" autocomplete="given-name" placeholder="Your first name"></label>
+      <label>Location<input type="text" autocomplete="address-level2" value="South Lake Tahoe, CA"></label>
+      <button class="primary-button" type="button" disabled>Support opens soon</button>
+    </div>
+  </dialog>
+
+  <dialog id="tune-dialog" class="tune-dialog" aria-labelledby="tune-dialog-title">
+    <div class="dialog-panel">
+      <header><div><p class="eyebrow">Your schedule</p><h2 id="tune-dialog-title">Tune your day</h2></div><button class="dialog-close" type="button" aria-label="Close tuning dialog">×</button></header>
+      <div class="field-row"><label>Day starts<input type="time" value="07:00"></label><label>Day ends<input type="time" value="22:00"></label></div>
+      <label>Daylight priority<input type="range" min="0" max="100" value="50"><span class="range-labels"><span>Morning</span><span>Equal</span><span>Evening</span></span></label>
+      <button class="primary-button dialog-close-action" type="button">Apply settings</button>
+    </div>
+  </dialog>
+
+  <dialog id="location-dialog" aria-labelledby="location-dialog-title">
+    <div class="dialog-panel">
+      <header><div><p class="eyebrow">United States</p><h2 id="location-dialog-title">Choose your location</h2></div><button class="dialog-close" type="button" aria-label="Close location dialog">×</button></header>
+      <button class="secondary-button" type="button">Use my precise location</button>
+      <label>City or ZIP code<input type="search" placeholder="City or ZIP code"></label>
+    </div>
+  </dialog>
+
+  <noscript><div class="noscript">This model compares sunrise and sunset with current US clock rules, using South Lake Tahoe as the default. JavaScript is required to tune your waking hours or choose an exact location.</div></noscript>
+  <script type="module" src="js/a-better-time/index.js"></script>
+</body>
+</html>
