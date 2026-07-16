@@ -74,6 +74,25 @@ describe("serializeState", () => {
     expect(params.get("lon")).toBe("-1.235");
   });
 
+  it("rounds larger coordinate halves away from zero without moving nearby values", () => {
+    const positiveTie = new URLSearchParams(
+      serializeState({ ...DEFAULT_STATE, lat: 4.0005, lon: 128.0005 })
+    );
+    const negativeTie = new URLSearchParams(
+      serializeState({ ...DEFAULT_STATE, lat: -4.0005, lon: -128.0005 })
+    );
+    const nearTie = new URLSearchParams(
+      serializeState({ ...DEFAULT_STATE, lat: 4.000499, lon: -128.000499 })
+    );
+
+    expect(positiveTie.get("lat")).toBe("4.001");
+    expect(positiveTie.get("lon")).toBe("128.001");
+    expect(negativeTie.get("lat")).toBe("-4.001");
+    expect(negativeTie.get("lon")).toBe("-128.001");
+    expect(nearTie.get("lat")).toBe("4.000");
+    expect(nearTie.get("lon")).toBe("-128.000");
+  });
+
   it("normalizes Unicode and whitespace and limits place to 60 code points", () => {
     const place = `  Cafe\u0301\n\t${"😀".repeat(80)}  `;
     const query = serializeState({ ...DEFAULT_STATE, place });
@@ -191,6 +210,21 @@ describe("parseState", () => {
 
     expect(result.state.lat).toBe(1.235);
     expect(result.state.lon).toBe(-1.235);
+  });
+
+  it("rounds larger parsed halves away from zero without moving nearby values", () => {
+    expect(parseState("lat=4.0005&lon=128.0005").state).toMatchObject({
+      lat: 4.001,
+      lon: 128.001
+    });
+    expect(parseState("lat=-4.0005&lon=-128.0005").state).toMatchObject({
+      lat: -4.001,
+      lon: -128.001
+    });
+    expect(parseState("lat=-4.000499&lon=128.000499").state).toMatchObject({
+      lat: -4,
+      lon: 128
+    });
   });
 
   it("falls back only an invalid IANA time zone", () => {

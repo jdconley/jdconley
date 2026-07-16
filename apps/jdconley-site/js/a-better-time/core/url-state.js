@@ -32,7 +32,8 @@ export const DEFAULT_STATE = Object.freeze(
 );
 
 function roundCoordinate(value) {
-  const magnitude = Math.round((Math.abs(value) + Number.EPSILON) * 1000) / 1000;
+  const scaled = Math.abs(value) * 1000;
+  const magnitude = Math.round(scaled + Number.EPSILON * scaled) / 1000;
   const rounded = Math.sign(value) * magnitude;
   return Object.is(rounded, -0) ? 0 : rounded;
 }
