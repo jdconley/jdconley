@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   DEFAULT_STATE,
@@ -19,8 +19,27 @@ describe("DEFAULT_STATE", () => {
       wake: 420,
       sleep: 1320,
       bias: 0,
-      year: new Date().getFullYear()
+      year: new Date().getUTCFullYear()
     });
+  });
+
+  it("uses the current UTC year across module-lifetime rollovers", () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2027-01-01T00:30:00Z"));
+      expect(DEFAULT_STATE.year).toBe(2027);
+      expect(parseState("").state.year).toBe(2027);
+      expect(parseState("year=invalid").state.year).toBe(2027);
+      expect(new URLSearchParams(serializeState(null)).get("year")).toBe("2027");
+
+      vi.setSystemTime(new Date("2028-01-01T00:30:00Z"));
+      expect(DEFAULT_STATE.year).toBe(2028);
+      expect(parseState("").state.year).toBe(2028);
+      expect(parseState("year=invalid").state.year).toBe(2028);
+      expect(new URLSearchParams(serializeState(null)).get("year")).toBe("2028");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -44,6 +63,15 @@ describe("serializeState", () => {
     expect(
       serializeState({ ...DEFAULT_STATE, lat: -0.0001, lon: -0 })
     ).toMatch(/^lat=0\.000&lon=0\.000&/);
+  });
+
+  it("rounds coordinate halves away from zero symmetrically", () => {
+    const params = new URLSearchParams(
+      serializeState({ ...DEFAULT_STATE, lat: 1.2345, lon: -1.2345 })
+    );
+
+    expect(params.get("lat")).toBe("1.235");
+    expect(params.get("lon")).toBe("-1.235");
   });
 
   it("normalizes Unicode and whitespace and limits place to 60 code points", () => {
@@ -79,6 +107,18 @@ describe("serializeState", () => {
 
     expect(params.get("wake")).toBe(String(DEFAULT_STATE.wake));
     expect(params.get("sleep")).toBe(String(DEFAULT_STATE.sleep));
+  });
+
+  it("canonicalizes equivalent IANA zone aliases and case", () => {
+    const alias = new URLSearchParams(
+      serializeState({ ...DEFAULT_STATE, tz: "US/Pacific" })
+    );
+    const caseVariant = new URLSearchParams(
+      serializeState({ ...DEFAULT_STATE, tz: "america/los_angeles" })
+    );
+
+    expect(alias.get("tz")).toBe("America/Los_Angeles");
+    expect(caseVariant.get("tz")).toBe("America/Los_Angeles");
   });
 });
 
@@ -135,6 +175,24 @@ describe("parseState", () => {
     expect(result.resetFields).toEqual(["lat"]);
   });
 
+  it("requires canonical decimal coordinate syntax before conversion", () => {
+    for (const value of ["0x10", "0b10", " 40 ", "+40", "1e1", "-.5", "40."]) {
+      const result = parseState(`lat=${encodeURIComponent(value)}`);
+
+      expect(result.state.lat).toBe(DEFAULT_STATE.lat);
+      expect(result.resetFields).toEqual(["lat"]);
+    }
+    expect(parseState("lat=-0.5").state.lat).toBe(-0.5);
+    expect(parseState("lat=40.25").state.lat).toBe(40.25);
+  });
+
+  it("rounds parsed coordinate halves away from zero symmetrically", () => {
+    const result = parseState("lat=1.2345&lon=-1.2345");
+
+    expect(result.state.lat).toBe(1.235);
+    expect(result.state.lon).toBe(-1.235);
+  });
+
   it("falls back only an invalid IANA time zone", () => {
     const result = parseState("lat=40&tz=Definitely%2FInvalid&bias=20");
 
@@ -142,6 +200,13 @@ describe("parseState", () => {
     expect(result.state.tz).toBe(DEFAULT_STATE.tz);
     expect(result.state.bias).toBe(20);
     expect(result.resetFields).toEqual(["tz"]);
+  });
+
+  it("canonicalizes parsed IANA aliases", () => {
+    const result = parseState("tz=US%2FPacific");
+
+    expect(result.state.tz).toBe("America/Los_Angeles");
+    expect(result.resetFields).toEqual([]);
   });
 
   it("uses the last duplicate value and ignores unknown keys", () => {

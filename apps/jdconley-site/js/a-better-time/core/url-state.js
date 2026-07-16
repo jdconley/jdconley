@@ -9,20 +9,31 @@ const FIELD_ORDER = [
   "year"
 ];
 
-// Defaults use the same three-decimal coordinate precision as shared URLs.
-export const DEFAULT_STATE = Object.freeze({
-  lat: 38.94,
-  lon: -119.977,
-  place: "South Lake Tahoe, CA",
-  tz: "America/Los_Angeles",
-  wake: 420,
-  sleep: 1320,
-  bias: 0,
-  year: new Date().getFullYear()
-});
+function currentUtcYear() {
+  return new Date().getUTCFullYear();
+}
+
+// Defaults use the same three-decimal coordinate precision as shared URLs. The
+// enumerable year getter keeps long-lived browser and Worker modules current.
+export const DEFAULT_STATE = Object.freeze(
+  Object.defineProperty(
+    {
+      lat: 38.94,
+      lon: -119.977,
+      place: "South Lake Tahoe, CA",
+      tz: "America/Los_Angeles",
+      wake: 420,
+      sleep: 1320,
+      bias: 0
+    },
+    "year",
+    { enumerable: true, get: currentUtcYear }
+  )
+);
 
 function roundCoordinate(value) {
-  const rounded = Math.round((value + Number.EPSILON) * 1000) / 1000;
+  const magnitude = Math.round((Math.abs(value) + Number.EPSILON) * 1000) / 1000;
+  const rounded = Math.sign(value) * magnitude;
   return Object.is(rounded, -0) ? 0 : rounded;
 }
 
@@ -37,13 +48,13 @@ function normalizePlace(value) {
   return Array.from(compact).slice(0, 60).join("");
 }
 
-function validTimeZone(value) {
-  if (typeof value !== "string" || !value) return false;
+function canonicalTimeZone(value) {
+  if (typeof value !== "string" || !value) return null;
   try {
-    new Intl.DateTimeFormat("en-US", { timeZone: value }).format(0);
-    return true;
+    return new Intl.DateTimeFormat("en-US", { timeZone: value }).resolvedOptions()
+      .timeZone;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -61,21 +72,27 @@ function validWakingWindow(wake, sleep) {
 }
 
 function normalizedState(input = {}) {
+  const source = input && typeof input === "object" ? input : {};
+  const timeZone = canonicalTimeZone(source.tz);
   const state = {
-    lat: validCoordinate(input.lat, -90, 90)
-      ? roundCoordinate(input.lat)
+    lat: validCoordinate(source.lat, -90, 90)
+      ? roundCoordinate(source.lat)
       : DEFAULT_STATE.lat,
-    lon: validCoordinate(input.lon, -180, 180)
-      ? roundCoordinate(input.lon)
+    lon: validCoordinate(source.lon, -180, 180)
+      ? roundCoordinate(source.lon)
       : DEFAULT_STATE.lon,
-    place: normalizePlace(input.place) ?? DEFAULT_STATE.place,
-    tz: validTimeZone(input.tz) ? input.tz : DEFAULT_STATE.tz,
-    wake: validInteger(input.wake, 0, 1439) ? input.wake : DEFAULT_STATE.wake,
-    sleep: validInteger(input.sleep, 0, 1439)
-      ? input.sleep
+    place: normalizePlace(source.place) ?? DEFAULT_STATE.place,
+    tz: timeZone ?? DEFAULT_STATE.tz,
+    wake: validInteger(source.wake, 0, 1439) ? source.wake : DEFAULT_STATE.wake,
+    sleep: validInteger(source.sleep, 0, 1439)
+      ? source.sleep
       : DEFAULT_STATE.sleep,
-    bias: validInteger(input.bias, -100, 100) ? input.bias : DEFAULT_STATE.bias,
-    year: validInteger(input.year, 1000, 9999) ? input.year : DEFAULT_STATE.year
+    bias: validInteger(source.bias, -100, 100)
+      ? source.bias
+      : DEFAULT_STATE.bias,
+    year: validInteger(source.year, 1000, 9999)
+      ? source.year
+      : DEFAULT_STATE.year
   };
 
   if (!validWakingWindow(state.wake, state.sleep)) {
@@ -112,7 +129,8 @@ function lastValue(params, field) {
 }
 
 function parseDecimal(value, minimum, maximum) {
-  if (value === undefined || value.trim() === "") return null;
+  // Canonical URL decimals: optional minus, digits, and an optional fraction.
+  if (value === undefined || !/^-?\d+(?:\.\d+)?$/u.test(value)) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= minimum && parsed <= maximum
     ? roundCoordinate(parsed)
@@ -158,8 +176,8 @@ export function parseState(query = "") {
     else state.place = value;
   }
   if (has("tz")) {
-    const value = lastValue(params, "tz");
-    if (!validTimeZone(value)) reset.add("tz");
+    const value = canonicalTimeZone(lastValue(params, "tz"));
+    if (value === null) reset.add("tz");
     else state.tz = value;
   }
 
