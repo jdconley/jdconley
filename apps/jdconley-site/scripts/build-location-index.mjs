@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { unzipSync } from "fflate";
 import tzLookup from "tz-lookup";
-import { resolveUsTimeZone } from "../worker/us-time-zones.js";
+import { createDotTimeZoneLookup, resolveUsTimeZone } from "../worker/us-time-zones.js";
 
 export const SOURCES = Object.freeze({
   places: {
@@ -23,10 +23,15 @@ export const SOURCES = Object.freeze({
     sha256: "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf"
   },
   populations: {
-    // Official Census Population Estimates Program subcounty file. SUMLEV 162
-    // provides one incorporated-place row keyed by state and place FIPS.
-    url: "https://www2.census.gov/programs-surveys/popest/datasets/2010-2020/cities/SUB-EST2020_ALL.csv",
-    sha256: "2b05bd6b45934a2a7d628b27957a32deb2cdd6e2eacdb28ba1c9090dfe24d0bb"
+    urlTemplate: "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Census_Populated_Places/FeatureServer/0/query?where=1%3D1&outFields=PLACEFIPS%2CPOPULATION&returnGeometry=false&orderByFields=PLACEFIPS&resultOffset={offset}&resultRecordCount=2000&f=json",
+    aggregateSha256: "9fb6fd922298fedf9ddf61cb5de0b3a311d2d211bc070a589bfbbddf499ff8f6",
+    provenance: "Esri USA Census Populated Places; POPULATION is 2020 Census PL 94-171 total population; 31,615 incorporated places and CDPs.",
+    terms: "https://www.esri.com/en-us/legal/terms/full-master-agreement"
+  },
+  timeZones: {
+    url: "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_Time_Zones/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&f=geojson",
+    sha256: "23fd76af3f675ae4c30718ceee2fe4e24fdea8122b64b72210ac40bb2abbb2dd",
+    provenance: "U.S. DOT/BTS NTAD verified representation of 49 CFR Part 71 time-zone boundaries."
   }
 });
 
@@ -124,7 +129,7 @@ function compareText(left, right) {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-export function buildLocationRecords({ places, zctas, relationships, populations = [], timezoneFor = tzLookup }) {
+export function buildLocationRecords({ places, zctas, relationships, populations = [], timezoneFor = tzLookup, dotTimeZoneFor }) {
   const records = [];
   const uniquePlaces = new Map();
   const populationByGeoid = new Map(populations.map(({ geoid, population }) => [geoid, population]));
@@ -137,7 +142,7 @@ export function buildLocationRecords({ places, zctas, relationships, populations
     const record = {
       kind: "place", search_name: normalizeSearchName(name), display_name: `${name}, ${state}`,
       state_code: state, zip: null, latitude, longitude,
-      time_zone: resolveUsTimeZone(state, latitude, longitude, timezoneFor),
+      time_zone: resolveUsTimeZone(state, latitude, longitude, timezoneFor, dotTimeZoneFor),
       population: populationByGeoid.get(normalizeWhitespace(row.GEOID)) ?? 0
     };
     const key = `${record.search_name}\u0000${state}`;
@@ -154,7 +159,7 @@ export function buildLocationRecords({ places, zctas, relationships, populations
     const longitude = numeric(row.INTPTLONG, "ZCTA longitude");
     records.push({
       kind: "zip", search_name: zip, display_name: `${zip}, ${state}`, state_code: state, zip,
-      latitude, longitude, time_zone: resolveUsTimeZone(state, latitude, longitude, timezoneFor), population: 0
+      latitude, longitude, time_zone: resolveUsTimeZone(state, latitude, longitude, timezoneFor, dotTimeZoneFor), population: 0
     });
   }
 
@@ -174,6 +179,25 @@ async function download(source, fetcher) {
   const bytes = new Uint8Array(await response.arrayBuffer());
   verifyChecksum(bytes, source.sha256, source.url);
   return bytes;
+}
+
+async function downloadPopulations(fetcher) {
+  const rows = [];
+  for (let offset = 0; offset < 40000; offset += 2000) {
+    const url = SOURCES.populations.urlTemplate.replace("{offset}", String(offset));
+    const response = await fetcher(url);
+    if (!response.ok) throw new Error(`Download failed (${response.status}) for ${url}`);
+    const payload = await response.json();
+    if (payload.error) throw new Error(`Population service error: ${JSON.stringify(payload.error)}`);
+    const page = payload.features.map(({ attributes }) => ({ geoid: attributes.PLACEFIPS, population: Math.max(0, attributes.POPULATION ?? 0) }));
+    rows.push(...page);
+    if (page.length < 2000) break;
+  }
+  rows.sort((a, b) => compareText(a.geoid, b.geoid));
+  const normalized = `${rows.map(({ geoid, population }) => `${geoid},${population}`).join("\n")}\n`;
+  verifyChecksum(new TextEncoder().encode(normalized), SOURCES.populations.aggregateSha256, "Census populated-place aggregate");
+  if (rows.length < 31000 || !rows.some(({ geoid }) => geoid === "5103000") || !rows.some(({ geoid }) => geoid === "3254600")) throw new Error("Population coverage is incomplete for Arlington VA or Paradise NV");
+  return rows;
 }
 
 export function serializeLocationIndex(records, { generatedAt, generationTime = "explicit", sourceRows }) {
@@ -202,14 +226,14 @@ export function resolveGenerationTime({ generatedAt, sourceDateEpoch = process.e
 }
 
 export async function generateLocationIndex({ fetcher = fetch, generatedAt, outputDirectory } = {}) {
-  const [placeBytes, zctaBytes, relationshipBytes, populationBytes] = await Promise.all([
-    download(SOURCES.places, fetcher), download(SOURCES.zctas, fetcher), download(SOURCES.zctaCounties, fetcher), download(SOURCES.populations, fetcher)
+  const [placeBytes, zctaBytes, relationshipBytes, populations, timeZoneBytes] = await Promise.all([
+    download(SOURCES.places, fetcher), download(SOURCES.zctas, fetcher), download(SOURCES.zctaCounties, fetcher), downloadPopulations(fetcher), download(SOURCES.timeZones, fetcher)
   ]);
   const places = parseDelimited(unzipText(placeBytes, "places"));
   const zctas = parseDelimited(unzipText(zctaBytes, "ZCTAs"));
   const relationships = parseDelimited(new TextDecoder().decode(relationshipBytes));
-  const populations = parsePopulationCsv(new TextDecoder().decode(populationBytes));
-  const records = buildLocationRecords({ places, zctas, relationships, populations });
+  const dotTimeZoneFor = createDotTimeZoneLookup(JSON.parse(new TextDecoder().decode(timeZoneBytes)));
+  const records = buildLocationRecords({ places, zctas, relationships, populations, dotTimeZoneFor });
   const generation = resolveGenerationTime({ generatedAt });
   const { ndjson, manifest } = serializeLocationIndex(records, {
     ...generation,

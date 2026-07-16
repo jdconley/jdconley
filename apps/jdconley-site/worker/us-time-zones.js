@@ -20,30 +20,49 @@ export const US_STATE_TIME_ZONES = Object.freeze({
   WV: ["America/New_York"], WI: ["America/Chicago"], WY: ["America/Denver"]
 });
 
-const DEFAULT_ZONE = Object.fromEntries(Object.entries(US_STATE_TIME_ZONES).map(([state, zones]) => [state, zones[0]]));
-DEFAULT_ZONE.AK = "America/Anchorage";
+const IANA_STANDARD_ZONE = new Map([
+  ["America/New_York", "Eastern"], ["America/Detroit", "Eastern"], ["America/Indiana/Indianapolis", "Eastern"], ["America/Indiana/Marengo", "Eastern"],
+  ["America/Indiana/Petersburg", "Eastern"], ["America/Indiana/Vevay", "Eastern"], ["America/Indiana/Vincennes", "Eastern"], ["America/Indiana/Winamac", "Eastern"],
+  ["America/Kentucky/Louisville", "Eastern"], ["America/Kentucky/Monticello", "Eastern"],
+  ["America/Chicago", "Central"], ["America/Menominee", "Central"], ["America/Indiana/Knox", "Central"], ["America/Indiana/Tell_City", "Central"],
+  ["America/North_Dakota/Beulah", "Central"], ["America/North_Dakota/Center", "Central"], ["America/North_Dakota/New_Salem", "Central"],
+  ["America/Denver", "Mountain"], ["America/Boise", "Mountain"], ["America/Phoenix", "Mountain"], ["America/Los_Angeles", "Pacific"],
+  ["America/Anchorage", "Alaska"], ["America/Juneau", "Alaska"], ["America/Metlakatla", "Alaska"], ["America/Nome", "Alaska"], ["America/Sitka", "Alaska"], ["America/Yakutat", "Alaska"],
+  ["America/Adak", "Hawaii-Aleutian"], ["Pacific/Honolulu", "Hawaii-Aleutian"]
+]);
+const CANONICAL_ZONE = { Eastern: "America/New_York", Central: "America/Chicago", Mountain: "America/Denver", Pacific: "America/Los_Angeles", Alaska: "America/Anchorage", "Hawaii-Aleutian": "Pacific/Honolulu" };
 
-function correctedBorderZone(state, longitude) {
-  switch (state) {
-    case "AK": return longitude >= -131 ? "America/Los_Angeles" : longitude >= -141 ? "America/Sitka" : "America/Anchorage";
-    case "TX": return longitude <= -103 ? "America/Denver" : "America/Chicago";
-    case "FL": return longitude <= -85.1 ? "America/Chicago" : "America/New_York";
-    case "ID": return longitude <= -115 ? "America/Los_Angeles" : "America/Boise";
-    case "IN": return longitude <= -87 ? "America/Chicago" : "America/Indiana/Indianapolis";
-    case "KS": case "NE": case "SD": return longitude <= -101 ? "America/Denver" : "America/Chicago";
-    case "KY": case "TN": return longitude <= -85.5 ? "America/Chicago" : "America/New_York";
-    case "MI": return longitude <= -87 ? "America/Menominee" : "America/Detroit";
-    case "NV": return longitude >= -114.1 ? "America/Denver" : "America/Los_Angeles";
-    case "ND": return longitude <= -101 ? "America/Denver" : "America/Chicago";
-    case "OR": return longitude >= -117.5 ? "America/Boise" : "America/Los_Angeles";
-    default: return DEFAULT_ZONE[state];
+function pointInRing([x, y], ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
   }
+  return inside;
 }
 
-export function resolveUsTimeZone(state, latitude, longitude, lookup) {
+export function createDotTimeZoneLookup(featureCollection) {
+  const polygons = featureCollection.features.flatMap((feature) => {
+    const coordinates = feature.geometry.type === "Polygon" ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+    return coordinates.map((polygon) => {
+      const bounds = polygon[0].reduce(([minX, minY, maxX, maxY], [x, y]) => [Math.min(minX, x), Math.min(minY, y), Math.max(maxX, x), Math.max(maxY, y)], [Infinity, Infinity, -Infinity, -Infinity]);
+      return { zone: feature.properties.zone, polygon, bounds };
+    });
+  });
+  return (latitude, longitude) => {
+    for (const { zone, polygon, bounds } of polygons) if (longitude >= bounds[0] && latitude >= bounds[1] && longitude <= bounds[2] && latitude <= bounds[3] && pointInRing([longitude, latitude], polygon[0]) && !polygon.slice(1).some((hole) => pointInRing([longitude, latitude], hole))) return zone;
+    throw new Error(`DOT time-zone boundary has no polygon for ${latitude},${longitude}`);
+  };
+}
+
+export function resolveUsTimeZone(state, latitude, longitude, lookup, dotLookup) {
   const allowed = US_STATE_TIME_ZONES[state];
   if (!allowed) throw new Error(`Unsupported U.S. state code: ${state}`);
   const lookedUp = lookup(latitude, longitude);
-  if (allowed.includes(lookedUp)) return lookedUp;
-  return correctedBorderZone(state, longitude);
+  const standardZone = dotLookup ? dotLookup(latitude, longitude) : IANA_STANDARD_ZONE.get(lookedUp);
+  if (allowed.includes(lookedUp) && IANA_STANDARD_ZONE.get(lookedUp) === standardZone) return lookedUp;
+  if (state === "AZ" && standardZone === "Mountain") return "America/Phoenix";
+  if (state === "HI") return "Pacific/Honolulu";
+  if (state === "AK" && standardZone === "Hawaii-Aleutian") return "America/Adak";
+  return CANONICAL_ZONE[standardZone];
 }

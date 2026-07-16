@@ -11,7 +11,7 @@ import {
   verifyChecksum
 } from "../../scripts/build-location-index.mjs";
 import { buildImportSql, importLocations, loadGeneratedRecords, parseImportArguments } from "../../scripts/import-location-index.mjs";
-import { resolveUsTimeZone, US_STATE_TIME_ZONES } from "../../worker/us-time-zones.js";
+import { createDotTimeZoneLookup, resolveUsTimeZone, US_STATE_TIME_ZONES } from "../../worker/us-time-zones.js";
 
 describe("location index source parsing", () => {
   it("parses BOM-prefixed Census pipe records by header", () => {
@@ -89,7 +89,8 @@ describe("U.S. civil time zones", () => {
     ["TX", 26.05, -97.6, "America/Matamoros", "America/Chicago"],
     ["TX", 31.75, -106.5, "America/Ojinaga", "America/Denver"]
   ])("corrects %s foreign lookup %s", (state, latitude, longitude, lookedUp, expected) => {
-    expect(resolveUsTimeZone(state, latitude, longitude, () => lookedUp)).toBe(expected);
+    const standard = expected.includes("Denver") ? "Mountain" : expected.includes("Chicago") ? "Central" : expected.includes("Anchorage") ? "Alaska" : "Eastern";
+    expect(resolveUsTimeZone(state, latitude, longitude, () => lookedUp, () => standard)).toBe(expected);
   });
 
   it.each([
@@ -99,6 +100,19 @@ describe("U.S. civil time zones", () => {
     ["AK", 55.13, -131.57, "America/Metlakatla"]
   ])("preserves valid special zone %s %s", (state, latitude, longitude, zone) => {
     expect(resolveUsTimeZone(state, latitude, longitude, () => zone)).toBe(zone);
+  });
+
+  it.each([
+    ["Bowbells", "ND", 48.803, -102.246, "America/Regina"], ["Crosby", "ND", 48.914, -103.294, "America/Regina"],
+    ["Mohall", "ND", 48.764, -101.512, "America/Regina"], ["Portal", "ND", 48.996, -102.55, "America/Regina"],
+    ["ZIP 58721", "ND", 48.8, -102.25, "America/Regina"], ["Redford", "TX", 29.45, -104.17, "America/Ojinaga"]
+  ])("uses authoritative Central boundary for %s", (_name, state, latitude, longitude, raw) => {
+    expect(resolveUsTimeZone(state, latitude, longitude, () => raw, () => "Central")).toBe("America/Chicago");
+  });
+
+  it("performs deterministic point-in-polygon lookup", () => {
+    const lookup = createDotTimeZoneLookup({ features: [{ properties: { zone: "Central" }, geometry: { coordinates: [[[[-104, 49], [-100, 49], [-100, 45], [-104, 45], [-104, 49]]]] } }] });
+    expect(lookup(48.8, -102.2)).toBe("Central");
   });
 });
 
@@ -145,10 +159,24 @@ describe("location index normalization", () => {
     expect(records[0].population).toBe(1422710);
   });
 
+  it("covers prominent Census-designated places", () => {
+    const records = buildLocationRecords({
+      places: [
+        { USPS: "VA", GEOID: "5103000", NAME: "Arlington CDP", INTPTLAT: "38.88", INTPTLONG: "-77.1" },
+        { USPS: "NV", GEOID: "3254600", NAME: "Paradise CDP", INTPTLAT: "36.08", INTPTLONG: "-115.12" }
+      ], zctas: [], relationships: [],
+      populations: [{ geoid: "5103000", population: 238643 }, { geoid: "3254600", population: 191238 }],
+      timezoneFor: (_lat, lon) => lon < -100 ? "America/Los_Angeles" : "America/New_York"
+    });
+    expect(records.map(({ display_name, population }) => [display_name, population])).toEqual([
+      ["Paradise, NV", 191238], ["Arlington, VA", 238643]
+    ]);
+  });
+
   it("produces only state-allowed time zones", () => {
     const records = buildLocationRecords({
       places: [{ USPS: "ME", GEOID: "0612345", NAME: "Calais city", INTPTLAT: "45.188", INTPTLONG: "-67.278" }],
-      zctas: [], relationships: [], populations: [], timezoneFor: () => "America/Moncton"
+      zctas: [], relationships: [], populations: [], timezoneFor: () => "America/Moncton", dotTimeZoneFor: () => "Eastern"
     });
     expect(US_STATE_TIME_ZONES.ME).toContain(records[0].time_zone);
   });

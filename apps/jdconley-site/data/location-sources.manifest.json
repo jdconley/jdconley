@@ -15,20 +15,27 @@
       "sha256": "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf"
     },
     "populations": {
-      "url": "https://www2.census.gov/programs-surveys/popest/datasets/2010-2020/cities/SUB-EST2020_ALL.csv",
-      "sha256": "2b05bd6b45934a2a7d628b27957a32deb2cdd6e2eacdb28ba1c9090dfe24d0bb"
+      "urlTemplate": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Census_Populated_Places/FeatureServer/0/query?where=1%3D1&outFields=PLACEFIPS%2CPOPULATION&returnGeometry=false&orderByFields=PLACEFIPS&resultOffset={offset}&resultRecordCount=2000&f=json",
+      "aggregateSha256": "9fb6fd922298fedf9ddf61cb5de0b3a311d2d211bc070a589bfbbddf499ff8f6",
+      "provenance": "Esri USA Census Populated Places; POPULATION is 2020 Census PL 94-171 total population; 31,615 incorporated places and CDPs.",
+      "terms": "https://www.esri.com/en-us/legal/terms/full-master-agreement"
+    },
+    "timeZones": {
+      "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_Time_Zones/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&f=geojson",
+      "sha256": "23fd76af3f675ae4c30718ceee2fe4e24fdea8122b64b72210ac40bb2abbb2dd",
+      "provenance": "U.S. DOT/BTS NTAD verified representation of 49 CFR Part 71 time-zone boundaries."
     }
   },
   "sourceRows": {
     "places": 32350,
     "zctas": 33791,
     "zctaCountyRelationships": 47863,
-    "populations": 19494
+    "populations": 31615
   },
   "outputRows": {
     "total": 65489,
     "places": 31847,
     "zips": 33642
   },
-  "ndjsonSha256": "1d9d3acba5752ba0cd417e4dbe59f3e93e8281d830c459abfb14ff7664810b2f"
+  "ndjsonSha256": "ede394bb9f96797155eebdb385df9467b781706f7b5eb9f0596ae80f8b62392f"
 }
