@@ -25,6 +25,8 @@ const domains = ["jdconley.com", "www.jdconley.com", "jdconley-site.jd-conley.wo
 const databaseUuid = "123e4567-e89b-42d3-a456-426614174000";
 const createdDatabaseUuid = "123e4567-e89b-42d3-a456-426614174001";
 const replacementDatabaseUuid = "123e4567-e89b-42d3-a456-426614174002";
+const tempDirectory = "/runner-temp/jdconley-production-a1B2c3";
+const tempConfigPath = `${tempDirectory}/wrangler.toml`;
 const wranglerSource = `name = "jdconley-site"\n[[d1_databases]]\nbinding = "DB"\ndatabase_name = "a-better-time"\ndatabase_id = "${databaseUuid}"\n`;
 const manifest = { ndjsonSha256: "a".repeat(64), outputRows: { total: 12 } };
 
@@ -66,7 +68,7 @@ function harness({ databases = [{ name: "a-better-time", uuid: databaseUuid }], 
     return file.endsWith("locations.manifest.json") ? JSON.stringify(generatedManifest) : wranglerSource;
   };
   const write = async (...args) => { events.push(["write", ...args]); };
-  const temp = async () => { events.push(["temp"]); return "/runner-temp/wrangler.production.toml"; };
+  const temp = async () => { events.push(["temp"]); return tempConfigPath; };
   const output = async (...args) => { events.push(["output", ...args]); };
   const log = (...args) => { events.push(["log", ...args]); };
   const remove = async (...args) => { events.push(["remove", ...args]); };
@@ -160,10 +162,25 @@ describe("production reconciliation orchestration", () => {
 
   test("exports a cleanup operation backed by an injected filesystem removal", async () => {
     const calls = [];
-    await cleanupReconciledConfig("/runner-temp/reconciliation/wrangler.toml", {
+    await cleanupReconciledConfig(tempConfigPath, {
       remove: async (...args) => { calls.push(args); }
     });
-    expect(calls).toEqual([["/runner-temp/reconciliation/wrangler.toml", { force: true }]]);
+    expect(calls).toEqual([[tempDirectory, { recursive: true, force: true }]]);
+  });
+
+  test.each([
+    ["relative/jdconley-production-a1B2c3/wrangler.toml"],
+    ["/runner-temp/not-production-a1B2c3/wrangler.toml"],
+    ["/runner-temp/jdconley-production-a1B2c3/not-wrangler.toml"],
+    ["/runner-temp/jdconley-production-too-long/wrangler.toml"],
+    ["/runner-temp/jdconley-production-a1B2c3/nested/wrangler.toml"],
+    ["/runner-temp/jdconley-production-a1B2c3/../jdconley-production-d4E5f6/wrangler.toml"]
+  ])("rejects unsafe reconciled config cleanup path %s without deleting", async (unsafePath) => {
+    const calls = [];
+    await expect(cleanupReconciledConfig(unsafePath, {
+      remove: async (...args) => { calls.push(args); }
+    })).rejects.toThrow(/unsafe|generated/i);
+    expect(calls).toEqual([]);
   });
 
   test("validates all required environment before doing work", async () => {
@@ -200,7 +217,7 @@ describe("production reconciliation orchestration", () => {
     const { events, dependencies } = harness({ databases: [], widgets: [], state: null, actualCount: 0 });
     const result = await reconcileProductionResources({ env: validEnv }, dependencies);
 
-    expect(result).toEqual({ wranglerConfigPath: "/runner-temp/wrangler.production.toml", turnstileSiteKey: "new-site-key" });
+    expect(result).toEqual({ wranglerConfigPath: tempConfigPath, turnstileSiteKey: "new-site-key" });
     const operations = events.map((event) => event[0] === "fetch" ? `${event[0]}:${event[1]}:${event[2].split("/").at(-1)}` : event[0] === "run" ? `${event[0]}:${event[2].join(" ")}` : event[0]);
     expect(operations).toEqual([
       "fetch:GET:database?per_page=1000&page=1", "fetch:POST:database", "fetch:GET:database?per_page=1000&page=1", "read", "temp", "write",
@@ -208,7 +225,7 @@ describe("production reconciliation orchestration", () => {
       "run:run locations:build",
       "read",
       expect.stringContaining("SELECT checksum"),
-      "run:run locations:import:remote -- --config /runner-temp/wrangler.production.toml",
+      `run:run locations:import:remote -- --config ${tempConfigPath}`,
       expect.stringContaining("SELECT COUNT(*)"),
       expect.stringContaining("INSERT INTO production_resource_state"),
       "fetch:GET:widgets?per_page=1000&page=1", "fetch:POST:widgets",
@@ -238,7 +255,7 @@ describe("production reconciliation orchestration", () => {
     };
     await expect(reconcileProductionResources({ env: validEnv }, dependencies)).rejects.toThrow("migration failed");
     expect(events.filter(([type]) => type === "remove")).toEqual([
-      ["remove", "/runner-temp/wrangler.production.toml", { force: true }]
+      ["remove", tempDirectory, { recursive: true, force: true }]
     ]);
   });
 

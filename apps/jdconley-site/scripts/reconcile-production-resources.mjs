@@ -213,8 +213,16 @@ async function defaultOutput(env, key, value) {
 }
 
 export async function cleanupReconciledConfig(configPath, { remove = rm } = {}) {
-  if (typeof configPath !== "string" || !configPath) throw new Error("A reconciled Wrangler config path is required for cleanup");
-  await remove(configPath, { force: true });
+  if (typeof configPath !== "string" || !path.isAbsolute(configPath) || path.normalize(configPath) !== configPath) {
+    throw new Error("Unsafe reconciled Wrangler config cleanup path");
+  }
+  const generatedDirectory = path.dirname(configPath);
+  if (path.basename(configPath) !== "wrangler.toml" ||
+    !/^jdconley-production-[A-Za-z0-9]{6}$/u.test(path.basename(generatedDirectory)) ||
+    path.join(generatedDirectory, "wrangler.toml") !== configPath) {
+    throw new Error("Reconciled Wrangler config must be directly inside a generated jdconley-production directory");
+  }
+  await remove(generatedDirectory, { recursive: true, force: true });
 }
 
 export async function reconcileProductionResources(options = {}, injected = {}) {
