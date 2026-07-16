@@ -20,6 +20,10 @@ jobs:
       github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      SUPPORT_IP_HMAC_SECRET: ${{ secrets.SUPPORT_IP_HMAC_SECRET }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
       VITE_SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
 
     steps:
@@ -36,6 +40,30 @@ jobs:
           CURRENT_MAIN_SHA=$(git rev-parse "origin/main")
           if [[ "$CURRENT_MAIN_SHA" != "$EXPECTED_SHA" ]]; then
             echo "Refusing to deploy stale CI commit $EXPECTED_SHA; current main is $CURRENT_MAIN_SHA." >&2
+            exit 1
+          fi
+
+      - name: Validate production secrets
+        shell: bash
+        run: |
+          required_secrets=(
+            "CLOUDFLARE_API_TOKEN"
+            "CLOUDFLARE_ACCOUNT_ID"
+            "SUPPORT_IP_HMAC_SECRET"
+          )
+          for name in "${required_secrets[@]}"; do
+            value="${!name:-}"
+            if [[ -z "${value//[[:space:]]/}" ]]; then
+              echo "$name GitHub secret is missing." >&2
+              exit 1
+            fi
+          done
+          if [[ ! "$CLOUDFLARE_ACCOUNT_ID" =~ ^[0-9A-Fa-f]{32}$ ]]; then
+            echo "CLOUDFLARE_ACCOUNT_ID GitHub secret is malformed." >&2
+            exit 1
+          fi
+          if (( ${#SUPPORT_IP_HMAC_SECRET} < 32 )); then
+            echo "SUPPORT_IP_HMAC_SECRET GitHub secret must contain at least 32 characters." >&2
             exit 1
           fi
 
@@ -57,14 +85,27 @@ jobs:
       - name: Build site
         run: pnpm run build:site
 
-      - name: Validate deploy configuration
+      - name: Reconcile production resources
+        id: reconcile
+        working-directory: apps/jdconley-site
+        run: pnpm run production:reconcile
+
+      - name: Capture reconciliation outputs
+        id: production
         env:
-          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+          CONFIG_PATH: ${{ steps.reconcile.outputs.WRANGLER_CONFIG }}
+          TURNSTILE_SITE_KEY: ${{ steps.reconcile.outputs.TURNSTILE_SITE_KEY }}
         run: |
-          if [[ ! "$TURNSTILE_SITE_KEY" =~ ^[A-Za-z0-9_-]{10,}$ ]]; then
-            echo "TURNSTILE_SITE_KEY repository variable is missing or malformed." >&2
+          if [[ -z "$CONFIG_PATH" || ! -f "$CONFIG_PATH" ]]; then
+            echo "Reconciliation did not produce a Wrangler config." >&2
             exit 1
           fi
+          if [[ ! "$TURNSTILE_SITE_KEY" =~ ^[A-Za-z0-9_-]{10,}$ ]]; then
+            echo "Reconciliation produced a malformed Turnstile site key." >&2
+            exit 1
+          fi
+          echo "config_path=${{ steps.reconcile.outputs.WRANGLER_CONFIG }}" >> "$GITHUB_OUTPUT"
+          echo "turnstile_site_key=${{ steps.reconcile.outputs.TURNSTILE_SITE_KEY }}" >> "$GITHUB_OUTPUT"
 
       - name: Deploy Cloudflare Worker
         uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
@@ -72,4 +113,25 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/jdconley-site
-          command: deploy --var TURNSTILE_SITE_KEY:${{ vars.TURNSTILE_SITE_KEY }} --var SUPPORT_ORIGIN:https://jdconley.com
+          command: >-
+            deploy
+            --config "${{ steps.production.outputs.config_path }}"
+            --var "TURNSTILE_SITE_KEY:${{ steps.production.outputs.turnstile_site_key }}"
+            --var "SUPPORT_ORIGIN:${{ env.SITE_URL }}"
+
+      - name: Verify production
+        working-directory: apps/jdconley-site
+        env:
+          TURNSTILE_SITE_KEY: ${{ steps.production.outputs.turnstile_site_key }}
+        run: pnpm run production:verify
+
+      - name: Cleanup reconciled configuration
+        if: always()
+        continue-on-error: ${{ job.status != 'success' }}
+        working-directory: apps/jdconley-site
+        env:
+          CONFIG_PATH: ${{ steps.production.outputs.config_path || steps.reconcile.outputs.WRANGLER_CONFIG }}
+        run: |
+          if [[ -n "$CONFIG_PATH" ]]; then
+            pnpm run production:reconcile:cleanup "$CONFIG_PATH"
+          fi

@@ -41,4 +41,62 @@ describe("production workflow contracts", () => {
       "cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3"
     );
   });
+
+  it("keeps frozen installation and the successful CI build/test gate ahead of delivery", () => {
+    const workflow = read(".github/workflows/deploy.yml");
+    expect(workflow).toContain("pnpm install --frozen-lockfile");
+    expect(workflow).toContain("pnpm run build:site");
+    expect(workflow.indexOf("pnpm install --frozen-lockfile")).toBeLessThan(
+      workflow.indexOf("pnpm run build:site")
+    );
+    expect(workflow.indexOf("pnpm run build:site")).toBeLessThan(
+      workflow.indexOf("pnpm run production:reconcile")
+    );
+  });
+
+  it("validates every production secret before reconciliation can mutate Cloudflare", () => {
+    const workflow = read(".github/workflows/deploy.yml");
+    for (const name of [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "SUPPORT_IP_HMAC_SECRET"
+    ]) {
+      expect(workflow).toContain(`${name}: \${{ secrets.${name} }}`);
+      expect(workflow).toContain(`\"${name}\"`);
+    }
+
+    expect(workflow.indexOf("Reject stale successful CI completion")).toBeLessThan(
+      workflow.indexOf("Validate production secrets")
+    );
+    expect(workflow.indexOf("Validate production secrets")).toBeLessThan(
+      workflow.indexOf("pnpm run production:reconcile")
+    );
+  });
+
+  it("reconciles, deploys the discovered configuration, verifies production, and always cleans up", () => {
+    const workflow = read(".github/workflows/deploy.yml");
+    const reconcile = workflow.indexOf("pnpm run production:reconcile");
+    const deploy = workflow.indexOf("- name: Deploy Cloudflare Worker");
+    const verify = workflow.indexOf("pnpm run production:verify");
+    const cleanup = workflow.indexOf("pnpm run production:reconcile:cleanup");
+
+    expect(reconcile).toBeGreaterThan(-1);
+    expect(reconcile).toBeLessThan(deploy);
+    expect(deploy).toBeLessThan(verify);
+    expect(verify).toBeLessThan(cleanup);
+    expect(workflow).toContain("config_path=${{ steps.reconcile.outputs.WRANGLER_CONFIG }}");
+    expect(workflow).toContain("turnstile_site_key=${{ steps.reconcile.outputs.TURNSTILE_SITE_KEY }}");
+    expect(workflow).toContain("${{ steps.production.outputs.config_path }}");
+    expect(workflow).toContain("${{ steps.production.outputs.turnstile_site_key }}");
+    expect(workflow).toMatch(/command: >-\s+deploy\s+--config/u);
+    expect(workflow).toMatch(/- name: Cleanup reconciled configuration\s+if: always\(\)/u);
+    expect(workflow).toContain("continue-on-error: ${{ job.status != 'success' }}");
+    expect(workflow).toContain(
+      "CONFIG_PATH: ${{ steps.production.outputs.config_path || steps.reconcile.outputs.WRANGLER_CONFIG }}"
+    );
+    expect(workflow).toContain('[[ -n "$CONFIG_PATH" ]]');
+    expect(workflow).toContain('pnpm run production:reconcile:cleanup "$CONFIG_PATH"');
+    expect(workflow).not.toContain('production:reconcile:cleanup -- "$CONFIG_PATH"');
+    expect(workflow).not.toMatch(/cloudflare\/pages-action|wrangler pages deploy|projectName:/u);
+  });
 });
