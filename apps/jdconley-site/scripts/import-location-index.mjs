@@ -13,11 +13,17 @@ export function parseImportArguments(args) {
   const normalized = args.filter((arg) => arg !== "--");
   const modes = normalized.filter((arg) => arg === "--local" || arg === "--remote");
   const fixtures = normalized.filter((arg) => arg === "--fixtures");
-  const unknown = normalized.filter((arg) => !["--local", "--remote", "--fixtures"].includes(arg));
-  if (modes.length !== 1 || fixtures.length > 1 || separators.length > 1 || unknown.length > 0) {
-    throw new Error("Usage: import-location-index.mjs (--local|--remote) [--fixtures]");
+  const configIndexes = normalized.flatMap((arg, index) => arg === "--config" ? [index] : []);
+  const configIndex = configIndexes[0];
+  const config = configIndex === undefined ? undefined : normalized[configIndex + 1];
+  const recognized = new Set(["--local", "--remote", "--fixtures"]);
+  if (configIndex !== undefined) { recognized.add("--config"); recognized.add(config); }
+  const unknown = normalized.filter((arg) => !recognized.has(arg));
+  if (modes.length !== 1 || fixtures.length > 1 || separators.length > 1 || configIndexes.length > 1 ||
+    (configIndex !== undefined && (!config || config.startsWith("--"))) || unknown.length > 0) {
+    throw new Error("Usage: import-location-index.mjs (--local|--remote) [--fixtures] [--config <path>]");
   }
-  return { mode: modes[0], fixtures: fixtures.length === 1 };
+  return { mode: modes[0], fixtures: fixtures.length === 1, ...(config ? { config } : {}) };
 }
 
 function sqlLiteral(value) {
@@ -85,7 +91,7 @@ export async function importLocations(args = process.argv.slice(2), { load = loa
     // validated and encoded as SQL literals, then passed as a spawn argument;
     // no user-controlled value is ever interpreted by a shell.
     await writeFile(sqlPath, buildImportSql(records), { mode: 0o600 });
-    await run(["d1", "execute", "a-better-time", options.mode, "--file", sqlPath, "--yes"]);
+    await run(["d1", "execute", "a-better-time", options.mode, "--file", sqlPath, "--yes", ...(options.config ? ["--config", options.config] : [])]);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

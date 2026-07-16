@@ -15,6 +15,8 @@
     "boundaries:build": "node ./scripts/build-us-containment.mjs",
     "locations:import:local": "node ./scripts/import-location-index.mjs --local",
     "locations:import:remote": "node ./scripts/import-location-index.mjs --remote",
+    "production:reconcile": "node ./scripts/reconcile-production-resources.mjs",
+    "production:reconcile:dry-run": "pnpm run production:reconcile -- --dry-run",
     "test:unit": "vitest run --config vitest.config.mjs",
     "test:worker": "vitest run --config vitest.worker.config.mjs",
     "test:e2e": "playwright test",
