@@ -612,6 +612,62 @@ test.describe("public support experience", () => {
     await expect(dialog.locator("[data-support-error]")).toHaveText("We couldn’t add your support right now.");
   });
 
+  test("closing during pending Turnstile cancels the attempt and ignores a late token", async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as any).resolveTurnstile = null;
+      (window as any).turnstileResets = 0;
+      (window as any).__abtTurnstile = {
+        getToken: () => new Promise((resolve) => { (window as any).resolveTurnstile = resolve; }),
+        reset: () => { (window as any).turnstileResets += 1; }
+      };
+    });
+    const posts: string[] = [];
+    await page.route("**/api/a-better-time/supporters", (route) => {
+      if (route.request().method() === "GET") return route.fulfill({ json: { count: 1, recent: [] } });
+      posts.push(route.request().postData() ?? "");
+      return route.fulfill({ status: 201, json: { status: "created", count: 2 } });
+    });
+    await page.goto(path);
+    const trigger = page.getByRole("button", { name: "Show support" }).first();
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: "Show your support" });
+    await dialog.getByRole("textbox", { name: "First name" }).fill("Jamie");
+    await dialog.getByLabel(/display.*publicly/i).check();
+    const submit = dialog.getByRole("button", { name: "Add my support" });
+    await submit.click();
+    await expect(submit).toBeDisabled();
+    await dialog.getByRole("button", { name: "Close support dialog" }).click();
+    await trigger.click();
+    await expect(submit).toBeEnabled();
+    await page.evaluate(() => (window as any).resolveTurnstile?.("late-token"));
+    await page.waitForTimeout(100);
+    expect(posts).toEqual([]);
+    expect(await page.evaluate(() => (window as any).turnstileResets)).toBeGreaterThanOrEqual(1);
+  });
+
+  test("a delayed initial load cannot overwrite a newer submitted count", async ({ page }) => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    await page.addInitScript(() => { (window as any).__abtTurnstile = { getToken: async () => "token", reset: () => {} }; });
+    await page.route("**/api/a-better-time/supporters", async (route) => {
+      if (route.request().method() === "GET") {
+        await pending;
+        return route.fulfill({ json: { count: 10, recent: [] } });
+      }
+      return route.fulfill({ status: 201, json: { status: "created", count: 11 } });
+    });
+    await page.goto(path);
+    await page.getByRole("button", { name: "Show support" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Show your support" });
+    await dialog.getByRole("textbox", { name: "First name" }).fill("Jamie");
+    await dialog.getByLabel(/display.*publicly/i).check();
+    await dialog.getByRole("button", { name: "Add my support" }).click();
+    await expect(page.locator("[data-support-count]").first()).toHaveText("11");
+    release();
+    await page.waitForTimeout(100);
+    await expect(page.locator("[data-support-count]").first()).toHaveText("11");
+  });
+
   for (const viewport of [
     { name: "phone", width: 390, height: 844, sheet: true },
     { name: "tablet", width: 768, height: 1024, sheet: false },

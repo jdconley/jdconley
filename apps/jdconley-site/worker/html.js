@@ -16,5 +16,8 @@ export async function injectRuntimeConfig(response, env) {
   const configured = html.replace(SITE_KEY_META, `<meta name="turnstile-site-key" content="${siteKey}">`);
   const headers = new Headers(response.headers);
   headers.delete("content-length");
+  headers.delete("etag");
+  headers.delete("last-modified");
+  headers.set("cache-control", "no-store");
   return new Response(configured, { status: response.status, statusText: response.statusText, headers });
 }
