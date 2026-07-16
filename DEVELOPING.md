@@ -4,7 +4,7 @@ This repo powers my personal site and the “How This Is Built” logs.
 
 ## What this is
 
-Static personal site export from Webflow, rebuilt as a monorepo app with Vite optimization, Playwright E2E, and Cloudflare Pages deployment.
+Static personal site export from Webflow, rebuilt as a monorepo app with Vite optimization, Playwright E2E, and a Cloudflare Worker with Static Assets and D1.
 
 ## Structure
 
@@ -15,7 +15,7 @@ Static personal site export from Webflow, rebuilt as a monorepo app with Vite op
 
 - Node.js 20+ (22 recommended)
 - pnpm 10+
-- Cloudflare account + Pages project (for deploy)
+- Cloudflare account (for production Worker provisioning/deploy)
 
 ## Install
 
@@ -83,21 +83,31 @@ cp apps/jdconley-site/.env.example apps/jdconley-site/.env
 Set values in `apps/jdconley-site/.env`:
 
 - `VITE_SITE_URL` (example: `https://jdconley.com`)
-- `CLOUDFLARE_PAGES_PROJECT` (Cloudflare Pages project name)
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
+- `TURNSTILE_SITE_KEY` (public site key; production deploys read this from a GitHub repository variable)
+- `SUPPORT_ORIGIN` (defaults to `https://jdconley.com`)
 
 Wrangler commands are wrapped with `dotenvx run` in pnpm scripts, so these values are loaded automatically.
 
-## Local Wrangler Testing (Cloudflare-like)
+`TURNSTILE_SECRET_KEY` and `SUPPORT_IP_HMAC_SECRET` are Worker secrets. Provision them with Wrangler; never store them in `.env.example`, workflow YAML, or git.
 
-Run a local Cloudflare Pages preview from built `dist`:
+## Local Wrangler Testing
+
+Run the Worker locally with its Static Assets, local D1, bindings, and request routing:
 
 ```bash
 pnpm run preview:cf:site
 ```
 
-Use this when you want to validate Cloudflare Pages behavior. Use `pnpm run preview:site` for faster local preview.
+Use `pnpm run preview:site` for a faster static preview. For deterministic local location data:
+
+```bash
+pnpm --filter @jdconley/jdconley-site run db:migrate:local
+pnpm --filter @jdconley/jdconley-site run locations:import:local -- --fixtures
+```
+
+Worker tests use isolated local D1 databases and committed `data/location-fixtures.json`; CI never connects to production D1. CI also uses Cloudflare's always-pass Turnstile test site key.
 
 ## E2E Tests (Playwright)
 
@@ -115,7 +125,30 @@ pnpm run test:e2e:wrangler:site
 
 ## Cloudflare Deploy (CLI)
 
-Deploy optimized `dist` from local CLI:
+First-time production provisioning:
+
+```bash
+pnpm --filter @jdconley/jdconley-site exec wrangler d1 create a-better-time
+```
+
+The D1 create command returns a production UUID. Immediately replace the all-zero `database_id` sentinel in `apps/jdconley-site/wrangler.toml` with that UUID and commit the config. Then continue:
+
+```bash
+pnpm --filter @jdconley/jdconley-site exec wrangler d1 migrations apply a-better-time --remote
+pnpm --filter @jdconley/jdconley-site run locations:build
+pnpm --filter @jdconley/jdconley-site run locations:import:remote
+pnpm --filter @jdconley/jdconley-site exec wrangler secret put TURNSTILE_SECRET_KEY
+pnpm --filter @jdconley/jdconley-site exec wrangler secret put SUPPORT_IP_HMAC_SECRET
+pnpm run deploy:site
+```
+
+`locations:build` downloads the checksum-pinned public sources before import. Verify the remote migration/import row counts and a representative location query before deploying. Rotating `SUPPORT_IP_HMAC_SECRET` intentionally resets supporter duplicate identity because existing IP hashes can no longer match.
+
+Create a Cloudflare Turnstile widget for `jdconley.com` (plus any intended preview hostname). Store its public key in the GitHub repository variable `TURNSTILE_SITE_KEY`; enter its secret only through the Wrangler command above. Cloudflare test keys are for CI/local testing only. The deploy workflow validates that the repository variable is non-empty and well formed before Wrangler runs.
+
+First deploy and verify the Worker on its preview/`workers.dev` endpoint. Then attach `jdconley.com` as a Custom Domain for cutover. Preserve and verify the existing `www.jdconley.com` redirect to the canonical apex, including path and query. Keep the former Pages deployment available briefly for rollback, verify DNS/TLS and the Worker route, then smoke-test static assets, personalized metadata/image, location search, supporter count/submission, Turnstile, and the `SUPPORT_ORIGIN` binding on the production hostname.
+
+For later deployments:
 
 ```bash
 pnpm run logs:sync:site
@@ -126,16 +159,19 @@ This executes:
 
 - Vite production build
 - Post-build image optimization
-- `wrangler pages deploy` from `apps/jdconley-site/dist`
+- `wrangler deploy` for `apps/jdconley-site/worker/index.js`, with `dist` served by the Worker Static Assets binding
 
 ## GitHub Actions CI/CD
 
 - CI workflow: `.github/workflows/ci.yml`
   - Runs on PRs and pushes to `main`
-  - Installs dependencies, builds site, runs Playwright tests
+  - Frozen install, build, unit tests, Worker tests, site E2E, then Wrangler E2E
+  - Uses committed fixture locations, local D1, and the Turnstile test site key
 - Deploy workflow: `.github/workflows/deploy.yml`
-  - Runs on push to `main` (and manual dispatch)
-  - Builds and deploys to Cloudflare Pages
+  - Runs only after the `CI` workflow succeeds for `main`; there is no manual bypass
+  - Checks out the triggering CI commit and rejects it if `origin/main` has advanced
+  - Serializes production deploys without cancelling an in-progress deploy; the stale-head guard prevents an older queued completion from deploying afterward
+  - Builds and deploys the Cloudflare Worker with Wrangler
 
 Required GitHub configuration:
 
@@ -143,10 +179,11 @@ Required GitHub configuration:
   - `CLOUDFLARE_API_TOKEN`
   - `CLOUDFLARE_ACCOUNT_ID`
 - **Repository Variables**
-  - `CLOUDFLARE_PAGES_PROJECT`
+  - `TURNSTILE_SITE_KEY`
   - `SITE_URL` (optional but recommended)
+
+`TURNSTILE_SECRET_KEY` and `SUPPORT_IP_HMAC_SECRET` must be provisioned directly as Worker secrets outside the workflow. The workflow never contains their values.
 
 ## Notes / Known limitations from Webflow export
 
 - `401.html` contains Webflow password-protection form behavior (`/.wf_auth`) that is platform-specific and not functional as standalone static hosting authentication.
-

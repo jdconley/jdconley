@@ -8,14 +8,23 @@
     "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "vite build && node ./scripts/generate-llm-markdown.mjs && node ./scripts/optimize-images.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
-    "preview:cf": "dotenvx run -- wrangler pages dev dist --ip 127.0.0.1 --port 8788",
+    "preview:cf": "dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'wrangler dev --ip 127.0.0.1 --port 8788 --var \"TURNSTILE_SITE_KEY:${TURNSTILE_SITE_KEY:-}\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'",
     "preview:cf:build": "pnpm run build && pnpm run preview:cf",
+    "db:migrate:local": "wrangler d1 migrations apply a-better-time --local",
+    "locations:build": "node ./scripts/build-location-index.mjs",
+    "boundaries:build": "node ./scripts/build-us-containment.mjs",
+    "locations:import:local": "node ./scripts/import-location-index.mjs --local",
+    "locations:import:remote": "node ./scripts/import-location-index.mjs --remote",
+    "test:unit": "vitest run --config vitest.config.mjs",
+    "test:worker": "vitest run --config vitest.worker.config.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=line",
-    "test:e2e:wrangler": "E2E_SERVER=wrangler playwright test",
-    "deploy": "pnpm run build && dotenvx run -- sh -c 'wrangler pages deploy dist --project-name \"$CLOUDFLARE_PAGES_PROJECT\"'"
+    "test:e2e:wrangler": "TURNSTILE_SITE_KEY=1x00000000000000000000AA E2E_SERVER=wrangler playwright test",
+    "deploy": "pnpm run build && dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'printf \"%s\" \"$TURNSTILE_SITE_KEY\" | grep -Eq \"^[A-Za-z0-9_-]{10,}$\" || { echo \"TURNSTILE_SITE_KEY is missing or malformed.\" >&2; exit 1; }; wrangler deploy --var \"TURNSTILE_SITE_KEY:$TURNSTILE_SITE_KEY\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@cloudflare/vitest-pool-workers": "^0.18.5",
     "@dotenvx/dotenvx": "latest",
     "@playwright/test": "latest",
     "html-minifier-terser": "latest",
@@ -23,6 +32,15 @@
     "sharp": "latest",
     "turndown": "^7.2.2",
     "vite": "latest",
-    "wrangler": "latest"
+    "vitest": "^4.1.0",
+    "wrangler": "4.111.0"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@resvg/resvg-wasm": "^2.6.2",
+    "fflate": "^0.8.3",
+    "satori": "^0.28.0",
+    "suncalc": "^2.0.1",
+    "tz-lookup": "^6.1.25"
   }
 }

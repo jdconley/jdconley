@@ -6,11 +6,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     env:
       VITE_SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
+      TURNSTILE_SITE_KEY: 1x00000000000000000000AA
 
     steps:
       - name: Checkout
@@ -34,11 +38,25 @@ jobs:
       - name: Build site
         run: pnpm run build:site
 
+      - name: Run unit tests
+        run: pnpm --filter @jdconley/jdconley-site run test:unit
+
+      - name: Run Worker tests
+        run: pnpm --filter @jdconley/jdconley-site run test:worker
+
       - name: Install Playwright browser
         run: pnpm --filter @jdconley/jdconley-site exec playwright install --with-deps chromium
 
-      - name: Run Playwright E2E
+      - name: Run site E2E
         run: pnpm run test:e2e:site
+
+      - name: Prepare deterministic local Worker fixtures
+        run: |
+          pnpm --filter @jdconley/jdconley-site run db:migrate:local
+          pnpm --filter @jdconley/jdconley-site run locations:import:local -- --fixtures
+
+      - name: Run Wrangler E2E
+        run: pnpm run test:e2e:wrangler:site
 
       - name: Upload Playwright report on failure
         if: failure()

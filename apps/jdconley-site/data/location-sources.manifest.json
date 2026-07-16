@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2025-09-08T00:00:00.000Z",
+  "generationTime": "pinned-source-release",
+  "sources": {
+    "places": {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_place_national.zip",
+      "sha256": "49644173a453469d9bd77fb7a493b027f87567e209edaf2078aac7543ac2ee29"
+    },
+    "zctas": {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_zcta_national.zip",
+      "sha256": "51516a4283bab5cd2376eec75609ddc4b363a18297e8adeeaac7b03cf7c84dbe"
+    },
+    "zctaCounties": {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt",
+      "sha256": "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf"
+    },
+    "populations": {
+      "urlTemplate": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Census_Populated_Places/FeatureServer/0/query?where=1%3D1&outFields=PLACEFIPS%2CPOPULATION&returnGeometry=false&orderByFields=PLACEFIPS&resultOffset={offset}&resultRecordCount=2000&f=json",
+      "aggregateSha256": "9fb6fd922298fedf9ddf61cb5de0b3a311d2d211bc070a589bfbbddf499ff8f6",
+      "provenance": "Esri USA Census Populated Places; POPULATION is 2020 Census PL 94-171 total population; 31,615 incorporated places and CDPs.",
+      "terms": "https://www.esri.com/en-us/legal/terms/full-master-agreement"
+    },
+    "timeZones": {
+      "url": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_Time_Zones/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&outSR=4326&f=geojson",
+      "sha256": "23fd76af3f675ae4c30718ceee2fe4e24fdea8122b64b72210ac40bb2abbb2dd",
+      "provenance": "U.S. DOT/BTS NTAD verified representation of 49 CFR Part 71 time-zone boundaries."
+    }
+  },
+  "sourceRows": {
+    "places": 32350,
+    "zctas": 33791,
+    "zctaCountyRelationships": 47863,
+    "populations": 31615
+  },
+  "outputRows": {
+    "total": 65489,
+    "places": 31847,
+    "zips": 33642
+  },
+  "ndjsonSha256": "ede394bb9f96797155eebdb385df9467b781706f7b5eb9f0596ae80f8b62392f"
+}

@@ -22,6 +22,37 @@ test("critical contact and profile links are present", async ({ page }) => {
   await expect(page.locator('a[href="https://www.linkedin.com/in/jdconley"]')).toBeVisible();
 });
 
+test("links to A Better Time from Vibe coded projects", async ({ page }) => {
+  await page.goto("/");
+  const project = page.getByRole("link", { name: /A Better Time/ });
+  await expect(project).toBeVisible();
+  await expect(project).toHaveAttribute("href", "/a-better-time");
+  await expect(project).toContainText(
+    "A gentler clock that follows the sun · Explore your location’s optimal time."
+  );
+  await expect(project.getByRole("img", { name: /daylight visualizer/ })).toHaveAttribute(
+    "src",
+    "/images/a-better-time-card.png"
+  );
+});
+
+test("A Better Time static metadata uses its approved share fallback", async ({ page }) => {
+  test.skip(process.env.E2E_SERVER === "wrangler", "Wrangler personalizes share metadata");
+  await page.goto("/a-better-time.html");
+  const fallback = "https://jdconley.com/images/a-better-time-share-fallback.png";
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", fallback);
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", fallback);
+});
+
+test("Wrangler injects the deterministic Turnstile test site key", async ({ page }) => {
+  test.skip(process.env.E2E_SERVER !== "wrangler", "Worker runtime only");
+  await page.goto("/a-better-time");
+  await expect(page.locator('meta[name="turnstile-site-key"]')).toHaveAttribute(
+    "content",
+    "1x00000000000000000000AA"
+  );
+});
+
 test("404 page renders expected message", async ({ page }) => {
   await page.goto("/404.html");
 

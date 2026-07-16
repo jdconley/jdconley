@@ -1,13 +1,23 @@
 name: Deploy
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-worker-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     env:
       VITE_SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
@@ -15,6 +25,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Reject stale successful CI completion
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          CURRENT_MAIN_SHA=$(git rev-parse "origin/main")
+          if [[ "$CURRENT_MAIN_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "Refusing to deploy stale CI commit $EXPECTED_SHA; current main is $CURRENT_MAIN_SHA." >&2
+            exit 1
+          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -34,9 +57,19 @@ jobs:
       - name: Build site
         run: pnpm run build:site
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+      - name: Validate deploy configuration
+        env:
+          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+        run: |
+          if [[ ! "$TURNSTILE_SITE_KEY" =~ ^[A-Za-z0-9_-]{10,}$ ]]; then
+            echo "TURNSTILE_SITE_KEY repository variable is missing or malformed." >&2
+            exit 1
+          fi
+
+      - name: Deploy Cloudflare Worker
+        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy apps/jdconley-site/dist --project-name ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+          workingDirectory: apps/jdconley-site
+          command: deploy --var TURNSTILE_SITE_KEY:${{ vars.TURNSTILE_SITE_KEY }} --var SUPPORT_ORIGIN:https://jdconley.com

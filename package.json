@@ -13,6 +13,8 @@
     "build:site": "pnpm --filter @jdconley/jdconley-site run build",
     "preview:site": "pnpm --filter @jdconley/jdconley-site run preview",
     "preview:cf:site": "pnpm --filter @jdconley/jdconley-site run preview:cf",
+    "test:unit:site": "pnpm --filter @jdconley/jdconley-site run test:unit",
+    "test:worker:site": "pnpm --filter @jdconley/jdconley-site run test:worker",
     "test:e2e:site": "pnpm --filter @jdconley/jdconley-site run test:e2e",
     "test:e2e:wrangler:site": "pnpm --filter @jdconley/jdconley-site run test:e2e:wrangler",
     "deploy:site": "pnpm --filter @jdconley/jdconley-site run deploy",

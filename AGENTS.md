@@ -7,9 +7,9 @@ Use this guide when working in this repository. Prefer reusing project skills in
 - **Webflow refresh / export sync**
   - Use: `.agents/skills/webflow-static-site-refresh/SKILL.md`
   - Trigger phrases: "new Webflow zip", "refresh export", "sync Webflow site"
-- **Cloudflare deploy / Wrangler parity**
-  - Use: `.agents/skills/cloudflare-pages-ops/SKILL.md`
-  - Trigger phrases: "Cloudflare Pages", "Wrangler", "deploy", "dotenvx"
+- **Cloudflare Workers deploy / Wrangler parity**
+  - Use: `.agents/skills/cloudflare-workers-ops/SKILL.md`
+  - Trigger phrases: "Cloudflare Workers", "Worker deploy", "Wrangler", "D1", "Turnstile", "bindings", "dotenvx"
 - **How-this-is-built logs publishing**
   - Use: `.agents/skills/ai-build-logs-publishing/SKILL.md`
   - Trigger phrases: "publish logs", "Cursor transcripts", "how this is built"
@@ -44,7 +44,10 @@ Use this guide when working in this repository. Prefer reusing project skills in
 2. Build:
    - `pnpm run build:site`
 3. Test:
+   - `pnpm run test:unit:site`
+   - `pnpm run test:worker:site`
    - `pnpm run test:e2e:site`
+   - `pnpm run test:e2e:wrangler:site`
 4. Deploy (only when requested):
    - `pnpm run deploy:site`
 
@@ -69,6 +72,8 @@ pnpm run preview:cf:site
 
 # Build and test
 pnpm run build:site
+pnpm run test:unit:site
+pnpm run test:worker:site
 pnpm run test:e2e:site
 pnpm run test:e2e:wrangler:site
 
