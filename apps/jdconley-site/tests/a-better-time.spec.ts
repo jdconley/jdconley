@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 const path = "/a-better-time.html";
 
@@ -7,6 +8,78 @@ const path = "/a-better-time.html";
 test.describe.configure({ mode: "serial" });
 
 test.describe("A Better Time page shell", () => {
+  test("meets automated accessibility checks and uses valid named groups", async ({ page }) => {
+    await page.goto(path);
+
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
+    await expect(page.getByRole("group", { name: "Daylight chart legend" })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Clock shift chart legend" })).toBeVisible();
+    await expect(page.locator("[data-turnstile-slot]")).not.toHaveAttribute("aria-label");
+  });
+
+  test("keeps secondary copy at AA contrast on its rendered surface", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(path);
+    await page.getByRole("button", { name: "Show support" }).click();
+
+    const contrastRatios = await page.evaluate(() => {
+      const parse = (color: string) => color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [];
+      const luminance = (color: string) => {
+        const channels = parse(color).map((value) => {
+          const normalized = value / 255;
+          return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+      };
+      const ratio = (foreground: string, background: string) => {
+        const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+        return (values[0] + 0.05) / (values[1] + 0.05);
+      };
+      return [
+        [".location-button small", ".location-button"],
+        [".location-note", "html"],
+        [".settings-row span", ".settings-row"],
+        [".settings-rail .setting-block > span", ".settings-rail"],
+        [".settings-rail .rail-note", ".settings-rail"],
+        [".settings-rail .balance-labels span", ".settings-rail"],
+        [".range-labels span", ".dialog-panel"],
+        [".site-footer > span", "html"],
+        [".support-preview > span", ".support-preview"]
+      ].map(([foregroundSelector, backgroundSelector]) => {
+        const foreground = document.querySelector<HTMLElement>(foregroundSelector)!;
+        const background = document.querySelector<HTMLElement>(backgroundSelector)!;
+        return { selector: foregroundSelector, ratio: ratio(getComputedStyle(foreground).color, getComputedStyle(background).backgroundColor) };
+      });
+    });
+    for (const result of contrastRatios) expect(result.ratio, result.selector).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test("gives dialog close buttons and support consent a 44px target", async ({ page }) => {
+    await page.goto(path);
+    await page.getByRole("button", { name: "Show support" }).click();
+    const dialog = page.getByRole("dialog", { name: "Show your support" });
+
+    const closeSizes = await page.locator(".dialog-close").evaluateAll((buttons) => buttons.map((button) => {
+      const styles = getComputedStyle(button);
+      return { width: Number.parseFloat(styles.width), height: Number.parseFloat(styles.height) };
+    }));
+    expect(closeSizes).toHaveLength(4);
+    for (const size of closeSizes) {
+      expect(size.width).toBeGreaterThanOrEqual(44);
+      expect(size.height).toBeGreaterThanOrEqual(44);
+    }
+
+    for (const target of [
+      dialog.getByRole("button", { name: "Close support dialog" }),
+      dialog.getByText("Display my first name and location publicly.")
+    ]) {
+      const box = await target.boundingBox();
+      expect(box?.width).toBeGreaterThanOrEqual(44);
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+
   test("renders the complete accessible shell and metadata", async ({ page }) => {
     await page.goto(`${path}?year=2025`);
 

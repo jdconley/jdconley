@@ -23,6 +23,7 @@
     "deploy": "pnpm run build && dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'printf \"%s\" \"$TURNSTILE_SITE_KEY\" | grep -Eq \"^[A-Za-z0-9_-]{10,}$\" || { echo \"TURNSTILE_SITE_KEY is missing or malformed.\" >&2; exit 1; }; wrangler deploy --var \"TURNSTILE_SITE_KEY:$TURNSTILE_SITE_KEY\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
     "@cloudflare/vitest-pool-workers": "^0.18.5",
     "@dotenvx/dotenvx": "latest",
     "@playwright/test": "latest",

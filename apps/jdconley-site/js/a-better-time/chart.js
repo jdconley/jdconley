@@ -318,6 +318,7 @@ function renderChart(host, days, kind, activeIndex, onSelect) {
   element.append(target);
   const legend = document.createElement("div");
   legend.className = "chart-legend model-chart-legend";
+  legend.setAttribute("role", "group");
   legend.setAttribute("aria-label", `${kind === "daylight" ? "Daylight" : "Clock shift"} chart legend`);
   const items = kind === "daylight"
     ? [["sunrise", "Proposed sunrise"], ["sunset", "Proposed sunset"], ["reference", "Current policy (dashed)"]]
