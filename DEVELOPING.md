@@ -232,7 +232,7 @@ pnpm run test:e2e:wrangler:site
   - Runs only after the `CI` workflow succeeds for `main`; there is no manual bypass
   - Accepts only a successful push to `main` whose `workflow_run.head_repository.full_name` equals `github.repository`, checks out that CI commit, and rejects it if `origin/main` has advanced
   - Serializes production deploys without cancelling an in-progress deploy; the stale-head guard prevents an older queued completion from deploying afterward
-  - Rechecks the triggering SHA before reconciliation and again before deployment
+  - Rechecks the triggering SHA immediately before reconciliation; after the first production mutation begins, the serialized job proceeds through the atomic deploy without another stale-head abort
   - Runs frozen install, build, reconciliation, atomic secrets-file Worker deploy, production verification, and cleanup in that order
 
 Required GitHub configuration:

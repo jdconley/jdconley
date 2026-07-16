@@ -108,6 +108,8 @@ jobs:
           SUPPORT_IP_HMAC_SECRET: ${{ secrets.SUPPORT_IP_HMAC_SECRET }}
         run: pnpm run production:reconcile
 
+      # Reconciliation mutates production. With serialized, non-cancelling
+      # delivery, this tested commit must proceed atomically through deploy.
       - name: Capture reconciliation outputs
         id: production
         env:
@@ -147,17 +149,6 @@ jobs:
           echo "config_path=$CONFIG_PATH" >> "$GITHUB_OUTPUT"
           echo "secrets_file=$SECRETS_FILE" >> "$GITHUB_OUTPUT"
           echo "turnstile_site_key=$TURNSTILE_SITE_KEY" >> "$GITHUB_OUTPUT"
-
-      - name: Reject stale main before deployment
-        env:
-          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          git fetch --no-tags origin main:refs/remotes/origin/main
-          CURRENT_MAIN_SHA=$(git rev-parse "origin/main")
-          if [[ "$CURRENT_MAIN_SHA" != "$EXPECTED_SHA" ]]; then
-            echo "Refusing to deploy stale CI commit $EXPECTED_SHA; current main is $CURRENT_MAIN_SHA." >&2
-            exit 1
-          fi
 
       - name: Deploy Cloudflare Worker
         uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3

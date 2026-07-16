@@ -109,13 +109,26 @@ describe("production workflow contracts", () => {
     const job = deploy();
     const steps = stepMap(job);
     const names = job.steps.map(({ name }) => name);
-    expect(names.indexOf("Reject stale main before reconciliation")).toBeLessThan(names.indexOf("Reconcile production resources"));
-    expect(names.indexOf("Reconcile production resources")).toBeLessThan(names.indexOf("Capture reconciliation outputs"));
-    expect(names.indexOf("Capture reconciliation outputs")).toBeLessThan(names.indexOf("Reject stale main before deployment"));
-    expect(names.indexOf("Reject stale main before deployment")).toBeLessThan(names.indexOf("Deploy Cloudflare Worker"));
+    const reconcile = names.indexOf("Reconcile production resources");
+    const deployWorker = names.indexOf("Deploy Cloudflare Worker");
+    expect(names[reconcile - 1]).toBe("Reject stale main before reconciliation");
+    expect(names.slice(reconcile, deployWorker + 1)).toEqual([
+      "Reconcile production resources",
+      "Capture reconciliation outputs",
+      "Deploy Cloudflare Worker"
+    ]);
     expect(names.indexOf("Deploy Cloudflare Worker")).toBeLessThan(names.indexOf("Verify production"));
     expect(names.indexOf("Verify production")).toBeLessThan(names.indexOf("Cleanup reconciled configuration"));
-    for (const name of ["Reject stale successful CI completion", "Reject stale main before reconciliation", "Reject stale main before deployment"]) {
+    const staleGuards = job.steps.filter(({ run, env }) =>
+      env?.EXPECTED_SHA === "${{ github.event.workflow_run.head_sha }}" &&
+      run?.includes("origin main:refs/remotes/origin/main") &&
+      run?.includes('git rev-parse "origin/main"')
+    );
+    expect(staleGuards.map(({ name }) => name)).toEqual([
+      "Reject stale successful CI completion",
+      "Reject stale main before reconciliation"
+    ]);
+    for (const name of staleGuards.map(({ name }) => name)) {
       expect(steps[name].run).toContain("origin main:refs/remotes/origin/main");
       expect(steps[name].run).toContain('git rev-parse "origin/main"');
       expect(steps[name].env.EXPECTED_SHA).toBe("${{ github.event.workflow_run.head_sha }}");
@@ -135,5 +148,6 @@ describe("production workflow contracts", () => {
     expect(workflow).toContain('pnpm run production:reconcile:cleanup "$CONFIG_PATH"');
     expect(workflow).not.toContain('production:reconcile:cleanup -- "$CONFIG_PATH"');
     expect(workflow).not.toMatch(/cloudflare\/pages-action|wrangler pages deploy|projectName:/u);
+    expect(read("DEVELOPING.md")).not.toContain("Rechecks the triggering SHA before reconciliation and again before deployment");
   });
 });
