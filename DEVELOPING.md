@@ -168,7 +168,9 @@ This executes:
   - Frozen install, build, unit tests, Worker tests, site E2E, then Wrangler E2E
   - Uses committed fixture locations, local D1, and the Turnstile test site key
 - Deploy workflow: `.github/workflows/deploy.yml`
-  - Runs on push to `main` (and manual dispatch)
+  - Runs only after the `CI` workflow succeeds for `main`; there is no manual bypass
+  - Checks out the triggering CI commit and rejects it if `origin/main` has advanced
+  - Serializes production deploys without cancelling an in-progress deploy; the stale-head guard prevents an older queued completion from deploying afterward
   - Builds and deploys the Cloudflare Worker with Wrangler
 
 Required GitHub configuration:
