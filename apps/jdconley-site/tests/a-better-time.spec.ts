@@ -2,6 +2,9 @@ import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const path = "/a-better-time.html";
+// Chromium rasterizes the same Inter glyph edges differently on Linux CI than
+// on the macOS-generated baselines. Keep the allowance limited to that noise.
+const maxVisualDiffRatio = process.platform === "linux" ? 0.018 : 0.01;
 
 // Full-page captures at five large viewports are intentionally serialized to
 // keep the shared preview server and Chromium raster workers deterministic.
@@ -354,7 +357,7 @@ for (const layout of layouts) {
     await expect(snapshotPage).toHaveScreenshot(`${layout.name}.png`, {
       animations: "disabled",
       fullPage: layout.name !== "phone",
-      maxDiffPixelRatio: 0.01
+      maxDiffPixelRatio: maxVisualDiffRatio
     });
     if (snapshotPage !== page) await snapshotPage.close();
   });
