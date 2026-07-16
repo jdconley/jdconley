@@ -6,6 +6,12 @@ import { handleShareImage } from "./share-image.js";
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.hostname === "www.jdconley.com") {
+      url.hostname = "jdconley.com";
+      url.protocol = "https:";
+      url.port = "";
+      return Response.redirect(url, 301);
+    }
     if (url.pathname === "/api/a-better-time/locations") return handleLocations(request, env);
     if (url.pathname === "/api/a-better-time/supporters") return handleSupporters(request, env);
     if (url.pathname === "/a-better-time/share.png") return handleShareImage(request, env);

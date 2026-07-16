@@ -2,6 +2,22 @@ import { describe, expect, it } from "vitest";
 import worker from "../../worker/index.js";
 
 describe("Worker assets", () => {
+  it("redirects www to the canonical apex while preserving path and query", async () => {
+    let assetRequested = false;
+    const env = { ASSETS: { fetch: async () => { assetRequested = true; return new Response(); } } };
+
+    const response = await worker.fetch(
+      new Request("https://www.jdconley.com/a-better-time?place=South+Lake+Tahoe%2C+CA"),
+      env
+    );
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe(
+      "https://jdconley.com/a-better-time?place=South+Lake+Tahoe%2C+CA"
+    );
+    expect(assetRequested).toBe(false);
+  });
+
   it("delegates unrelated routes to the static-assets binding", async () => {
     const requested = [];
     const assetResponse = new Response("<h1>Hi, I’m JD</h1>", { status: 200 });

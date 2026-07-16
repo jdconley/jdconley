@@ -8,10 +8,18 @@ directory = "dist"
 binding = "ASSETS"
 run_worker_first = ["/a-better-time", "/a-better-time/*", "/api/a-better-time/*"]
 
+[[routes]]
+pattern = "jdconley.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.jdconley.com"
+custom_domain = true
+
 [[d1_databases]]
 binding = "DB"
 database_name = "a-better-time"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "05b1ff98-ad0e-4ed0-81d4-c6da017b6cd9"
 migrations_dir = "migrations"
 
 [vars]

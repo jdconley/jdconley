@@ -15,3 +15,4 @@ apps/*/playwright-report/
 apps/*/test-results/
 apps/*/.env.keys
 apps/*/.wrangler/
+apps/jdconley-site/data/generated/
