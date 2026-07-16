@@ -59,6 +59,76 @@ describe("personalized sharing", () => {
     expect(render).toHaveBeenCalledTimes(2);
   });
 
+  it("rejects repeated new overflow work without rendering and recovers after settle", async () => {
+    const gates = [];
+    const render = vi.fn(async () => {
+      await new Promise((resolve) => gates.push(resolve));
+      return new Uint8Array([13]);
+    });
+    const cache = {
+      match: vi.fn().mockResolvedValue(undefined),
+      put: vi.fn().mockResolvedValue(undefined)
+    };
+    const version = "test-capacity-v1";
+    const maxConcurrentRenders = 4;
+    const handler = shareImage.createShareImageHandler({
+      render,
+      cache,
+      version,
+      maxConcurrentRenders
+    });
+    const request = (year) => new Request(`https://example.test/a-better-time/share.png?year=${year}&v=${version}`);
+    const admitted = Array.from({ length: maxConcurrentRenders }, (_, index) =>
+      handler(request(2020 + index))
+    );
+    await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(maxConcurrentRenders));
+
+    const overflow = await Promise.all([
+      handler(request(2030)),
+      handler(request(2030)),
+      handler(request(2031))
+    ]);
+    for (const response of overflow) {
+      expect(response.status).toBe(503);
+      expect(response.headers.get("retry-after")).toBe("1");
+      expect(response.headers.get("cache-control")).toBe("no-store");
+    }
+    expect(render).toHaveBeenCalledTimes(maxConcurrentRenders);
+
+    gates.shift()();
+    await admitted[0];
+    const recovered = handler(request(2030));
+    await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(maxConcurrentRenders + 1));
+    for (const release of gates.splice(0)) release();
+    await Promise.all([...admitted.slice(1), recovered]);
+  });
+
+  it("recovers render capacity after an admitted failure", async () => {
+    let rejectRender;
+    const render = vi.fn()
+      .mockImplementationOnce(() => new Promise((_resolve, reject) => { rejectRender = reject; }))
+      .mockResolvedValueOnce(new Uint8Array([14]));
+    const version = "test-capacity-failure-v1";
+    const handler = shareImage.createShareImageHandler({
+      render,
+      version,
+      maxConcurrentRenders: 1,
+      cache: {
+        match: vi.fn().mockResolvedValue(undefined),
+        put: vi.fn().mockResolvedValue(undefined)
+      }
+    });
+    const request = (year) => new Request(`https://example.test/a-better-time/share.png?year=${year}&v=${version}`);
+    const failed = handler(request(2026));
+    await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(1));
+    expect((await handler(request(2027))).status).toBe(503);
+    rejectRender(new Error("render failed"));
+    await expect(failed).rejects.toThrow("render failed");
+
+    expect((await handler(request(2027))).status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
   it.each([
     ["missing", ""],
     ["stale", "&v=old-renderer"],

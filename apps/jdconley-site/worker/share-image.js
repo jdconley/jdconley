@@ -12,7 +12,7 @@ import { SHARE_IMAGE_VERSION } from "../js/a-better-time/share-image-version.js"
 
 let wasmReady;
 const inFlightRenders = new Map();
-const MAX_IN_FLIGHT_RENDERS = 64;
+const MAX_CONCURRENT_RENDERS = 6;
 const ready = () => (wasmReady ??= Promise.all([initSatori(yogaWasm), initWasm(wasm)]));
 const el = (type, style, children, props = {}) => ({ type, props: { ...props, style, children } });
 export const SHARE_CHANGE_COPY = "Up to 1 minute daily jumps";
@@ -67,7 +67,8 @@ async function renderShareImage(state) {
 export function createShareImageHandler({
   render = renderShareImage,
   version = SHARE_IMAGE_VERSION,
-  cache
+  cache,
+  maxConcurrentRenders = MAX_CONCURRENT_RENDERS
 } = {}) {
   return async function handleVersionedShareImage(request) {
     if (request.method !== "GET") {
@@ -111,6 +112,16 @@ export function createShareImageHandler({
     const flightKey = `${version}\n${query}`;
     let flight = inFlightRenders.get(flightKey);
     if (!flight) {
+      if (inFlightRenders.size >= maxConcurrentRenders) {
+        return new Response("Share image rendering is busy. Try again shortly.", {
+          status: 503,
+          headers: {
+            "content-type": "text/plain; charset=utf-8",
+            "cache-control": "no-store",
+            "retry-after": "1"
+          }
+        });
+      }
       const renderAndCache = async () => {
         const png = await render(state);
         const response = new Response(png, { headers: responseHeaders });
@@ -121,15 +132,11 @@ export function createShareImageHandler({
         }
         return response;
       };
-      if (inFlightRenders.size < MAX_IN_FLIGHT_RENDERS) {
-        flight = renderAndCache();
-        inFlightRenders.set(flightKey, flight);
-        flight.finally(() => {
-          if (inFlightRenders.get(flightKey) === flight) inFlightRenders.delete(flightKey);
-        }).catch(() => {});
-      } else {
-        flight = renderAndCache();
-      }
+      flight = renderAndCache();
+      inFlightRenders.set(flightKey, flight);
+      flight.finally(() => {
+        if (inFlightRenders.get(flightKey) === flight) inFlightRenders.delete(flightKey);
+      }).catch(() => {});
     }
     return (await flight).clone();
   };
