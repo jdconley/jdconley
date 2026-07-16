@@ -3,7 +3,7 @@ import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promise
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { describe, expect, test } from "vitest";
 import { importLocations, parseImportArguments } from "../../scripts/import-location-index.mjs";
 
@@ -266,9 +266,56 @@ describe("production reconciliation orchestration", () => {
   test("exposes normal and dry-run package commands", async () => {
     const packageJson = JSON.parse(await readFile(fileURLToPath(new URL("../../package.json", import.meta.url)), "utf8"));
     expect(packageJson.scripts["production:reconcile"]).toBe("node ./scripts/reconcile-production-resources.mjs");
-    expect(packageJson.scripts["production:reconcile:dry-run"]).toBe("pnpm run production:reconcile -- --dry-run");
+    expect(packageJson.scripts["production:reconcile:dry-run"]).toBe("node ./scripts/reconcile-production-resources.mjs --dry-run");
     expect(packageJson.scripts["production:reconcile:cleanup"]).toBe("node ./scripts/reconcile-production-resources.mjs --cleanup");
   });
+
+  test("the dry-run package entry delivers exactly --dry-run without network mutations", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "jdconley-reconcile-cli-"));
+    const preloadPath = path.join(root, "preload.mjs");
+    const argvPath = path.join(root, "argv.json");
+    const fetchPath = path.join(root, "fetch.log");
+    try {
+      await writeFile(preloadPath, `
+import { appendFile, writeFile } from "node:fs/promises";
+if (process.argv[1]?.endsWith("reconcile-production-resources.mjs")) {
+  await writeFile(process.env.RECONCILIATION_ARGV_LOG, JSON.stringify(process.argv.slice(2)));
+}
+globalThis.fetch = async (url, init = {}) => {
+  const method = init.method ?? "GET";
+  await appendFile(process.env.RECONCILIATION_FETCH_LOG, method + " " + url + "\\n");
+  if (method !== "GET") throw new Error("Unexpected network mutation: " + method);
+  return {
+    ok: true,
+    status: 200,
+    json: async () => ({ success: true, result: [], result_info: { current_page: 1, total_pages: 1 } })
+  };
+};
+`);
+      const env = {
+        ...process.env,
+        CLOUDFLARE_API_TOKEN: "test-token",
+        CLOUDFLARE_ACCOUNT_ID: "a".repeat(32),
+        SUPPORT_IP_HMAC_SECRET: "h".repeat(32),
+        SITE_URL: "https://jdconley.com",
+        RUNNER_TEMP: root,
+        RECONCILIATION_ARGV_LOG: argvPath,
+        RECONCILIATION_FETCH_LOG: fetchPath,
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, `--import=${pathToFileURL(preloadPath).href}`].filter(Boolean).join(" ")
+      };
+      delete env.GITHUB_OUTPUT;
+
+      const result = await execFileAsync("pnpm", [
+        "--filter", "@jdconley/jdconley-site", "run", "production:reconcile:dry-run"
+      ], { cwd: path.resolve(appDirectory, "../.."), env, timeout: 30_000 });
+
+      expect(JSON.parse(await readFile(argvPath, "utf8"))).toEqual(["--dry-run"]);
+      expect((await readFile(fetchPath, "utf8")).trim().split("\n").every((entry) => entry.startsWith("GET "))).toBe(true);
+      expect(`${result.stdout}\n${result.stderr}`).toContain("[dry-run]");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  }, 40_000);
 
   test("exports a cleanup operation backed by an injected filesystem removal", async () => {
     const calls = [];
