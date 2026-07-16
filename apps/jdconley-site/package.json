@@ -12,6 +12,7 @@
     "preview:cf:build": "pnpm run build && pnpm run preview:cf",
     "db:migrate:local": "wrangler d1 migrations apply a-better-time --local",
     "locations:build": "node ./scripts/build-location-index.mjs",
+    "boundaries:build": "node ./scripts/build-us-containment.mjs",
     "locations:import:local": "node ./scripts/import-location-index.mjs --local",
     "locations:import:remote": "node ./scripts/import-location-index.mjs --remote",
     "test:unit": "vitest run --config vitest.config.mjs",

@@ -19,7 +19,8 @@ export function createLocationController({
   onLocation,
   fetchImpl = globalThis.fetch?.bind(globalThis),
   geolocation = globalThis.navigator?.geolocation,
-  timezoneLookup
+  timezoneLookup,
+  containsUsLocation = () => true
 }) {
   const preciseButton = root.querySelector("[data-use-location]");
   const input = root.querySelector("[name='location_search']");
@@ -155,6 +156,11 @@ export function createLocationController({
       if (destroyed) return;
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
+      if (!await containsUsLocation(lat, lon)) {
+        setStatus("This experiment currently covers the 50 states and Washington, D.C. Search for a U.S. city or ZIP instead.");
+        input.focus();
+        return;
+      }
       choose({ place: "Current location", lat, lon, tz: timezoneLookup(lat, lon) });
     } catch {
       if (destroyed) return;

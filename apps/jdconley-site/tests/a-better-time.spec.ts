@@ -319,6 +319,49 @@ test.describe("location personalization", () => {
     expect(retained).toMatchObject({ lat: exact.latitude, lon: exact.longitude });
   });
 
+  for (const location of [
+    { name: "Canada", latitude: 45.4215, longitude: -75.6972 },
+    { name: "Puerto Rico", latitude: 18.2208, longitude: -66.5901 },
+    { name: "Mexico", latitude: 32.5149, longitude: -117.0382 }
+  ]) {
+    test(`rejects precise coordinates in ${location.name} and preserves the Tahoe fallback`, async ({ context, page }) => {
+      await page.goto(path);
+      await context.grantPermissions(["geolocation"], { origin: new URL(page.url()).origin });
+      await context.setGeolocation(location);
+      const locationRequests: string[] = [];
+      page.on("request", (request) => {
+        if (request.url().includes("/api/a-better-time/locations")) locationRequests.push(request.url());
+      });
+
+      await page.getByRole("button", { name: /Showing daylight for/ }).click();
+      await page.getByRole("button", { name: "Use my precise location" }).click();
+
+      await expect(page.getByRole("dialog", { name: "Choose your location" })).toBeVisible();
+      await expect(page.locator("[data-location-status]")).toContainText("50 states and Washington, D.C.");
+      await expect(page.getByRole("combobox", { name: "City or ZIP code" })).toBeFocused();
+      await expect(page.locator("[data-place-name]").first()).toHaveText("South Lake Tahoe, CA");
+      await expect(page).toHaveURL(/lat=38\.940/);
+      await expect(page).toHaveURL(/lon=-119\.977/);
+      expect(locationRequests).toEqual([]);
+    });
+  }
+
+  test("local boundary data includes Alaska, Hawaii, and Washington D.C. while excluding nearby non-covered regions", async ({ page }) => {
+    await page.goto(path);
+    const containment = await page.evaluate(async () => {
+      const { isIn50StatesAndDc } = await import("/js/a-better-time/us-containment.js");
+      return {
+        alaska: isIn50StatesAndDc(61.2181, -149.9003),
+        hawaii: isIn50StatesAndDc(21.3099, -157.8581),
+        dc: isIn50StatesAndDc(38.9072, -77.0369),
+        canada: isIn50StatesAndDc(45.4215, -75.6972),
+        mexico: isIn50StatesAndDc(32.5149, -117.0382),
+        puertoRico: isIn50StatesAndDc(18.2208, -66.5901)
+      };
+    });
+    expect(containment).toEqual({ alaska: true, hawaii: true, dc: true, canada: false, mexico: false, puertoRico: false });
+  });
+
   test("explains denied geolocation inline and focuses manual search", async ({ page }) => {
     await page.goto(path);
     await page.getByRole("button", { name: /Showing daylight for/ }).click();

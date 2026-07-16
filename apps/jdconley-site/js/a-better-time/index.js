@@ -207,6 +207,10 @@ updateResult();
 createLocationController({
   root: document.getElementById("location-dialog"),
   timezoneLookup: tzLookup,
+  containsUsLocation: async (lat, lon) => {
+    const { isIn50StatesAndDc } = await import("./us-containment.js");
+    return isIn50StatesAndDc(lat, lon);
+  },
   onLocation(nextLocation) {
     model.location = { ...model.location, ...nextLocation };
     model.activeDayIndex = getInitialDayIndex(model.settings.year, model.location.tz);
