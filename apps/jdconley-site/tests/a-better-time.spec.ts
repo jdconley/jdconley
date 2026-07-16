@@ -19,11 +19,11 @@ test.describe("A Better Time page shell", () => {
     await expect(page.locator("[aria-live='polite'][data-gain-metric]")).toContainText(/minutes/i);
 
     await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", "https://jdconley.com/a-better-time");
-    await expect(page.locator("meta[property='og:image']")).toHaveAttribute("content", "https://jdconley.com/images/caverock.jpg");
-    await expect(page.locator("meta[name='twitter:image']")).toHaveAttribute("content", "https://jdconley.com/images/caverock.jpg");
-    const fallbackImage = await page.request.get("/images/caverock.jpg");
+    await expect(page.locator("meta[property='og:image']")).toHaveAttribute("content", "https://jdconley.com/images/webclip.png");
+    await expect(page.locator("meta[name='twitter:image']")).toHaveAttribute("content", "https://jdconley.com/images/webclip.png");
+    const fallbackImage = await page.request.get("/images/webclip.png");
     expect(fallbackImage.ok()).toBeTruthy();
-    expect(fallbackImage.headers()["content-type"]).toMatch(/^image\/(?:jpeg|jpg)/);
+    expect(fallbackImage.headers()["content-type"]).toBe("image/png");
     expect(await page.locator("script[type='application/ld+json']").textContent()).toContain("WebApplication");
     expect(await page.locator("noscript").textContent()).toContain("South Lake Tahoe");
   });

@@ -89,10 +89,6 @@ function copyRuntimeScriptsPlugin() {
       const distScriptsPath = resolve(__dirname, "dist/js");
       await rm(distScriptsPath, { force: true, recursive: true });
       await cp(resolve(__dirname, "js"), distScriptsPath, { recursive: true });
-      await cp(
-        resolve(__dirname, "images/caverock.jpg"),
-        resolve(__dirname, "dist/images/caverock.jpg")
-      );
     }
   };
 }
