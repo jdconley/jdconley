@@ -18,6 +18,7 @@
     "production:reconcile": "node ./scripts/reconcile-production-resources.mjs",
     "production:reconcile:dry-run": "pnpm run production:reconcile -- --dry-run",
     "production:reconcile:cleanup": "node ./scripts/reconcile-production-resources.mjs --cleanup",
+    "production:verify": "node ./scripts/verify-production.mjs",
     "test:unit": "vitest run --config vitest.config.mjs",
     "test:worker": "vitest run --config vitest.worker.config.mjs",
     "test:e2e": "playwright test",
