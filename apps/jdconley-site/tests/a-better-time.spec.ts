@@ -13,13 +13,17 @@ test.describe("A Better Time page shell", () => {
     await expect(page).toHaveTitle(/A Better Time/);
     await expect(page.getByRole("heading", { name: "What if the clock followed the sun?" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Share this result" })).toBeVisible();
-    await expect(page.locator("button", { hasText: "Tune my day" })).toBeAttached();
+    await expect(page.getByRole("button", { name: "Tune my day" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Show support" })).toBeVisible();
     await expect(page.getByRole("region", { name: "Yearly daylight comparison" })).toBeVisible();
     await expect(page.locator("[aria-live='polite'][data-gain-metric]")).toContainText(/minutes/i);
 
     await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", "https://jdconley.com/a-better-time");
-    await expect(page.locator("meta[property='og:image']")).toHaveAttribute("content", /a-better-time/i);
+    await expect(page.locator("meta[property='og:image']")).toHaveAttribute("content", "https://jdconley.com/images/caverock.jpg");
+    await expect(page.locator("meta[name='twitter:image']")).toHaveAttribute("content", "https://jdconley.com/images/caverock.jpg");
+    const fallbackImage = await page.request.get("/images/caverock.jpg");
+    expect(fallbackImage.ok()).toBeTruthy();
+    expect(fallbackImage.headers()["content-type"]).toMatch(/^image\/(?:jpeg|jpg)/);
     expect(await page.locator("script[type='application/ld+json']").textContent()).toContain("WebApplication");
     expect(await page.locator("noscript").textContent()).toContain("South Lake Tahoe");
   });
@@ -80,8 +84,33 @@ test.describe("A Better Time page shell", () => {
     const share = page.getByRole("button", { name: "Share this result" });
     await expect(share.locator("svg")).toBeVisible();
     await expect(share.locator(".share-button__label")).toHaveCount(0);
+    const target = await share.boundingBox();
+    expect(target?.width).toBeGreaterThanOrEqual(44);
+    expect(target?.height).toBeGreaterThanOrEqual(44);
     await share.hover();
     await expect(page.getByRole("tooltip")).toContainText("Share this result");
+  });
+
+  test("uses the approved A Better Time tokens without CSS gradients", async ({ page }) => {
+    await page.goto(path);
+    const tokens = await page.evaluate(() => {
+      const styles = getComputedStyle(document.documentElement);
+      return {
+        ink: styles.getPropertyValue("--abt-ink").trim(),
+        canvas: styles.getPropertyValue("--abt-canvas").trim(),
+        surface: styles.getPropertyValue("--abt-surface").trim(),
+        action: styles.getPropertyValue("--abt-action").trim(),
+        sunrise: styles.getPropertyValue("--abt-sunrise").trim(),
+        sunset: styles.getPropertyValue("--abt-sunset").trim(),
+        reference: styles.getPropertyValue("--abt-reference").trim(),
+        border: styles.getPropertyValue("--abt-border").trim(),
+        radiusSm: styles.getPropertyValue("--abt-radius-sm").trim(),
+        radiusLg: styles.getPropertyValue("--abt-radius-lg").trim(),
+        css: [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules]).map((rule) => rule.cssText).join(" ")
+      };
+    });
+    expect(tokens).toMatchObject({ ink: "#111318", canvas: "#f7f8fa", surface: "#fff", action: "#315eea", sunrise: "#2385ff", sunset: "#ff9f0a", reference: "#a5aab3", border: "#e2e5ea", radiusSm: "12px", radiusLg: "20px" });
+    expect(tokens.css).not.toContain("gradient(");
   });
 });
 
@@ -100,6 +129,7 @@ for (const layout of layouts) {
 
     await expect(page.locator(`[data-layout='${layout.visible}']`)).toBeVisible();
     await expect(page.locator(`[data-layout='${layout.hidden}']`)).toBeHidden();
+    await expect(page.getByRole("button", { name: "Tune my day" })).toBeVisible();
     const sizes = await page.evaluate(() => ({
       document: document.documentElement.scrollWidth,
       viewport: document.documentElement.clientWidth,
