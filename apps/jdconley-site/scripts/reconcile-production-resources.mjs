@@ -99,10 +99,15 @@ function realRun(command, args, options = {}) {
   });
 }
 
-async function realTemp(env) {
-  const root = env.RUNNER_TEMP || os.tmpdir();
-  const directory = await mkdtemp(path.join(root, "jdconley-production-"));
+async function realTemp(tempRoot) {
+  const directory = await mkdtemp(path.join(tempRoot, "jdconley-production-"));
   return path.join(directory, "wrangler.toml");
+}
+
+export function resolveReconciliationTempRoot(env = process.env, { tempRoot, osTemp = os.tmpdir } = {}) {
+  const root = tempRoot ?? (env.RUNNER_TEMP || osTemp());
+  if (typeof root !== "string" || !root.trim()) throw new Error("Reconciliation temp root must be a non-empty path");
+  return path.resolve(root);
 }
 
 function validateEnvironment(env) {
@@ -212,7 +217,13 @@ async function defaultOutput(env, key, value) {
   if (env.GITHUB_OUTPUT) await appendFile(env.GITHUB_OUTPUT, `${key}=${value}\n`, "utf8");
 }
 
-export async function cleanupReconciledConfig(configPath, { remove = rm } = {}) {
+export async function cleanupReconciledConfig(configPath, {
+  remove = rm,
+  tempRoot,
+  env = process.env,
+  osTemp = os.tmpdir
+} = {}) {
+  const expectedRoot = resolveReconciliationTempRoot(env, { tempRoot, osTemp });
   if (typeof configPath !== "string" || !path.isAbsolute(configPath) || path.normalize(configPath) !== configPath) {
     throw new Error("Unsafe reconciled Wrangler config cleanup path");
   }
@@ -221,6 +232,9 @@ export async function cleanupReconciledConfig(configPath, { remove = rm } = {}) 
     !/^jdconley-production-[A-Za-z0-9]{6}$/u.test(path.basename(generatedDirectory)) ||
     path.join(generatedDirectory, "wrangler.toml") !== configPath) {
     throw new Error("Reconciled Wrangler config must be directly inside a generated jdconley-production directory");
+  }
+  if (path.dirname(generatedDirectory) !== expectedRoot) {
+    throw new Error("Unsafe reconciled Wrangler config cleanup path outside the expected temp root");
   }
   await remove(generatedDirectory, { recursive: true, force: true });
 }
@@ -239,11 +253,12 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
   const read = dependencies.read ?? readFile;
   const write = dependencies.write ?? writeFile;
   const remove = dependencies.remove ?? rm;
-  const temp = dependencies.temp ?? (() => realTemp(env));
+  const temp = dependencies.temp ?? realTemp;
   const output = dependencies.output ?? ((key, value) => defaultOutput(env, key, value));
   const log = dependencies.log ?? console.log;
 
   validateEnvironment(env);
+  const tempRoot = resolveReconciliationTempRoot(env, { tempRoot: options.tempRoot ?? dependencies.tempRoot });
 
   let wranglerConfigPath;
   try {
@@ -277,7 +292,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
 
     const sourceConfig = await read(path.join(APP_DIRECTORY, "wrangler.toml"), "utf8");
     const reconciledConfig = renderWranglerConfig(sourceConfig, databaseId(database));
-    wranglerConfigPath = await temp("wrangler-production", env);
+    wranglerConfigPath = await temp(tempRoot);
     await write(wranglerConfigPath, reconciledConfig, { mode: 0o600 });
 
     await run("pnpm", ["exec", "wrangler", "d1", "migrations", "apply", DATABASE_NAME, "--remote", "--config", wranglerConfigPath], { cwd: APP_DIRECTORY });
@@ -325,7 +340,7 @@ export async function reconcileProductionResources(options = {}, injected = {}) 
   } catch (error) {
     const message = redactError(error);
     if (wranglerConfigPath) {
-      try { await cleanupReconciledConfig(wranglerConfigPath, { remove }); }
+      try { await cleanupReconciledConfig(wranglerConfigPath, { remove, tempRoot }); }
       catch (cleanupError) { throw new Error(`${message}; reconciled config cleanup failed: ${redactError(cleanupError)}`); }
     }
     throw new Error(message);

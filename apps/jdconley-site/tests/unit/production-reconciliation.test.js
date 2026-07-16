@@ -11,6 +11,7 @@ import {
   reconcileProductionResources,
   redactError,
   renderWranglerConfig,
+  resolveReconciliationTempRoot,
   selectDatabase,
   selectTurnstileWidget
 } from "../../scripts/reconcile-production-resources.mjs";
@@ -19,7 +20,8 @@ const validEnv = {
   CLOUDFLARE_API_TOKEN: "cloudflare-token-value",
   CLOUDFLARE_ACCOUNT_ID: "a".repeat(32),
   SUPPORT_IP_HMAC_SECRET: "h".repeat(32),
-  SITE_URL: "https://jdconley.com"
+  SITE_URL: "https://jdconley.com",
+  RUNNER_TEMP: "/runner-temp"
 };
 const domains = ["jdconley.com", "www.jdconley.com", "jdconley-site.jd-conley.workers.dev"];
 const databaseUuid = "123e4567-e89b-42d3-a456-426614174000";
@@ -68,7 +70,7 @@ function harness({ databases = [{ name: "a-better-time", uuid: databaseUuid }], 
     return file.endsWith("locations.manifest.json") ? JSON.stringify(generatedManifest) : wranglerSource;
   };
   const write = async (...args) => { events.push(["write", ...args]); };
-  const temp = async () => { events.push(["temp"]); return tempConfigPath; };
+  const temp = async (root) => { events.push(["temp", root]); return tempConfigPath; };
   const output = async (...args) => { events.push(["output", ...args]); };
   const log = (...args) => { events.push(["log", ...args]); };
   const remove = async (...args) => { events.push(["remove", ...args]); };
@@ -163,9 +165,15 @@ describe("production reconciliation orchestration", () => {
   test("exports a cleanup operation backed by an injected filesystem removal", async () => {
     const calls = [];
     await cleanupReconciledConfig(tempConfigPath, {
+      tempRoot: "/runner-temp",
       remove: async (...args) => { calls.push(args); }
     });
     expect(calls).toEqual([[tempDirectory, { recursive: true, force: true }]]);
+  });
+
+  test("resolves the CI runner temp root and falls back to the operating system temp root", () => {
+    expect(resolveReconciliationTempRoot({ RUNNER_TEMP: "/ci/runner-temp" }, { osTemp: () => "/os-temp" })).toBe("/ci/runner-temp");
+    expect(resolveReconciliationTempRoot({}, { osTemp: () => "/os-temp" })).toBe("/os-temp");
   });
 
   test.each([
@@ -174,10 +182,12 @@ describe("production reconciliation orchestration", () => {
     ["/runner-temp/jdconley-production-a1B2c3/not-wrangler.toml"],
     ["/runner-temp/jdconley-production-too-long/wrangler.toml"],
     ["/runner-temp/jdconley-production-a1B2c3/nested/wrangler.toml"],
-    ["/runner-temp/jdconley-production-a1B2c3/../jdconley-production-d4E5f6/wrangler.toml"]
+    ["/runner-temp/jdconley-production-a1B2c3/../jdconley-production-d4E5f6/wrangler.toml"],
+    ["/other-root/jdconley-production-a1B2c3/wrangler.toml"]
   ])("rejects unsafe reconciled config cleanup path %s without deleting", async (unsafePath) => {
     const calls = [];
     await expect(cleanupReconciledConfig(unsafePath, {
+      tempRoot: "/runner-temp",
       remove: async (...args) => { calls.push(args); }
     })).rejects.toThrow(/unsafe|generated/i);
     expect(calls).toEqual([]);
@@ -218,6 +228,7 @@ describe("production reconciliation orchestration", () => {
     const result = await reconcileProductionResources({ env: validEnv }, dependencies);
 
     expect(result).toEqual({ wranglerConfigPath: tempConfigPath, turnstileSiteKey: "new-site-key" });
+    expect(events.find(([type]) => type === "temp")).toEqual(["temp", "/runner-temp"]);
     const operations = events.map((event) => event[0] === "fetch" ? `${event[0]}:${event[1]}:${event[2].split("/").at(-1)}` : event[0] === "run" ? `${event[0]}:${event[2].join(" ")}` : event[0]);
     expect(operations).toEqual([
       "fetch:GET:database?per_page=1000&page=1", "fetch:POST:database", "fetch:GET:database?per_page=1000&page=1", "read", "temp", "write",
@@ -254,8 +265,27 @@ describe("production reconciliation orchestration", () => {
       return originalRun(command, args, options);
     };
     await expect(reconcileProductionResources({ env: validEnv }, dependencies)).rejects.toThrow("migration failed");
+    expect(events.find(([type]) => type === "temp")).toEqual(["temp", "/runner-temp"]);
     expect(events.filter(([type]) => type === "remove")).toEqual([
       ["remove", tempDirectory, { recursive: true, force: true }]
+    ]);
+  });
+
+  test("uses one injected temp root for generation and failure cleanup", async () => {
+    const injectedRoot = "/injected-temp";
+    const injectedDirectory = `${injectedRoot}/jdconley-production-d4E5f6`;
+    const injectedConfigPath = `${injectedDirectory}/wrangler.toml`;
+    const { events, dependencies } = harness();
+    dependencies.temp = async (root) => {
+      events.push(["temp", root]);
+      return injectedConfigPath;
+    };
+    dependencies.run = async () => { throw new Error("migration failed"); };
+
+    await expect(reconcileProductionResources({ env: validEnv }, { ...dependencies, tempRoot: injectedRoot })).rejects.toThrow("migration failed");
+    expect(events.find(([type]) => type === "temp")).toEqual(["temp", injectedRoot]);
+    expect(events.filter(([type]) => type === "remove")).toEqual([
+      ["remove", injectedDirectory, { recursive: true, force: true }]
     ]);
   });
 
