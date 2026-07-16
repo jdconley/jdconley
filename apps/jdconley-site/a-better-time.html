@@ -15,6 +15,7 @@
   <meta name="twitter:title" content="A Better Time">
   <meta name="twitter:description" content="See what your year could feel like if the clock followed the sun.">
   <meta name="twitter:image" content="https://jdconley.com/images/webclip.png">
+  <meta name="turnstile-site-key" content="">
   <link rel="icon" href="images/favicon.png">
   <link rel="apple-touch-icon" href="images/webclip.png">
   <link rel="preload" href="/node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -101,7 +102,7 @@
       <aside class="insight-rail" data-layout="insight-rail" aria-label="Key daylight insights">
         <section><p class="eyebrow">Selected day</p><strong class="insight-value" data-offset-insight>—</strong><span>clock offset</span></section>
         <section data-solar-insight><strong>—</strong><span>sunrise and sunset</span></section>
-        <section class="support-status"><span>Support is opening soon</span><p>Public supporter count will appear when the project launches.</p></section>
+        <section class="support-status" data-support-status aria-busy="true"><span><strong data-support-count></strong><i data-support-label>Loading support…</i></span><p data-support-recent></p></section>
       </aside>
     </div>
 
@@ -121,7 +122,7 @@
       </section>
 
       <section class="closing-cta">
-        <div><p class="eyebrow">A more human clock</p><h2>Would you live on a time that followed the sun?</h2><p>Support will be public by first name and location. The count is not live yet.</p></div>
+        <div><p class="eyebrow">A more human clock</p><h2>Would you live on a time that followed the sun?</h2><div class="closing-support-status" data-support-status aria-busy="true"><p><strong data-support-count></strong><span data-support-label>Loading support…</span></p><p data-support-recent></p></div></div>
         <button class="primary-button desktop-support js-only" type="button" data-open-dialog="support-dialog">Show support</button>
       </section>
     </div>
@@ -138,13 +139,21 @@
     </div>
   </dialog>
 
-  <dialog id="support-dialog" class="js-only" aria-labelledby="support-dialog-title">
+  <dialog id="support-dialog" class="support-dialog js-only" aria-labelledby="support-dialog-title">
     <div class="dialog-panel">
-      <header><div><p class="eyebrow">Coming soon</p><h2 id="support-dialog-title">Show your support</h2></div><button class="dialog-close" type="button" aria-label="Close support dialog">×</button></header>
-      <p>The public support list is being readied. No supporter count is shown until real submissions are available.</p>
-      <label>First name<input name="supporter_name" type="text" autocomplete="given-name" placeholder="e.g. Jamie…"></label>
-      <label>Location<input name="supporter_location" type="text" autocomplete="address-level2" value="South Lake Tahoe, CA"></label>
-      <button class="primary-button" type="button" disabled>Support opens soon</button>
+      <header><div><p class="eyebrow">A public signal</p><h2 id="support-dialog-title">Show your support</h2></div><button class="dialog-close" type="button" aria-label="Close support dialog">×</button></header>
+      <p>Add your name to a simple public count for gentler, sun-following time.</p>
+      <form data-support-form>
+        <label>First name<input name="supporter_name" type="text" autocomplete="given-name" placeholder="e.g. Jamie…" minlength="2" maxlength="40" required></label>
+        <label>Display location<input name="supporter_location" type="text" autocomplete="address-level2" minlength="2" maxlength="60" required></label>
+        <div class="support-preview"><span>Public preview</span><strong data-support-preview>Your name · Your location</strong></div>
+        <label class="consent-field"><input name="supporter_consent" type="checkbox"> Display my first name and location publicly.</label>
+        <div class="turnstile-slot" data-turnstile-slot aria-label="Spam protection"></div>
+        <p class="support-privacy">One entry per internet connection. Your IP address is irreversibly hashed only to prevent duplicates. <a href="mailto:jd@jdconley.com?subject=Remove%20my%20A%20Better%20Time%20support">Request removal</a>.</p>
+        <p class="field-error" data-support-error role="alert"></p>
+        <p class="support-confirmation" data-support-confirmation role="status"></p>
+        <button class="primary-button" type="submit">Add my support</button>
+      </form>
     </div>
   </dialog>
 

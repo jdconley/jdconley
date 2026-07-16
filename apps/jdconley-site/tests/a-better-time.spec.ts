@@ -121,7 +121,7 @@ test.describe("A Better Time page shell", () => {
   test("all form controls expose stable names and useful examples", async ({ page }) => {
     await page.goto(path);
     const controls = page.locator("input");
-    await expect(controls).toHaveCount(6);
+    await expect(controls).toHaveCount(7);
     for (let index = 0; index < await controls.count(); index += 1) {
       await expect(controls.nth(index)).toHaveAttribute("name", /.+/);
     }
@@ -509,6 +509,101 @@ test.describe("location personalization", () => {
     await expect(page.getByRole("option", { name: "Portland, OR" })).toBeHidden();
     await expect(page.locator("[data-location-status]")).not.toContainText("Searching");
   });
+});
+
+test.describe("public support experience", () => {
+  const publicState = { count: 128, recent: [
+    { firstName: "Maya", location: "Portland, OR" },
+    { firstName: "<img src=x onerror=alert(1)>", location: "Austin, TX" }
+  ] };
+
+  test("loads a verified count and recent supporter text without HTML execution", async ({ page }) => {
+    await page.route("**/api/a-better-time/supporters", (route) => route.fulfill({ json: publicState }));
+    await page.goto(path);
+    const status = page.locator("[data-support-status]").first();
+    await expect(status).toHaveAttribute("aria-busy", "false");
+    await expect(page.locator("[data-support-count]").first()).toHaveText("128");
+    await expect(page.locator("[data-support-recent]").first()).toContainText("Maya · Portland, OR");
+    await expect(page.locator("[data-support-recent]").first()).toContainText("<img src=x onerror=alert(1)> · Austin, TX");
+    await expect(page.locator("[data-support-recent] img")).toHaveCount(0);
+  });
+
+  test("keeps loading neutral and reports API unavailability without a fake count", async ({ page }) => {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    await page.route("**/api/a-better-time/supporters", async (route) => {
+      await pending;
+      await route.fulfill({ status: 503, json: { error: "unavailable" } });
+    });
+    await page.goto(path);
+    const status = page.locator("[data-support-status]").first();
+    await expect(status).toHaveAttribute("aria-busy", "true");
+    await expect(page.locator("[data-support-count]").first()).toHaveText("");
+    release();
+    await expect(status).toContainText("Support count temporarily unavailable.");
+    await expect(status).toHaveAttribute("aria-busy", "false");
+  });
+
+  test("prefills editable location, previews the public line, and requires consent", async ({ page }) => {
+    await page.route("**/api/a-better-time/supporters", (route) => route.fulfill({ json: publicState }));
+    await page.goto(`${path}?place=Phoenix%2C+AZ`);
+    await page.getByRole("button", { name: "Show support" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Show your support" });
+    await expect(dialog.getByLabel("Display location")).toHaveValue("Phoenix, AZ");
+    await dialog.getByRole("textbox", { name: "First name" }).fill("Jamie");
+    await dialog.getByLabel("Display location").fill("Tempe, AZ");
+    await expect(dialog.locator("[data-support-preview]")).toHaveText("Jamie · Tempe, AZ");
+    await dialog.getByRole("button", { name: "Add my support" }).click();
+    await expect(dialog.locator("[data-support-error]")).toContainText("consent");
+    await expect(dialog.getByLabel(/display.*publicly/i)).toBeFocused();
+  });
+
+  test("passes the Turnstile token, updates count on success, and confirms duplicates", async ({ page }) => {
+    const posts: unknown[] = [];
+    let postCount = 0;
+    await page.addInitScript(() => { (window as any).__abtTurnstile = { getToken: async () => "turnstile-token" }; });
+    await page.route("**/api/a-better-time/supporters", async (route) => {
+      if (route.request().method() === "GET") return route.fulfill({ json: { count: 128, recent: [] } });
+      posts.push(route.request().postDataJSON());
+      postCount += 1;
+      return route.fulfill({ status: postCount === 1 ? 201 : 200, json: { status: postCount === 1 ? "created" : "duplicate", count: 129 } });
+    });
+    await page.goto(path);
+    const trigger = page.getByRole("button", { name: "Show support" }).first();
+    await trigger.click();
+    const dialog = page.getByRole("dialog", { name: "Show your support" });
+    await dialog.getByRole("textbox", { name: "First name" }).fill("Jamie");
+    await dialog.getByLabel(/display.*publicly/i).check();
+    await dialog.getByRole("button", { name: "Add my support" }).click();
+    await expect(dialog.locator("[data-support-confirmation]")).toContainText("Thanks for supporting");
+    await expect(page.locator("[data-support-count]").first()).toHaveText("129");
+    expect(posts[0]).toMatchObject({ firstName: "Jamie", location: "South Lake Tahoe, CA", consent: true, turnstileToken: "turnstile-token" });
+
+    await dialog.getByRole("button", { name: "Add my support" }).click();
+    await expect(dialog.locator("[data-support-confirmation]")).toContainText("already recorded");
+  });
+
+  for (const viewport of [
+    { name: "phone", width: 390, height: 844, sheet: true },
+    { name: "tablet", width: 768, height: 1024, sheet: false },
+    { name: "desktop", width: 1440, height: 1000, sheet: false }
+  ]) {
+    test(`${viewport.name} support dialog traps focus, closes with Escape, and restores its trigger`, async ({ page }) => {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await page.route("**/api/a-better-time/supporters", (route) => route.fulfill({ json: publicState }));
+      await page.goto(path);
+      const trigger = page.getByRole("button", { name: "Show support" }).first();
+      await trigger.click();
+      const dialog = page.getByRole("dialog", { name: "Show your support" });
+      await expect(dialog.getByRole("textbox", { name: "First name" })).toBeFocused();
+      if (viewport.sheet) await expect(dialog.locator(".dialog-panel")).toHaveCSS("border-bottom-left-radius", "0px");
+      await dialog.getByRole("textbox", { name: "First name" }).press("Shift+Tab");
+      await expect(dialog.getByRole("button", { name: "Close support dialog" })).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expect(trigger).toBeFocused();
+    });
+  }
 });
 
 test.describe("live daylight model", () => {

@@ -5,6 +5,7 @@ import { parseState, serializeState } from "./core/url-state.js";
 import { openDialog } from "./dialog.js";
 import { createLocationController } from "./location.js";
 import tzLookup from "tz-lookup";
+import { createSupportController } from "./support.js";
 
 const parsed = parseState(location.search);
 const model = {
@@ -217,4 +218,9 @@ createLocationController({
     updateSummary();
     updateResult();
   }
+});
+
+createSupportController({
+  dialog: document.getElementById("support-dialog"),
+  getLocation: () => model.location.place
 });
