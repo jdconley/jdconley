@@ -16,3 +16,8 @@ migrations_dir = "migrations"
 
 [vars]
 SUPPORT_ORIGIN = "https://jdconley.com"
+
+[[ratelimits]]
+name = "SUPPORT_RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }

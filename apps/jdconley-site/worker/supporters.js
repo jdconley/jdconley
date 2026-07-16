@@ -66,10 +66,22 @@ async function postSupporter(request, env, fetchImpl) {
 
   const ip = request.headers.get("CF-Connecting-IP")?.trim();
   if (!ip) return json({ error: "invalid_request" }, 400);
+  let ipHmac;
+  try {
+    ipHmac = await hmacIp(ip, env.SUPPORT_IP_HMAC_SECRET);
+  } catch {
+    return json({ error: "internal_error" }, 500);
+  }
+  if (!env.SUPPORT_RATE_LIMITER?.limit) return json({ error: "internal_error" }, 500);
+  try {
+    const rateLimit = await env.SUPPORT_RATE_LIMITER.limit({ key: ipHmac });
+    if (!rateLimit.success) return json({ error: "rate_limited" }, 429, { "retry-after": "60" });
+  } catch {
+    return json({ error: "internal_error" }, 500);
+  }
   if (!await verifyTurnstile(token, ip, env, fetchImpl)) return json({ error: "turnstile_failed" }, 403);
 
   try {
-    const ipHmac = await hmacIp(ip, env.IP_HMAC_SECRET);
     await env.DB.prepare(`
       INSERT INTO supporters(first_name, display_location, ip_hmac, created_at)
       VALUES(?1, ?2, ?3, ?4)
@@ -77,11 +89,8 @@ async function postSupporter(request, env, fetchImpl) {
     return json({ status: "created", count: await countSupporters(env.DB) }, 201);
   } catch {
     try {
-      if (env.IP_HMAC_SECRET) {
-        const ipHmac = await hmacIp(ip, env.IP_HMAC_SECRET);
-        const existing = await env.DB.prepare("SELECT 1 AS found FROM supporters WHERE ip_hmac = ?1 LIMIT 1").bind(ipHmac).first();
-        if (existing?.found === 1) return json({ status: "duplicate", count: await countSupporters(env.DB) });
-      }
+      const existing = await env.DB.prepare("SELECT 1 AS found FROM supporters WHERE ip_hmac = ?1 LIMIT 1").bind(ipHmac).first();
+      if (existing?.found === 1) return json({ status: "duplicate", count: await countSupporters(env.DB) });
     } catch {
       // Deliberately collapse storage and configuration failures below.
     }

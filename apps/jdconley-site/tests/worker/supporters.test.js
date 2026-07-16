@@ -5,13 +5,15 @@ import worker from "../../worker/index.js";
 import { handleSupporters } from "../../worker/supporters.js";
 import { hmacIp, verifyTurnstile } from "../../worker/security.js";
 
-const bindings = () => ({ ...env, IP_HMAC_SECRET: "test-hmac-secret", TURNSTILE_SECRET_KEY: "test-turnstile-secret", SUPPORT_ORIGIN: "https://jdconley.test" });
+const rateLimiter = { limit: vi.fn(async () => ({ success: true })) };
+const bindings = () => ({ ...env, SUPPORT_IP_HMAC_SECRET: "test-hmac-secret", TURNSTILE_SECRET_KEY: "test-turnstile-secret", SUPPORT_ORIGIN: "https://jdconley.test", SUPPORT_RATE_LIMITER: rateLimiter });
 const successVerification = vi.fn(async () => new Response(JSON.stringify({ success: true }), { headers: { "content-type": "application/json" } }));
 
 beforeAll(async () => applyD1Migrations(env.DB, env.TEST_MIGRATIONS));
 beforeEach(async () => {
   await env.DB.exec("DELETE FROM supporters;");
   successVerification.mockClear();
+  rateLimiter.limit.mockClear();
 });
 
 function post(body, headers = {}, fetchImpl = successVerification) {
@@ -65,6 +67,17 @@ describe("GET /api/a-better-time/supporters", () => {
   });
 });
 
+describe("supporter migration upgrades", () => {
+  it("applies 0002 after an already-recorded 0001 and creates supporters", async () => {
+    await env.UPGRADE_DB.exec("DROP TABLE IF EXISTS supporters; DROP TABLE IF EXISTS d1_migrations;");
+    await applyD1Migrations(env.UPGRADE_DB, [env.TEST_MIGRATIONS[0]]);
+    await expect(env.UPGRADE_DB.prepare("SELECT COUNT(*) FROM supporters").first()).rejects.toThrow();
+    await applyD1Migrations(env.UPGRADE_DB, env.TEST_MIGRATIONS);
+    const columns = await env.UPGRADE_DB.prepare("PRAGMA table_info(supporters)").all();
+    expect(columns.results.map(({ name }) => name)).toEqual(["id", "first_name", "display_location", "ip_hmac", "created_at"]);
+  });
+});
+
 describe("POST /api/a-better-time/supporters", () => {
   it("normalizes Unicode text and stores only an IP HMAC", async () => {
     const response = await post({ ...valid, firstName: "  Jose\u0301  ", location: "  San   Jose\u0301, CA " });
@@ -84,6 +97,19 @@ describe("POST /api/a-better-time/supporters", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ status: "duplicate", count: 1 });
     expect((await env.DB.prepare("SELECT COUNT(*) count FROM supporters").first()).count).toBe(1);
+  });
+
+  it("returns generic 429 before Turnstile or storage when the coarse limiter rejects", async () => {
+    rateLimiter.limit.mockResolvedValueOnce({ success: false });
+    const response = await post(valid);
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("60");
+    expect(await response.json()).toEqual({ error: "rate_limited" });
+    const limiterKey = rateLimiter.limit.mock.calls[0][0].key;
+    expect(limiterKey).toMatch(/^[a-f0-9]{64}$/);
+    expect(limiterKey).not.toContain("203.0.113.9");
+    expect(successVerification).not.toHaveBeenCalled();
+    expect((await env.DB.prepare("SELECT COUNT(*) count FROM supporters").first()).count).toBe(0);
   });
 
   it.each([
@@ -135,7 +161,7 @@ describe("POST /api/a-better-time/supporters", () => {
   it("does not expose secret, IP, or database details in errors", async () => {
     const response = await handleSupporters(new Request("https://jdconley.test/api/a-better-time/supporters", {
       method: "POST", headers: { origin: "https://jdconley.test", "content-type": "application/json", "CF-Connecting-IP": "203.0.113.9" }, body: JSON.stringify(valid)
-    }), { ...bindings(), IP_HMAC_SECRET: "" }, successVerification);
+    }), { ...bindings(), SUPPORT_IP_HMAC_SECRET: "" }, successVerification);
     const text = await response.text();
     expect(response.status).toBe(500);
     expect(text).not.toMatch(/203\.0\.113\.9|test-turnstile-secret|SQL|D1/i);

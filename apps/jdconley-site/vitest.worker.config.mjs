@@ -8,7 +8,8 @@ export default defineConfig(async () => ({
       miniflare: {
         bindings: {
           TEST_MIGRATIONS: await readD1Migrations("./migrations")
-        }
+        },
+        d1Databases: { UPGRADE_DB: "upgrade-db" }
       }
     })
   ],
