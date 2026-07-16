@@ -170,6 +170,30 @@ describe("parseState", () => {
     expect(tooLong.resetFields).toEqual(["wake", "sleep"]);
   });
 
+  it("resets and reports a one-sided time that makes the default pair invalid", () => {
+    const wakeOnly = parseState("wake=1000");
+    const sleepOnly = parseState("sleep=400");
+
+    expect(wakeOnly.state.wake).toBe(DEFAULT_STATE.wake);
+    expect(wakeOnly.state.sleep).toBe(DEFAULT_STATE.sleep);
+    expect(wakeOnly.resetFields).toEqual(["wake"]);
+    expect(sleepOnly.state.wake).toBe(DEFAULT_STATE.wake);
+    expect(sleepOnly.state.sleep).toBe(DEFAULT_STATE.sleep);
+    expect(sleepOnly.resetFields).toEqual(["sleep"]);
+  });
+
+  it("resets and reports both supplied times when malformed fallback makes the pair invalid", () => {
+    const malformedWake = parseState("wake=nope&sleep=400");
+    const malformedSleep = parseState("wake=1000&sleep=nope");
+
+    expect(malformedWake.state.wake).toBe(DEFAULT_STATE.wake);
+    expect(malformedWake.state.sleep).toBe(DEFAULT_STATE.sleep);
+    expect(malformedWake.resetFields).toEqual(["wake", "sleep"]);
+    expect(malformedSleep.state.wake).toBe(DEFAULT_STATE.wake);
+    expect(malformedSleep.state.sleep).toBe(DEFAULT_STATE.sleep);
+    expect(malformedSleep.resetFields).toEqual(["wake", "sleep"]);
+  });
+
   it("accepts inclusive 8-hour and 20-hour duration boundaries", () => {
     expect(parseState("wake=420&sleep=900").resetFields).toEqual([]);
     expect(parseState("wake=420&sleep=180").resetFields).toEqual([]);

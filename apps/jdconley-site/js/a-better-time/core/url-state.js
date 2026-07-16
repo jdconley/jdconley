@@ -177,17 +177,11 @@ export function parseState(query = "") {
     if (parsedSleep === null) reset.add("sleep");
     else state.sleep = parsedSleep;
   }
-  if (
-    parsedWake !== undefined &&
-    parsedWake !== null &&
-    parsedSleep !== undefined &&
-    parsedSleep !== null &&
-    !validWakingWindow(parsedWake, parsedSleep)
-  ) {
+  if (!validWakingWindow(state.wake, state.sleep)) {
     state.wake = DEFAULT_STATE.wake;
     state.sleep = DEFAULT_STATE.sleep;
-    reset.add("wake");
-    reset.add("sleep");
+    if (has("wake")) reset.add("wake");
+    if (has("sleep")) reset.add("sleep");
   }
 
   if (has("bias")) {
