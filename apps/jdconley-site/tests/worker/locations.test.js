@@ -102,3 +102,22 @@ describe("GET /api/a-better-time/locations", () => {
     expect(response.headers.get("allow")).toBe("GET");
   });
 });
+
+describe("production resource state migration upgrades", () => {
+  it("adds reconciliation state without removing existing production resources", async () => {
+    await applyD1Migrations(env.UPGRADE_DB, env.TEST_MIGRATIONS.slice(0, 2));
+    await env.UPGRADE_DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone,population) VALUES(?,?,?,?,?,?,?,?,?)")
+      .bind("place", "portland", "Portland, OR", "OR", null, 45.5152, -122.6784, "America/Los_Angeles", 652503)
+      .run();
+    await env.UPGRADE_DB.prepare("INSERT INTO supporters(first_name,display_location,ip_hmac,created_at) VALUES(?,?,?,?)")
+      .bind("Maya", "Portland, OR", "a".repeat(64), "2026-07-16T00:00:00.000Z")
+      .run();
+
+    await applyD1Migrations(env.UPGRADE_DB, env.TEST_MIGRATIONS);
+
+    const columns = await env.UPGRADE_DB.prepare("PRAGMA table_info(production_resource_state)").all();
+    expect(columns.results.map(({ name }) => name)).toEqual(["resource_name", "checksum", "row_count", "updated_at"]);
+    expect(await env.UPGRADE_DB.prepare("SELECT COUNT(*) AS count FROM locations").first("count")).toBe(1);
+    expect(await env.UPGRADE_DB.prepare("SELECT COUNT(*) AS count FROM supporters").first("count")).toBe(1);
+  });
+});
