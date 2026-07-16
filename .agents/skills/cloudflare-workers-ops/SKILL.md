@@ -27,7 +27,7 @@ description: Use when operating or troubleshooting this repository's Cloudflare 
 - Production reconciliation inputs:
   - `CLOUDFLARE_API_TOKEN`
   - `CLOUDFLARE_ACCOUNT_ID`
-  - `SUPPORT_IP_HMAC_SECRET` (stable, at least 32 bytes, no control characters)
+  - `SUPPORT_IP_HMAC_SECRET` (stable, at least 32 characters; prefer random ASCII/base64 with no control characters)
   - `SITE_URL=https://jdconley.com`
 - Build input: `VITE_SITE_URL`; local Worker input: `TURNSTILE_SITE_KEY` plus `SUPPORT_ORIGIN`.
 - GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SUPPORT_IP_HMAC_SECRET`.
@@ -50,10 +50,13 @@ description: Use when operating or troubleshooting this repository's Cloudflare 
 5. Deploy that config and secrets file atomically, run `production:verify`, then always run `production:reconcile:cleanup`. Cloudflare Pages is obsolete for this site.
 
 ## Manual recovery commands
+- Run `op whoami` before `op run`. Use desktop integration directly without tmux; for standalone sign-in, apply `eval "$(op signin --account <account>)"` and keep that authenticated shell/session alive through reconcile, deploy, verify, and cleanup.
+- Build current canonical assets first: `VITE_SITE_URL="$SITE_URL" pnpm run build:site`.
 - Plan only: `pnpm --filter @jdconley/jdconley-site run production:reconcile:dry-run`.
 - Reconcile: `pnpm --filter @jdconley/jdconley-site run production:reconcile` (set `GITHUB_OUTPUT` to a protected temp file to capture config/secrets/site-key paths).
 - Verify: `pnpm --filter @jdconley/jdconley-site run production:verify` with `SITE_URL` and `TURNSTILE_SITE_KEY`.
 - Cleanup: `pnpm --filter @jdconley/jdconley-site run production:reconcile:cleanup <absolute-generated-wrangler-path>`.
+- Install an EXIT/signal trap immediately after creating the output file; it must recover the config path when available, run the cleanup command quietly, and delete the output file on deploy/verify failure or interruption. Explicitly clean and disarm the trap only after a successful verification.
 - Reconciliation failure cleans generated files, but earlier D1/widget mutations can persist; fix and rerun. Worker rollback does not reverse D1 migrations or imports.
 
 ## Verification checklist
