@@ -8,12 +8,13 @@ const path = "/a-better-time.html";
 test.describe.configure({ mode: "serial" });
 
 test.describe("A Better Time page shell", () => {
-  test("keeps the loading support label legible while the public count loads", async ({ page }) => {
+  test("announces support loading while retaining a decorative skeleton", async ({ page }) => {
     await page.route("**/api/a-better-time/supporters", async () => new Promise(() => {}));
     await page.goto(path);
 
-    const color = await page.locator("[data-support-status] [data-support-label]").first().evaluate((element) => getComputedStyle(element).color);
-    expect(color).toBe("rgb(98, 104, 116)");
+    const label = page.locator("[data-support-status] [data-support-label]").first();
+    await expect(label).toHaveText("Loading support…");
+    await expect(label).toHaveCSS("position", "absolute");
   });
 
   test("meets automated accessibility checks and uses valid named groups", async ({ page }) => {
