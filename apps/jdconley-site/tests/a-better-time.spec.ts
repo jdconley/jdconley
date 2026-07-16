@@ -718,9 +718,10 @@ test.describe("personalized sharing", () => {
     await dialog.getByRole("button", { name: "Copy link" }).click();
     const canonical = await page.evaluate(() => (window as any).copiedShare);
     expect(canonical).toContain("place=Phoenix%2C+AZ");
-    await expect(dialog.locator("[data-share-preview]")).toHaveAttribute("src", canonical.replace("/a-better-time.html?", "/a-better-time/share.png?"));
+    const image = `${canonical.replace("/a-better-time.html?", "/a-better-time/share.png?")}&v=satori-resvg-inter-2026-07-16.1`;
+    await expect(dialog.locator("[data-share-preview]")).toHaveAttribute("src", image);
     await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("download", "a-better-time.png");
-    await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("href", canonical.replace("/a-better-time.html?", "/a-better-time/share.png?"));
+    await expect(dialog.getByRole("link", { name: "Download image" })).toHaveAttribute("href", image);
   });
 
   test("keeps the icon-only accessible trigger and handles preview failure", async ({ page }) => {

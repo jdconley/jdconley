@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import worker from "../../worker/index.js";
 import { SHARE_CHANGE_COPY } from "../../worker/share-image.js";
+import * as shareImage from "../../worker/share-image.js";
 import { parseHTML } from "linkedom";
 
 const sourceHtml = `<!doctype html><html><head><title>A Better Time</title><meta name="description" content="old"><link rel="canonical" href="https://jdconley.com/a-better-time"><meta property="og:title" content="old"><meta property="og:description" content="old"><meta property="og:image" content="old"><meta name="twitter:title" content="old"><meta name="twitter:description" content="old"><meta name="twitter:image" content="old"><meta name="turnstile-site-key" content=""></head><body></body></html>`;
@@ -10,6 +11,104 @@ const env = {
 };
 
 describe("personalized sharing", () => {
+  it("exposes a versioned share-image cache contract", () => {
+    expect(shareImage.SHARE_IMAGE_VERSION).toMatch(/^[a-z0-9._-]+$/u);
+    expect(shareImage.createShareImageHandler).toBeTypeOf("function");
+    expect(shareImage.shareImageUrl).toBeTypeOf("function");
+    expect(shareImage.shareImageEtag).toBeTypeOf("function");
+  });
+
+  it("normalizes equivalent requests into one edge-cached render", async () => {
+    const render = vi.fn(async () => new Uint8Array([1, 2, 3]));
+    const handler = shareImage.createShareImageHandler({
+      render,
+      version: "test-normalization-v1"
+    });
+    const first = await handler(new Request("https://example.test/a-better-time/share.png?year=2026&lat=nope&bias=500&unused=first"));
+    const second = await handler(new Request("https://other.test/a-better-time/share.png?unused=second&bias=oops&lat=also-nope&year=2026"));
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(new Uint8Array(await second.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3]));
+    expect(second.headers.get("etag")).toBe(first.headers.get("etag"));
+    expect(render).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns a conditional 304 before rendering", async () => {
+    const render = vi.fn(async () => new Uint8Array([4, 5, 6]));
+    const version = "test-conditional-v1";
+    const handler = shareImage.createShareImageHandler({ render, version });
+    const url = "https://example.test/a-better-time/share.png?year=2026&lat=nope";
+    const initial = await handler(new Request(url));
+    const etag = initial.headers.get("etag");
+    const conditional = await handler(new Request(url, {
+      headers: { "if-none-match": `"unrelated", ${etag}` }
+    }));
+
+    expect(conditional.status).toBe(304);
+    expect(conditional.headers.get("etag")).toBe(etag);
+    expect(await conditional.text()).toBe("");
+    expect(render).toHaveBeenCalledTimes(1);
+  });
+
+  it("changes canonical URL, cache entry, and validator with renderer version", async () => {
+    const query = "lat=38.940&year=2026";
+    const firstVersion = "test-assets-v1";
+    const secondVersion = "test-assets-v2";
+    expect(shareImage.shareImageUrl(query, firstVersion)).toContain("&v=test-assets-v1");
+    expect(shareImage.shareImageUrl(query, secondVersion)).toContain("&v=test-assets-v2");
+    expect(await shareImage.shareImageEtag(query, firstVersion)).not.toBe(
+      await shareImage.shareImageEtag(query, secondVersion)
+    );
+
+    const render = vi.fn(async () => new Uint8Array([7]));
+    const request = new Request(`https://example.test/a-better-time/share.png?${query}`);
+    const first = await shareImage.createShareImageHandler({ render, version: firstVersion })(request);
+    const second = await shareImage.createShareImageHandler({ render, version: secondVersion })(request);
+    expect(first.headers.get("etag")).not.toBe(second.headers.get("etag"));
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not cache renderer failures", async () => {
+    const render = vi.fn()
+      .mockRejectedValueOnce(new Error("render failed"))
+      .mockResolvedValueOnce(new Uint8Array([8]));
+    const handler = shareImage.createShareImageHandler({
+      render,
+      version: "test-error-v1"
+    });
+    const request = () => new Request("https://example.test/a-better-time/share.png?year=2026");
+
+    await expect(handler(request())).rejects.toThrow("render failed");
+    expect((await handler(request())).status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
+  it("serves rendered images when edge cache reads or writes fail", async () => {
+    const render = vi.fn(async () => new Uint8Array([9]));
+    const readFailure = shareImage.createShareImageHandler({
+      render,
+      version: "test-cache-read-error-v1",
+      cache: {
+        match: vi.fn().mockRejectedValue(new Error("cache read failed")),
+        put: vi.fn().mockResolvedValue(undefined)
+      }
+    });
+    const writeFailure = shareImage.createShareImageHandler({
+      render,
+      version: "test-cache-write-error-v1",
+      cache: {
+        match: vi.fn().mockResolvedValue(undefined),
+        put: vi.fn().mockRejectedValue(new Error("cache write failed"))
+      }
+    });
+    const request = () => new Request("https://example.test/a-better-time/share.png?year=2026");
+
+    expect((await readFailure(request())).status).toBe(200);
+    expect((await writeFailure(request())).status).toBe(200);
+    expect(render).toHaveBeenCalledTimes(2);
+  });
+
   it("uses local-font-safe clock change copy without a missing glyph", () => {
     expect(SHARE_CHANGE_COPY).toBe("Up to 1 minute daily jumps");
     expect(SHARE_CHANGE_COPY).not.toContain("≤");
@@ -19,9 +118,10 @@ describe("personalized sharing", () => {
     const html = await response.text();
     const query = "lat=33.448&lon=-112.074&place=Phoenix%2C+AZ&tz=America%2FPhoenix&wake=420&sleep=1320&bias=0&year=2026";
     const escaped = query.replaceAll("&", "&amp;");
+    const versionedImage = `${escaped}&amp;v=${shareImage.SHARE_IMAGE_VERSION}`;
     expect(html).toContain(`rel="canonical" href="https://jdconley.com/a-better-time?${escaped}"`);
-    expect(html).toContain(`property="og:image" content="https://jdconley.com/a-better-time/share.png?${escaped}"`);
-    expect(html).toContain(`name="twitter:image" content="https://jdconley.com/a-better-time/share.png?${escaped}"`);
+    expect(html).toContain(`property="og:image" content="https://jdconley.com/a-better-time/share.png?${versionedImage}"`);
+    expect(html).toContain(`name="twitter:image" content="https://jdconley.com/a-better-time/share.png?${versionedImage}"`);
     expect(html).toContain("Phoenix, AZ");
     expect(response.headers.get("cache-control")).toBe("private, max-age=60");
   });

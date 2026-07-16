@@ -1,5 +1,6 @@
 const SITE_KEY_META = '<meta name="turnstile-site-key" content="">';
 import { parseState, serializeState } from "../js/a-better-time/core/url-state.js";
+import { shareImageUrl } from "./share-image.js";
 
 function escapeAttribute(value) {
   return String(value ?? "")
@@ -30,7 +31,7 @@ export async function injectRuntimeConfig(response, env, requestUrl) {
     const state = parseState(url.search).state;
     const query = serializeState(state);
     const canonical = `https://jdconley.com/a-better-time?${query}`;
-    const image = `https://jdconley.com/a-better-time/share.png?${query}`;
+    const image = shareImageUrl(query);
     const title = `A Better Time for ${state.place}`;
     const description = `See how a gentler clock could follow the sun in ${state.place}.`;
     configured = configured.replace(

@@ -1,8 +1,10 @@
 import { openDialog } from "./dialog.js";
+import { SHARE_IMAGE_VERSION } from "./share-image-version.js";
 
 function imageUrl(url) {
   const parsed = new URL(url);
   parsed.pathname = "/a-better-time/share.png";
+  parsed.searchParams.set("v", SHARE_IMAGE_VERSION);
   return parsed.href;
 }
 
