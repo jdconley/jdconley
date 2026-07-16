@@ -226,7 +226,8 @@ test("phone actions stay pinned below the tool while post-tool content scrolls",
 });
 
 for (const layout of layouts) {
-  test(`${layout.name} layout has intentional responsive composition`, async ({ page }) => {
+  test(`${layout.name} layout has intentional responsive composition`, async ({ page }, testInfo) => {
+    testInfo.snapshotSuffix = "";
     await page.setViewportSize({ width: layout.width, height: layout.height });
     await page.goto(path);
 
