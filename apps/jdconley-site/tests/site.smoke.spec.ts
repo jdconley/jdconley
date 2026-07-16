@@ -36,6 +36,13 @@ test("links to A Better Time from Vibe coded projects", async ({ page }) => {
   );
 });
 
+test("A Better Time static metadata uses its approved share fallback", async ({ page }) => {
+  await page.goto("/a-better-time.html");
+  const fallback = "https://jdconley.com/images/a-better-time-share-fallback.png";
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", fallback);
+  await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", fallback);
+});
+
 test("404 page renders expected message", async ({ page }) => {
   await page.goto("/404.html");
 

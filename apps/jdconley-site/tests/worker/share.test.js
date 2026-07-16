@@ -256,6 +256,7 @@ describe("personalized sharing", () => {
     expect(html).toContain(`rel="canonical" href="https://jdconley.com/a-better-time?${escaped}"`);
     expect(html).toContain(`property="og:image" content="https://jdconley.com/a-better-time/share.png?${versionedImage}"`);
     expect(html).toContain(`name="twitter:image" content="https://jdconley.com/a-better-time/share.png?${versionedImage}"`);
+    expect(html).not.toContain("a-better-time-share-fallback.png");
     expect(html).toContain("Phoenix, AZ");
     expect(response.headers.get("cache-control")).toBe("private, max-age=60");
   });
