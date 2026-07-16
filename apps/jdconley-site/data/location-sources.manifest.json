@@ -1,6 +1,6 @@
 {
   "generatedAt": "2025-09-08T00:00:00.000Z",
-  "generationTime": "SOURCE_DATE_EPOCH",
+  "generationTime": "pinned-source-release",
   "sources": {
     "places": {
       "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2025_Gazetteer/2025_Gaz_place_national.zip",

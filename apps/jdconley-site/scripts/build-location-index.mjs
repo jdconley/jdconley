@@ -32,6 +32,7 @@ const STATE_FIPS = Object.freeze({
 });
 const STATE_CODES = new Set(Object.values(STATE_FIPS));
 const PLACE_SUFFIX = /\s+(?:city and borough|unified government|consolidated government|municipality|metropolitan government|urban county|city|town|village|borough|CDP)$/iu;
+const PINNED_SOURCE_RELEASE = "2025-09-08T00:00:00.000Z";
 
 export function normalizeWhitespace(value) {
   return String(value ?? "").normalize("NFC").replace(/\s+/gu, " ").trim();
@@ -144,6 +145,18 @@ export function serializeLocationIndex(records, { generatedAt, generationTime = 
   return { ndjson, manifest };
 }
 
+export function resolveGenerationTime({ generatedAt, sourceDateEpoch = process.env.SOURCE_DATE_EPOCH } = {}) {
+  if (generatedAt !== undefined) return { generatedAt: new Date(generatedAt).toISOString(), generationTime: "explicit" };
+  if (sourceDateEpoch !== undefined) {
+    const timestamp = Number(sourceDateEpoch);
+    if (!Number.isFinite(timestamp)) throw new Error("SOURCE_DATE_EPOCH must be a finite Unix timestamp");
+    return { generatedAt: new Date(timestamp * 1000).toISOString(), generationTime: "SOURCE_DATE_EPOCH" };
+  }
+  // The source archives are dated 2025-09-08. Using that release date makes
+  // an ordinary build reproducible without requiring ambient environment state.
+  return { generatedAt: PINNED_SOURCE_RELEASE, generationTime: "pinned-source-release" };
+}
+
 export async function generateLocationIndex({ fetcher = fetch, generatedAt, outputDirectory } = {}) {
   const [placeBytes, zctaBytes, relationshipBytes] = await Promise.all([
     download(SOURCES.places, fetcher), download(SOURCES.zctas, fetcher), download(SOURCES.zctaCounties, fetcher)
@@ -152,12 +165,9 @@ export async function generateLocationIndex({ fetcher = fetch, generatedAt, outp
   const zctas = parseDelimited(unzipText(zctaBytes, "ZCTAs"));
   const relationships = parseDelimited(new TextDecoder().decode(relationshipBytes));
   const records = buildLocationRecords({ places, zctas, relationships });
-  const timestamp = generatedAt ?? (process.env.SOURCE_DATE_EPOCH
-    ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000).toISOString()
-    : new Date().toISOString());
+  const generation = resolveGenerationTime({ generatedAt });
   const { ndjson, manifest } = serializeLocationIndex(records, {
-    generatedAt: timestamp,
-    generationTime: process.env.SOURCE_DATE_EPOCH ? "SOURCE_DATE_EPOCH" : generatedAt ? "explicit" : "current-time",
+    ...generation,
     sourceRows: { places: places.length, zctas: zctas.length, zctaCountyRelationships: relationships.length }
   });
   if (outputDirectory) {

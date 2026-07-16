@@ -1,9 +1,11 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
   buildLocationRecords,
   parseDelimited,
+  resolveGenerationTime,
   serializeLocationIndex,
   verifyChecksum
 } from "../../scripts/build-location-index.mjs";
@@ -30,9 +32,20 @@ describe("location index source parsing", () => {
 describe("location import command", () => {
   it("requires exactly one explicit local or remote mode", () => {
     expect(parseImportArguments(["--local", "--fixtures"])).toEqual({ mode: "--local", fixtures: true });
+    expect(parseImportArguments(["--local", "--", "--fixtures"])).toEqual({ mode: "--local", fixtures: true });
     expect(() => parseImportArguments([])).toThrow(/usage/i);
     expect(() => parseImportArguments(["--local", "--remote"])).toThrow(/usage/i);
+    expect(() => parseImportArguments(["--local", "--local"])).toThrow(/usage/i);
+    expect(() => parseImportArguments(["--local", "--", "--"])).toThrow(/usage/i);
+    expect(() => parseImportArguments(["--local", "--fixtures", "--fixtures"])).toThrow(/usage/i);
     expect(() => parseImportArguments(["--remote", "--surprise"])).toThrow(/usage/i);
+  });
+
+  it("keeps local generated-data import as the package default and composes the fixture command conventionally", () => {
+    const packageJson = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
+    expect(packageJson.scripts["locations:import:local"]).toBe("node ./scripts/import-location-index.mjs --local");
+    const forwarded = packageJson.scripts["locations:import:local"].split(" ").slice(2).concat(["--", "--fixtures"]);
+    expect(parseImportArguments(forwarded)).toEqual({ mode: "--local", fixtures: true });
   });
 
   it("validates and safely quotes batched record values", () => {
@@ -100,5 +113,16 @@ describe("location index normalization", () => {
     const records = [{ kind: "zip", search_name: "97205", display_name: "97205, OR", state_code: "OR", zip: "97205", latitude: 45.52, longitude: -122.7, time_zone: "America/Los_Angeles" }];
     const options = { generatedAt: "2025-09-08T00:00:00.000Z", sourceRows: { places: 0, zctas: 1, zctaCountyRelationships: 1 } };
     expect(serializeLocationIndex(records, options)).toEqual(serializeLocationIndex(records, options));
+  });
+
+  it("uses the pinned source release time when no generation override is provided", () => {
+    expect(resolveGenerationTime({ sourceDateEpoch: undefined })).toEqual({
+      generatedAt: "2025-09-08T00:00:00.000Z",
+      generationTime: "pinned-source-release"
+    });
+    expect(resolveGenerationTime({ sourceDateEpoch: "0" })).toEqual({
+      generatedAt: "1970-01-01T00:00:00.000Z",
+      generationTime: "SOURCE_DATE_EPOCH"
+    });
   });
 });

@@ -2,13 +2,7 @@ import { applyD1Migrations, env } from "cloudflare:test";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import worker from "../../worker/index.js";
-
-const fixtures = [
-  ["place", "portland", "Portland, ME", "ME", null, 43.6591, -70.2568, "America/New_York"],
-  ["place", "portland", "Portland, OR", "OR", null, 45.5152, -122.6784, "America/Los_Angeles"],
-  ["place", "south lake tahoe", "South Lake Tahoe, CA", "CA", null, 38.9399, -119.9772, "America/Los_Angeles"],
-  ["zip", "97205", "97205, OR", "OR", "97205", 45.5205, -122.685, "America/Los_Angeles"]
-];
+import fixtures from "../../data/location-fixtures.json";
 
 beforeAll(async () => {
   await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
@@ -17,7 +11,10 @@ beforeAll(async () => {
 beforeEach(async () => {
   await env.DB.exec("DELETE FROM locations;");
   const statement = env.DB.prepare("INSERT INTO locations(kind,search_name,display_name,state_code,zip,latitude,longitude,time_zone) VALUES(?,?,?,?,?,?,?,?)");
-  await env.DB.batch(fixtures.map((row) => statement.bind(...row)));
+  await env.DB.batch(fixtures.map((row) => statement.bind(
+    row.kind, row.search_name, row.display_name, row.state_code, row.zip,
+    row.latitude, row.longitude, row.time_zone
+  )));
 });
 
 async function request(path, init) {
@@ -35,16 +32,28 @@ describe("GET /api/a-better-time/locations", () => {
     expect(response.headers.get("content-type")).toContain("application/json");
     expect(response.headers.get("cache-control")).toBe("public, max-age=300");
     expect(await response.json()).toEqual({ results: [
-      { place: "Portland, ME", lat: 43.6591, lon: -70.2568, tz: "America/New_York" },
-      { place: "Portland, OR", lat: 45.5152, lon: -122.6784, tz: "America/Los_Angeles" }
+      { place: "Portland, ME", lat: 43.633157, lon: -70.185305, tz: "America/New_York" },
+      { place: "Portland, OR", lat: 45.536951, lon: -122.649971, tz: "America/Los_Angeles" }
     ] });
   });
 
-  it("returns an exact five-digit ZIP match", async () => {
-    const response = await request("/api/a-better-time/locations?q=97205");
-    expect(await response.json()).toEqual({ results: [
-      { place: "97205, OR", lat: 45.5205, lon: -122.685, tz: "America/Los_Angeles" }
-    ] });
+  it.each([
+    ["96150", "96150, CA", 38.87332, -120.068481, "America/Los_Angeles"],
+    ["97205", "97205, OR", 45.52009, -122.702169, "America/Los_Angeles"],
+    ["85001", "85001, AZ", 33.4484, -112.074, "America/Phoenix"]
+  ])("returns exact ZIP %s", async (zip, place, lat, lon, tz) => {
+    const response = await request(`/api/a-better-time/locations?q=${zip}`);
+    expect(await response.json()).toEqual({ results: [{ place, lat, lon, tz }] });
+  });
+
+  it.each([
+    ["south lake", "South Lake Tahoe, CA", "America/Los_Angeles"],
+    ["phoenix", "Phoenix, AZ", "America/Phoenix"],
+    ["honolulu", "Honolulu, HI", "Pacific/Honolulu"],
+    ["anchorage", "Anchorage, AK", "America/Anchorage"]
+  ])("searches committed fixture %s", async (query, place, tz) => {
+    const response = await request(`/api/a-better-time/locations?q=${encodeURIComponent(query)}`);
+    expect((await response.json()).results[0]).toMatchObject({ place, tz });
   });
 
   it.each(["", "a", "x".repeat(101)])("rejects malformed query %j", async (query) => {

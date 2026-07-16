@@ -8,12 +8,15 @@ const APP_DIRECTORY = fileURLToPath(new URL("../", import.meta.url));
 const COLUMNS = ["kind", "search_name", "display_name", "state_code", "zip", "latitude", "longitude", "time_zone"];
 
 export function parseImportArguments(args) {
-  const modes = args.filter((arg) => arg === "--local" || arg === "--remote");
-  const unknown = args.filter((arg) => !["--local", "--remote", "--fixtures"].includes(arg));
-  if (modes.length !== 1 || unknown.length > 0 || args.filter((arg) => arg === "--fixtures").length > 1) {
+  const separators = args.filter((arg) => arg === "--");
+  const normalized = args.filter((arg) => arg !== "--");
+  const modes = normalized.filter((arg) => arg === "--local" || arg === "--remote");
+  const fixtures = normalized.filter((arg) => arg === "--fixtures");
+  const unknown = normalized.filter((arg) => !["--local", "--remote", "--fixtures"].includes(arg));
+  if (modes.length !== 1 || fixtures.length > 1 || separators.length > 1 || unknown.length > 0) {
     throw new Error("Usage: import-location-index.mjs (--local|--remote) [--fixtures]");
   }
-  return { mode: modes[0], fixtures: args.includes("--fixtures") };
+  return { mode: modes[0], fixtures: fixtures.length === 1 };
 }
 
 function sqlLiteral(value) {
