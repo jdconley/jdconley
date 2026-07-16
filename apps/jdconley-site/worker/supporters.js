@@ -19,6 +19,46 @@ function normalizePublicText(value, minimum, maximum) {
   return normalized;
 }
 
+async function cancelBody(body) {
+  try {
+    await body?.cancel();
+  } catch {
+    // Cancellation is best-effort when the platform has already closed input.
+  }
+}
+
+async function readBoundedBody(request, maximumBytes = MAX_BODY_BYTES) {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total >= maximumBytes) {
+        try {
+          await reader.cancel();
+        } catch {
+          // The limit result is authoritative even if upstream ignores cancel.
+        }
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
+}
+
 async function countSupporters(db) {
   const row = await db.prepare("SELECT COUNT(*) AS count FROM supporters").first();
   return Number(row?.count ?? 0);
@@ -45,11 +85,32 @@ async function postSupporter(request, env, fetchImpl) {
   if (!expectedOrigin || request.headers.get("origin") !== expectedOrigin) return json({ error: "invalid_origin" }, 403);
   const contentType = request.headers.get("content-type")?.split(";", 1)[0].trim().toLowerCase();
   if (contentType !== "application/json") return json({ error: "invalid_content_type" }, 415);
-  const declaredLength = Number(request.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength >= MAX_BODY_BYTES) return json({ error: "body_too_large" }, 413);
+  const ip = request.headers.get("CF-Connecting-IP")?.trim();
+  if (!ip) return json({ error: "invalid_request" }, 400);
+  let ipHmac;
+  try {
+    ipHmac = await hmacIp(ip, env.SUPPORT_IP_HMAC_SECRET);
+  } catch {
+    return json({ error: "internal_error" }, 500);
+  }
+  if (!env.SUPPORT_RATE_LIMITER?.limit) return json({ error: "internal_error" }, 500);
+  try {
+    const rateLimit = await env.SUPPORT_RATE_LIMITER.limit({ key: ipHmac });
+    if (!rateLimit.success) {
+      await cancelBody(request.body);
+      return json({ error: "rate_limited" }, 429, { "retry-after": "60" });
+    }
+  } catch {
+    return json({ error: "internal_error" }, 500);
+  }
 
-  const rawBody = await request.text();
-  if (new TextEncoder().encode(rawBody).byteLength >= MAX_BODY_BYTES) return json({ error: "body_too_large" }, 413);
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength >= MAX_BODY_BYTES) {
+    await cancelBody(request.body);
+    return json({ error: "body_too_large" }, 413);
+  }
+  const rawBody = await readBoundedBody(request);
+  if (rawBody === null) return json({ error: "body_too_large" }, 413);
   let body;
   try {
     body = JSON.parse(rawBody);
@@ -63,22 +124,6 @@ async function postSupporter(request, env, fetchImpl) {
   const displayLocation = normalizePublicText(body.location, 2, 60);
   const token = typeof body.turnstileToken === "string" ? body.turnstileToken.trim() : "";
   if (!firstName || !displayLocation || !token || token.length > 2048) return json({ error: "invalid_input" }, 400);
-
-  const ip = request.headers.get("CF-Connecting-IP")?.trim();
-  if (!ip) return json({ error: "invalid_request" }, 400);
-  let ipHmac;
-  try {
-    ipHmac = await hmacIp(ip, env.SUPPORT_IP_HMAC_SECRET);
-  } catch {
-    return json({ error: "internal_error" }, 500);
-  }
-  if (!env.SUPPORT_RATE_LIMITER?.limit) return json({ error: "internal_error" }, 500);
-  try {
-    const rateLimit = await env.SUPPORT_RATE_LIMITER.limit({ key: ipHmac });
-    if (!rateLimit.success) return json({ error: "rate_limited" }, 429, { "retry-after": "60" });
-  } catch {
-    return json({ error: "internal_error" }, 500);
-  }
   if (!await verifyTurnstile(token, ip, env, fetchImpl)) return json({ error: "turnstile_failed" }, 403);
 
   try {

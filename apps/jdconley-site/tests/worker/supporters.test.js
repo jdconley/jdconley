@@ -145,6 +145,83 @@ describe("POST /api/a-better-time/supporters", () => {
     expect(await response.json()).toEqual({ error: "body_too_large" });
   });
 
+  it("bounds a no-content-length stream and cancels as soon as it crosses 2KB", async () => {
+    let chunksRead = 0;
+    let cancelled = false;
+    const body = new ReadableStream({
+      pull(controller) {
+        chunksRead += 1;
+        controller.enqueue(new Uint8Array(1024));
+        if (chunksRead === 10) controller.close();
+      },
+      cancel() { cancelled = true; }
+    });
+    const request = new Request("https://jdconley.test/api/a-better-time/supporters", {
+      method: "POST",
+      headers: { origin: "https://jdconley.test", "content-type": "application/json", "CF-Connecting-IP": "203.0.113.9" },
+      body,
+      duplex: "half"
+    });
+    const response = await handleSupporters(request, bindings(), successVerification);
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: "body_too_large" });
+    expect(chunksRead).toBeLessThan(10);
+    expect(cancelled).toBe(true);
+    expect(rateLimiter.limit).toHaveBeenCalledOnce();
+  });
+
+  it("ignores a misleading small Content-Length and enforces streamed bytes", async () => {
+    let cancelled = false;
+    const request = new Request("https://jdconley.test/api/a-better-time/supporters", {
+      method: "POST",
+      headers: { origin: "https://jdconley.test", "content-type": "application/json", "content-length": "1", "CF-Connecting-IP": "203.0.113.9" },
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(2048));
+          controller.enqueue(new Uint8Array(2048));
+        },
+        cancel() { cancelled = true; }
+      }),
+      duplex: "half"
+    });
+    const response = await handleSupporters(request, bindings(), successVerification);
+    expect(response.status).toBe(413);
+    expect(cancelled).toBe(true);
+    expect(successVerification).not.toHaveBeenCalled();
+  });
+
+  it("still rejects oversized input when underlying stream cancellation fails", async () => {
+    const request = new Request("https://jdconley.test/api/a-better-time/supporters", {
+      method: "POST",
+      headers: { origin: "https://jdconley.test", "content-type": "application/json", "CF-Connecting-IP": "203.0.113.9" },
+      body: new ReadableStream({
+        start(controller) { controller.enqueue(new Uint8Array(2048)); },
+        cancel() { throw new Error("cancel failed"); }
+      }),
+      duplex: "half"
+    });
+    const response = await handleSupporters(request, bindings(), successVerification);
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: "body_too_large" });
+  });
+
+  it("rate limits malformed floods before reading or parsing their bodies", async () => {
+    let pulls = 0;
+    let cancelled = false;
+    rateLimiter.limit.mockResolvedValueOnce({ success: false });
+    const request = new Request("https://jdconley.test/api/a-better-time/supporters", {
+      method: "POST",
+      headers: { origin: "https://jdconley.test", "content-type": "application/json", "CF-Connecting-IP": "203.0.113.9" },
+      body: new ReadableStream({ pull(controller) { pulls += 1; controller.enqueue(new TextEncoder().encode("{")); }, cancel() { cancelled = true; } }),
+      duplex: "half"
+    });
+    const response = await handleSupporters(request, bindings(), successVerification);
+    expect(response.status).toBe(429);
+    expect(pulls).toBeLessThanOrEqual(1);
+    expect(cancelled).toBe(true);
+    expect(successVerification).not.toHaveBeenCalled();
+  });
+
   it("rejects failed or unavailable Turnstile without inserting", async () => {
     for (const fetchImpl of [
       vi.fn(async () => new Response(JSON.stringify({ success: false }))),
