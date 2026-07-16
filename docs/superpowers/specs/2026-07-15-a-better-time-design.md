@@ -190,7 +190,20 @@ The mobile chart is an intentionally transformed visualization, not a scaled des
 - Share in the top-right header.
 - “Tune my day” and “Show support” in a reachable bottom action area that does not obscure content or safe-area insets.
 
-Desktop adds explanatory copy, exposes settings, and may show both chart views without adding unrelated dashboard cards.
+Tablet uses the same focused app composition at a larger scale rather than stretching the phone layout. In portrait, the result and active chart remain in one centered column while the location and tuning controls become an always-visible compact row. In landscape, the chart occupies roughly two thirds of the workspace and a narrow insight rail holds the headline gain, current-date values, clock-change facts, and support action. Touch targets and chart scrubbing remain tablet-sized; no interaction depends on hover.
+
+Desktop becomes a premium editorial data story without turning into a generic analytics dashboard:
+
+- A restrained site header and compact hero establish the question and location.
+- A sticky settings rail holds location, wake, sleep, and preference while the result remains in view.
+- The primary content column gives the headline metric and annual daylight chart most of the visual weight.
+- The daylight and clock-shift charts appear as coordinated views with a shared inspection date; hovering or focusing either chart updates both.
+- A narrow insight column explains the selected date, maximum daily change, 2:00 a.m. adjustment, and comparison with current DST.
+- Sharing stays attached to the chart header as an icon-only action.
+- Explanatory sections below the tool use generous editorial whitespace and direct prose rather than a repeated grid of cards.
+- The supporter module becomes a clear closing call to action with the live count and recent names, not a floating dashboard widget.
+
+Large screens cap the interactive workspace at a readable width instead of allowing charts to become excessively wide. Tablet and desktop use the same neutral surfaces, fine borders, controlled cobalt action color, semantic sunrise/sunset lines, metric typography, and restrained elevation approved for mobile. Breakpoints are chosen when chart labels, control widths, or inspection content would collide—not solely from conventional device widths.
 
 The implementation follows established responsive-visualization guidance: explicit mobile transformations, single-touch inspection, legible labels, and progressive disclosure rather than simple CSS shrinking. See [Our World in Data’s Grapher redesign](https://ourworldindata.org/redesigning-our-interactive-data-visualizations), [UW mobile visualization interaction research](https://idl.uw.edu/papers/mobile-vis-interaction-techniques), and [responsive visualization design patterns](https://arxiv.org/abs/2104.07724).
 
@@ -321,6 +334,7 @@ Turnstile verification and a coarse Worker rate limit protect the endpoint. A sa
 - Support preview, consent requirement, successful submission, and duplicate confirmation.
 - Keyboard navigation and chart tap/drag inspection.
 - Desktop and mobile screenshots for the main result, settings sheet, share panel, and support sheet.
+- Tablet portrait, tablet landscape, and wide-desktop screenshots verify intentional composition changes rather than scaled mobile layout.
 - Existing homepage, navigation, “How This Is Built,” and error-page smoke coverage remain green after the Workers migration.
 
 ### Release verification
