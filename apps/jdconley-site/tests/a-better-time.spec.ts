@@ -714,6 +714,35 @@ test.describe("public support experience", () => {
     expect(await page.evaluate(() => (window as any).turnstileResets)).toBe(2);
   });
 
+  test("submits when the browser challenge is unavailable", async ({ page }) => {
+    const posts: unknown[] = [];
+    await page.addInitScript(() => {
+      (window as any).__abtTurnstile = {
+        getToken: async () => { throw new Error("challenge blocked"); },
+        reset: () => {}
+      };
+    });
+    await page.route("**/api/a-better-time/supporters", async (route) => {
+      if (route.request().method() === "GET") return route.fulfill({ json: { count: 128, recent: [] } });
+      posts.push(route.request().postDataJSON());
+      return route.fulfill({ status: 201, json: { status: "created", count: 129 } });
+    });
+
+    await page.goto(path);
+    await page.getByRole("button", { name: "Show support" }).first().click();
+    const dialog = page.getByRole("dialog", { name: "Show your support" });
+    await dialog.getByRole("textbox", { name: "First name" }).fill("Jamie");
+    await dialog.getByLabel(/display.*publicly/i).check();
+    await dialog.getByRole("button", { name: "Add my support" }).click();
+
+    await expect(dialog.locator("[data-support-confirmation]")).toContainText("Thanks for supporting");
+    expect(posts).toEqual([{
+      firstName: "Jamie",
+      location: "South Lake Tahoe, CA",
+      consent: true
+    }]);
+  });
+
   test("maps malformed and network submission failures to friendly unavailable copy", async ({ page }) => {
     let failure = "malformed";
     await page.addInitScript(() => { (window as any).__abtTurnstile = { getToken: async () => "token", reset: () => {} }; });

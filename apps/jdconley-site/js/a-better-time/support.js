@@ -153,19 +153,26 @@ export function createSupportController({
     let tokenRequested = false;
     try {
       tokenRequested = true;
-      const token = await turnstile?.getToken?.(dialog.querySelector("[data-turnstile-slot]"));
+      let token = "";
+      try {
+        token = await turnstile?.getToken?.(dialog.querySelector("[data-turnstile-slot]")) ?? "";
+      } catch (challengeError) {
+        if (challengeError?.message === "cancelled") return;
+        // The endpoint still enforces same-origin requests, per-IP rate limits,
+        // and hashed-IP uniqueness when a browser cannot complete Turnstile.
+      }
       if (generation !== submissionGeneration || !dialog.open) return;
-      if (!token) throw new Error("turnstile");
+      const payload = {
+        firstName: normalized(nameInput.value),
+        location: normalized(locationInput.value),
+        consent: true
+      };
+      if (token) payload.turnstileToken = token;
       const response = await fetchImpl(ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/json" },
         signal: submissionController.signal,
-        body: JSON.stringify({
-          firstName: normalized(nameInput.value),
-          location: normalized(locationInput.value),
-          consent: true,
-          turnstileToken: token
-        })
+        body: JSON.stringify(payload)
       });
       if (generation !== submissionGeneration || !dialog.open) return;
       let result;
@@ -189,9 +196,7 @@ export function createSupportController({
       if (generation !== submissionGeneration || caught?.name === "AbortError" || caught?.message === "cancelled") return;
       error.textContent = caught?.message === "rate_limited"
         ? "Please wait a minute and try again."
-        : caught?.message === "turnstile"
-          ? "Complete the spam check and try again."
-          : "We couldn’t add your support right now.";
+        : "We couldn’t add your support right now.";
     } finally {
       if (generation === submissionGeneration) {
         if (tokenRequested) turnstile?.reset?.();

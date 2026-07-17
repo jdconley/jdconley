@@ -122,9 +122,16 @@ async function postSupporter(request, env, fetchImpl) {
 
   const firstName = normalizePublicText(body.firstName, 2, 40);
   const displayLocation = normalizePublicText(body.location, 2, 60);
-  const token = typeof body.turnstileToken === "string" ? body.turnstileToken.trim() : "";
-  if (!firstName || !displayLocation || !token || token.length > 2048) return json({ error: "invalid_input" }, 400);
-  if (!await verifyTurnstile(token, ip, env, fetchImpl)) return json({ error: "turnstile_failed" }, 403);
+  const suppliedToken = body.turnstileToken;
+  const token = typeof suppliedToken === "string" ? suppliedToken.trim() : "";
+  if (!firstName || !displayLocation ||
+    (suppliedToken !== undefined && typeof suppliedToken !== "string") || token.length > 2048) {
+    return json({ error: "invalid_input" }, 400);
+  }
+  // Turnstile is defense in depth. Some privacy-focused browsers cannot
+  // complete it, so the core controls remain the per-IP limiter and the
+  // unique HMAC of the connection address stored below.
+  if (token && !await verifyTurnstile(token, ip, env, fetchImpl)) return json({ error: "turnstile_failed" }, 403);
 
   try {
     await env.DB.prepare(`

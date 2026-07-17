@@ -79,6 +79,15 @@ describe("supporter migration upgrades", () => {
 });
 
 describe("POST /api/a-better-time/supporters", () => {
+  it("accepts a valid submission without a third-party challenge", async () => {
+    const { turnstileToken: _turnstileToken, ...withoutTurnstile } = valid;
+    const response = await post(withoutTurnstile);
+
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({ status: "created", count: 1 });
+    expect(successVerification).not.toHaveBeenCalled();
+  });
+
   it("normalizes Unicode text and stores only an IP HMAC", async () => {
     const response = await post({ ...valid, firstName: "  Jose\u0301  ", location: "  San   Jose\u0301, CA " });
     expect(response.status).toBe(201);
@@ -117,7 +126,7 @@ describe("POST /api/a-better-time/supporters", () => {
     [{ ...valid, firstName: "A" }, 400, "invalid_input"],
     [{ ...valid, firstName: "x".repeat(41) }, 400, "invalid_input"],
     [{ ...valid, location: "x".repeat(61) }, 400, "invalid_input"],
-    [{ ...valid, turnstileToken: "" }, 400, "invalid_input"]
+    [{ ...valid, turnstileToken: 123 }, 400, "invalid_input"]
   ])("rejects invalid fields without verification: %#", async (body, status, code) => {
     const response = await post(body);
     expect(response.status).toBe(status);
