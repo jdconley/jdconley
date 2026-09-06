@@ -67,3 +67,18 @@ test("legacy permalinks redirect through the Worker", async ({ request }) => {
   expect(destination.pathname + destination.search).toBe("/blog/functional-optimistic-concurrency-in-c?utm_source=archive");
   expect((await request.get(destination.pathname + destination.search)).status()).toBe(200);
 });
+
+test("published blog header, author portraits, and favicon load as images", async ({ page, request }) => {
+  for (const path of ["/blog", "/blog/put-down-abstract-factory-and-get"]) {
+    await page.goto(path);
+    const portraits = page.locator(".brand img, .author img, .author-end img");
+    expect(await portraits.count()).toBe(path === "/blog" ? 1 : 3);
+    for (const portrait of await portraits.all()) {
+      await expect.poll(() => portrait.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+    }
+    const favicon = await page.locator('link[rel="icon"]').getAttribute("href");
+    const response = await request.get(favicon!);
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("image/");
+  }
+});

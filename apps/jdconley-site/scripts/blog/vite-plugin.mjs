@@ -13,6 +13,9 @@ export function blogPlugin(root) {
     name: "markdown-blog",
     async generateBundle() {
       const posts = await loadPosts(directory);
+      // Generated blog HTML bypasses Vite's HTML asset discovery.
+      // Explicitly ship the shared portrait at the URL used by the templates.
+      this.emitFile({ type: "asset", fileName: "images/headshot-256x256.png", source: await readFile(resolve(root, "images/headshot-256x256.png")) });
       for (const [fileName, source] of buildBlog(posts, origin)) this.emitFile({ type: "asset", fileName, source });
       for (const name of fontFiles) this.emitFile({ type: "asset", fileName: `blog-assets/${name}`, source: await readFile(fontPath(name)) });
       for (const post of [{ slug: "index", title: "Starin’ at the Wall" }, ...posts]) this.emitFile({ type: "asset", fileName: `blog-assets/social/${post.slug}.png`, source: await renderShareImage({ ...post, root }) });
