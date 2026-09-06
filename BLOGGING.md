@@ -77,19 +77,19 @@ The import recovered 48 image URLs (including linked full-resolution versions) i
 
 ## Cut over the old hostname
 
-The main-site Worker handles recorded legacy paths, including 16 verified pre-Blogger aliases. A separate small Worker configuration, `apps/jdconley-site/wrangler.blog.toml`, is prepared to redirect `blog.jdconley.com` without introducing runtime work on every main-site article request. It redirects old articles, the blog homepage, and feed endpoints; all other old paths permanently redirect to the new blog archive. Mobile `m=1` is removed, and other article query parameters are preserved.
+The main-site Worker handles recorded legacy paths, including 16 verified pre-Blogger aliases. A separate small Worker configuration, `apps/jdconley-site/wrangler.blog.toml`, redirects `blog.jdconley.com` without introducing runtime work on every main-site article request. It redirects old articles, the blog homepage, and feed endpoints; all other old paths permanently redirect to the new blog archive. Mobile `m=1` is removed, and other article query parameters are preserved.
 
 The code does not itself change DNS or deploy the old-host Worker. After the main blog has been deployed and verified, a requested hostname cutover consists of:
 
-1. Save Blogger's current custom-domain and DNS settings for rollback. Export a Blogger backup from the signed-in dashboard if retaining private drafts/comments is desired; the public migration contains published posts only.
-2. Deploy the dedicated redirect Worker. Wrangler replaces the conflicting Blogger DNS record as part of attaching its Custom Domain:
+1. Keep the existing Blogger DNS record proxied through Cloudflare. The public migration contains published posts only; the Blogger content remains intact.
+2. Deploy the dedicated redirect Worker. It attaches the `blog.jdconley.com/*` Worker route to the existing proxied hostname:
 
    ```sh
    pnpm --filter @jdconley/jdconley-site exec wrangler deploy --config wrangler.blog.toml
    ```
 
-3. Verify HTTP and HTTPS requests for the old homepage, an article whose permalink date differs from its publication date, a feed URL, a mobile URL, and an unknown article. Verify final article and RSS responses on the main site.
-4. Keep the Blogger content and source snapshot for rollback. Reverting the hostname route/DNS to its saved Blogger settings restores the old blog.
+3. Verify HTTP and HTTPS requests for the old homepage (Cloudflare upgrades HTTP to HTTPS before the Worker redirects to the root domain), an article whose permalink date differs from its publication date, a feed URL, a mobile URL, and an unknown article. Verify final article and RSS responses on the main site.
+4. Keep the Blogger content and source snapshot for rollback. Removing only the `blog.jdconley.com/*` Worker route restores Blogger traffic through the unchanged DNS record.
 
 Do not push to `main` or deploy merely to preview: the existing `main` delivery workflow performs a production deployment after its gates pass.
 
@@ -100,3 +100,11 @@ The September 5 implementation passed the production build, 214 unit tests, 76 W
 ## Sharing and discovery
 
 Every published article and the archive receive a generated 1200×630 PNG social preview, complete Open Graph and X card metadata, and canonical URLs. BlogPosting/Blog structured data identifies the author, dates, and image. RSS, sitemap.xml, robots.txt, llms.txt, llms-full.txt, and authored Markdown mirrors are generated together; production outputs exclude drafts. These make the content accessible to readers and crawlers; indexing and AI citations remain up to those services.
+
+## Production release
+
+Released September 5, 2026 (Pacific time). Main-site commit `eb6e7c5` passed GitHub CI and deployment verification. The location-source service returned one transient HTTP 504; the deployment retry succeeded. The live archive and 71 articles, all 72 social PNGs, authored Markdown mirrors, sitemap, RSS, and crawler responses passed verification.
+
+The legacy Worker version is `343dff35-66a9-402f-bdf4-fceaedc26cd6`, attached through the Cloudflare route `blog.jdconley.com/*`. Custom Domains could not replace the externally managed Blogger DNS record, so the route preserves that record and its existing TLS/proxy configuration.
+
+All 92 live redirect checks passed: 87 article mappings plus homepage, HTTP upgrade, feed, mobile query, and unknown-path cases. X, LinkedIn, Facebook, Google, and OpenAI crawler user agents received the expected article redirects.
