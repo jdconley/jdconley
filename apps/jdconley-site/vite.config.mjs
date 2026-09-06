@@ -5,10 +5,11 @@ import { dirname, extname, join, relative, resolve } from "node:path";
 
 import { minify as minifyHtml } from "html-minifier-terser";
 import { defineConfig } from "vite";
+import { blogPlugin } from "./scripts/blog/vite-plugin.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-process.env.VITE_SITE_URL ??= "https://www.jdconley.com";
+process.env.VITE_SITE_URL ??= "https://jdconley.com";
 
 function getHtmlInputs(startDir) {
   const inputs = {};
@@ -94,7 +95,7 @@ function copyRuntimeScriptsPlugin() {
 }
 
 export default defineConfig({
-  plugins: [htmlMinifierPlugin(), copyRuntimeScriptsPlugin()],
+  plugins: [blogPlugin(__dirname), htmlMinifierPlugin(), copyRuntimeScriptsPlugin()],
   build: {
     outDir: "dist",
     sourcemap: false,

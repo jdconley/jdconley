@@ -12,4 +12,4 @@ Disallow: /401.html
 # LLM-friendly content
 # See https://llmstxt.org for the llms.txt specification
 
-Sitemap: https://www.jdconley.com/sitemap.xml
+Sitemap: https://jdconley.com/sitemap.xml

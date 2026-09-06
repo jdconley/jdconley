@@ -1,0 +1,1031 @@
+{
+  "sourceUrl": "https://blog.jdconley.com/feeds/posts/default?alt=json&max-results=500",
+  "count": 71,
+  "posts": [
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8150011986971385423",
+      "path": "content/blog/10-reasons-aspnet-webforms-suck.md",
+      "originalPath": "/2009/01/10-reasons-aspnet-webforms-suck.html",
+      "newPath": "/blog/10-reasons-aspnet-webforms-suck",
+      "checksum": "c59dad7f96601488aa1a9c8c8d12b9207907c0777f49bfcc32892493d3d77e7e"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6581387070107928666",
+      "path": "content/blog/abstracting-away-azure-how-to-run.md",
+      "originalPath": "/2009/02/abstracting-away-azure-how-to-run.html",
+      "newPath": "/blog/abstracting-away-azure-how-to-run",
+      "checksum": "63c2ecb45cb4f35a8fa2ce512e5b7a790ee1d3153acf4f62c1d4393b10086a83"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3298497982786863353",
+      "path": "content/blog/angry-players-make-sunday-more.md",
+      "originalPath": "/2009/11/angry-players-make-sunday-more.html",
+      "newPath": "/blog/angry-players-make-sunday-more",
+      "checksum": "4910767978d4d7e767b8d2f8907a4e36382b518fe4830549dfdeeea118f7c08c"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3759175721413587676",
+      "path": "content/blog/anyone-still-out-there.md",
+      "originalPath": "/2009/11/anyone-still-out-there.html",
+      "newPath": "/blog/anyone-still-out-there",
+      "checksum": "6885f4d65b2d63a87236177c58d9d891bd4b937a50d4adedbf15c04752776e34"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2009462146535283982",
+      "path": "content/blog/aspnet-centric-extensions.md",
+      "originalPath": "/2007/09/aspnet-centric-extensions.html",
+      "newPath": "/blog/aspnet-centric-extensions",
+      "checksum": "71ab6b3df9c186ef992ddef471601e6374bf8a895012233420e6ad4e225d1a9f"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2413166326787052170",
+      "path": "content/blog/aspnet-its-not-just-for-datagrids-after.md",
+      "originalPath": "/2008/07/aspnet-its-not-just-for-datagrids-after.html",
+      "newPath": "/blog/aspnet-its-not-just-for-datagrids-after",
+      "checksum": "c28b2b5cec268ddca76cc44c3d0316255aac033ad8b1cd5f6ce28d5c498258b9"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8456221550217150738",
+      "path": "content/blog/aspnet-mvc-framework.md",
+      "originalPath": "/2007/11/aspnet-mvc-framework.html",
+      "newPath": "/blog/aspnet-mvc-framework",
+      "checksum": "9bdb60c4a7c143e949e0a8f34715786c38bd279143f4c7d09307c112c3006231"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7640307391466323137",
+      "path": "content/blog/aspnet-mvc-sucks-and-so-does-jquery-and.md",
+      "originalPath": "/2009/01/aspnet-mvc-sucks-and-so-does-jquery-and.html",
+      "newPath": "/blog/aspnet-mvc-sucks-and-so-does-jquery-and",
+      "checksum": "36fecfeb3d7110332aaae049634e00085dc360519a5b26576d2626d4b40e4ed7"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2939929600917594074",
+      "path": "content/blog/async-facebook-library-teaser.md",
+      "originalPath": "/2007/12/async-facebook-library-teaser.html",
+      "newPath": "/blog/async-facebook-library-teaser",
+      "checksum": "37dbb2cb1c08939d834ea4a74cc8e21bad34bde33eb040b70270fe2836c055b0"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-188156924369495615",
+      "path": "content/blog/asyncify-your-code.md",
+      "originalPath": "/2007/09/asyncify-your-code.html",
+      "newPath": "/blog/asyncify-your-code",
+      "checksum": "5f5ac8a8df58cf6614d7a9f9d1c1b5c38f959bc0c255722b87179a8e7f83e8d1"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-5839251310447380729",
+      "path": "content/blog/building-reactive-user-interfaces-in.md",
+      "originalPath": "/2007/04/building-reactive-user-interfaces-in.html",
+      "newPath": "/blog/building-reactive-user-interfaces-in",
+      "checksum": "e72a49e533cbd4cca143b67ba8c938d3fbef78c1b2a70e70b93ad4d04fde99a9"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-9168415833215846898",
+      "path": "content/blog/c-30-overview.md",
+      "originalPath": "/2008/02/c-30-overview.html",
+      "newPath": "/blog/c-30-overview",
+      "checksum": "627c880f36cf4500f1640547645f6cfedcac6cc8921ed71dc206f1f85e9f5908"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4142246971923325819",
+      "path": "content/blog/catch-with-godaddy-dedicated-hosting.md",
+      "originalPath": "/2006/09/catch-with-godaddy-dedicated-hosting.html",
+      "newPath": "/blog/catch-with-godaddy-dedicated-hosting",
+      "checksum": "58f373825e4a69efdb00460e98abae457f2801a81ca462f616daf5132ec69fdb"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3636100427201199919",
+      "path": "content/blog/clean-up-string-for-url.md",
+      "originalPath": "/2007/08/clean-up-string-for-url.html",
+      "newPath": "/blog/clean-up-string-for-url",
+      "checksum": "d0cb5968948b5b23f41c700d460524b0ebe58521d7a01ac8f071717afff59baa"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2481574914174471447",
+      "path": "content/blog/command-line-vs-2008-project-upgrade.md",
+      "originalPath": "/2007/11/command-line-vs-2008-project-upgrade.html",
+      "newPath": "/blog/command-line-vs-2008-project-upgrade",
+      "checksum": "bea2dbb054660fb0e838f797bc39d9aeb41d0a1a46a3564b6456358328314962"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6288449040506861270",
+      "path": "content/blog/compact-framework-waithandlewaitone.md",
+      "originalPath": "/2006/11/compact-framework-waithandlewaitone.html",
+      "newPath": "/blog/compact-framework-waithandlewaitone",
+      "checksum": "0aea0ef146e8b30de7927a36ef2067bdfa5a3f2ebfe1f6632e66593b4d16ee0b"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3845481521114917521",
+      "path": "content/blog/concurrency-its-like-doing-dishes.md",
+      "originalPath": "/2009/01/concurrency-its-like-doing-dishes.html",
+      "newPath": "/blog/concurrency-its-like-doing-dishes",
+      "checksum": "11b745252d87f7d7502cf5a02d6364cdf37631292cf5d9d30b1c15360306af51"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8439273755609074001",
+      "path": "content/blog/cross-platform-deployment-project.md",
+      "originalPath": "/2006/09/cross-platform-deployment-project.html",
+      "newPath": "/blog/cross-platform-deployment-project",
+      "checksum": "884a1841d62d79b02b94f360732f4d07cdc8559e0f29491b1b5c0ddaab2bceda"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4712520386674400450",
+      "path": "content/blog/dearest-recruiter.md",
+      "originalPath": "/2011/06/dearest-recruiter.html",
+      "newPath": "/blog/dearest-recruiter",
+      "checksum": "7757449dd2bd78a6835de23baeebd88498df9dcc048eeccd1f21765f21196a04"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4184339582627726952",
+      "path": "content/blog/debugging-after-power-outage.md",
+      "originalPath": "/2008/09/debugging-after-power-outage.html",
+      "newPath": "/blog/debugging-after-power-outage",
+      "checksum": "5e2abb5441233982876e44bad7e0fda944e17c80257d3e7888de07e966287ddc"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7793214738393095802",
+      "path": "content/blog/ditch-your-events-part-1.md",
+      "originalPath": "/2009/11/ditch-your-events-part-1.html",
+      "newPath": "/blog/ditch-your-events-part-1",
+      "checksum": "d3845a2b125fd3005c560177861ab55a64959d23aff9fd045a1fb76660f4075a"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2521490268521831687",
+      "path": "content/blog/dont-forget-to-close-your-linq-to-sql.md",
+      "originalPath": "/2007/08/dont-forget-to-close-your-linq-to-sql.html",
+      "newPath": "/blog/dont-forget-to-close-your-linq-to-sql",
+      "checksum": "2d28dd05b468b7e040026ce513ffd36df6bbb114c8b9f9c98a2ae53e0a524d51"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4135665883135653249",
+      "path": "content/blog/dont-hire-programmer-if-they-dont-code.md",
+      "originalPath": "/2009/01/dont-hire-programmer-if-they-dont-code.html",
+      "newPath": "/blog/dont-hire-programmer-if-they-dont-code",
+      "checksum": "1c466810820680a9411e6cbfbb765e7e936aa09581577f2e7720f205868aac95"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7724535890622942356",
+      "path": "content/blog/dvoraks-gone-mad.md",
+      "originalPath": "/2007/11/dvoraks-gone-mad.html",
+      "newPath": "/blog/dvoraks-gone-mad",
+      "checksum": "5e8c9839f7342dcdc4c3a062d90677837266a962c5cc92c9e4b0916aec5faab5"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3522871326611177809",
+      "path": "content/blog/entrepreneurial-story.md",
+      "originalPath": "/2007/11/entrepreneurial-story.html",
+      "newPath": "/blog/entrepreneurial-story",
+      "checksum": "e5fa8614418f3788e2d420f86ff88b875db6486b251644f2b4a94b4a28d3bf4c"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6390406425317569855",
+      "path": "content/blog/fakeouttheusertothinkwedontuseanymemory.md",
+      "originalPath": "/2006/05/fakeouttheusertothinkwedontuseanymemory.html",
+      "newPath": "/blog/fakeouttheusertothinkwedontuseanymemory",
+      "checksum": "190fd50d8b94a71368b03867dd3b9e598e57b14491c6ee2f303c51d4bf741414"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6128067537066896627",
+      "path": "content/blog/fileversioninfo-my-long-lost-friend.md",
+      "originalPath": "/2007/11/fileversioninfo-my-long-lost-friend.html",
+      "newPath": "/blog/fileversioninfo-my-long-lost-friend",
+      "checksum": "dd5e5babbf6eb914a44ee6f88a07f8dc4ff307b682acadd78d8984ffa86f5452"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6717842052803519212",
+      "path": "content/blog/fire-and-forget-email-webservices-and.md",
+      "originalPath": "/2009/01/fire-and-forget-email-webservices-and.html",
+      "newPath": "/blog/fire-and-forget-email-webservices-and",
+      "checksum": "bb9de99baa66b0c161044cd18e181e842332f76acaad9e4eba5f11581dd52dca"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1477714049596343834",
+      "path": "content/blog/friend-photosaver-for-facebook.md",
+      "originalPath": "/2007/06/friend-photosaver-for-facebook.html",
+      "newPath": "/blog/friend-photosaver-for-facebook",
+      "checksum": "ed02298feeaab050b1478a2378992dd987eacc1aa6e4327ac35a66638009d3a1"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-5102928330552291797",
+      "path": "content/blog/from-trenches-of-my-first-software.md",
+      "originalPath": "/2006/05/from-trenches-of-my-first-software.html",
+      "newPath": "/blog/from-trenches-of-my-first-software",
+      "checksum": "29d133e82f57f3cb34397365b9952b4db2fcdf38d78549af2b00247652c7c65f"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-5719775486610590806",
+      "path": "content/blog/fun-installing-vista-beta-2-on-amd-x64.md",
+      "originalPath": "/2006/06/fun-installing-vista-beta-2-on-amd-x64.html",
+      "newPath": "/blog/fun-installing-vista-beta-2-on-amd-x64",
+      "checksum": "071f751a81b9f7575ef72dda0f368e10946616387634012b1879f26fe5fedf31"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-148808662145526727",
+      "path": "content/blog/functional-optimistic-concurrency-in-c.md",
+      "originalPath": "/2009/01/functional-optimistic-concurrency-in-c.html",
+      "newPath": "/blog/functional-optimistic-concurrency-in-c",
+      "checksum": "1f34d46f195b1f1539af81cd3a9ae5111efb6c95a37438a760593ba1a96a866d"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-9056388359802407533",
+      "path": "content/blog/geeks-with-kids.md",
+      "originalPath": "/2007/12/geeks-with-kids.html",
+      "newPath": "/blog/geeks-with-kids",
+      "checksum": "424e452bfa0e81086a80ce39c4860f6bfd10da8b2a4c14e01856e03bc2acd391"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7389091125871809749",
+      "path": "content/blog/gentoo-linux-mac-based-host-name.md",
+      "originalPath": "/2006/09/gentoo-linux-mac-based-host-name.html",
+      "newPath": "/blog/gentoo-linux-mac-based-host-name",
+      "checksum": "8b8c103e4693c763ec03260c816a413e9d68f3170477079e49800c236f52db90"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7346749600347321380",
+      "path": "content/blog/how-much-space-are-all-my-sql-tables.md",
+      "originalPath": "/2007/11/how-much-space-are-all-my-sql-tables.html",
+      "newPath": "/blog/how-much-space-are-all-my-sql-tables",
+      "checksum": "e2c5bab846d209aa3531704540cc720e6173d1625cdef312ba584ceca97ede47"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7402889212575295063",
+      "path": "content/blog/how-to-build-scalable-net-server.md",
+      "originalPath": "/2006/06/how-to-build-scalable-net-server.html",
+      "newPath": "/blog/how-to-build-scalable-net-server",
+      "checksum": "15fe02bd79ebecc357bd35fb4fb5755ea1ac1057a4183330d1c5b4d987efd6c0"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8119001092534412284",
+      "path": "content/blog/how-to-recruit-great-engineering-talent.md",
+      "originalPath": "/2011/07/how-to-recruit-great-engineering-talent.html",
+      "newPath": "/blog/how-to-recruit-great-engineering-talent",
+      "checksum": "8398dc9691da3c259855f438e3ff40fade8e941f38302fef5bcc3dfe7d51467c"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4679098985155157274",
+      "path": "content/blog/install-nodejs-in-10-seconds-or-less.md",
+      "originalPath": "/2011/08/install-nodejs-in-10-seconds-or-less.html",
+      "newPath": "/blog/install-nodejs-in-10-seconds-or-less",
+      "checksum": "86c30c005052fe5ccf06feacd5d8c12a1519ec32d40cd772b3c6620b3a4ab5ba"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1317392116403861647",
+      "path": "content/blog/installing-coversant-products-on-vista.md",
+      "originalPath": "/2006/12/installing-coversant-products-on-vista.html",
+      "newPath": "/blog/installing-coversant-products-on-vista",
+      "checksum": "4c70c9ab713882a5ffb3183addf75467a07fa9bd95981996a8d82950822e6f48"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3475430821530758052",
+      "path": "content/blog/interoperability-yup-we-got-it-covered.md",
+      "originalPath": "/2006/07/interoperability-yup-we-got-it-covered.html",
+      "newPath": "/blog/interoperability-yup-we-got-it-covered",
+      "checksum": "0af5f367bddfb6aff47a4d32ad8ed460fe5b5703c8d486cc04321ed788c3755d"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8830681557683240270",
+      "path": "content/blog/introduction-to-fbasync-asynchronous.md",
+      "originalPath": "/2007/12/introduction-to-fbasync-asynchronous.html",
+      "newPath": "/blog/introduction-to-fbasync-asynchronous",
+      "checksum": "276eb9fd9527793ef822159fe953e32a195d3b653fa8bc5b218c7e78d56c8c06"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3039767605246329505",
+      "path": "content/blog/iodrive-changing-way-you-code.md",
+      "originalPath": "/2009/03/iodrive-changing-way-you-code.html",
+      "newPath": "/blog/iodrive-changing-way-you-code",
+      "checksum": "63f2f5b9512d58f1a712eb47dc65e23faba6ee22fdb3dad80e1fd1f4c7dcbca0"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1887030120170852789",
+      "path": "content/blog/linq-to-sql-surprise-performance-hit.md",
+      "originalPath": "/2007/11/linq-to-sql-surprise-performance-hit.html",
+      "newPath": "/blog/linq-to-sql-surprise-performance-hit",
+      "checksum": "313df3d4edd1dc8b646e86525ad6008662c4a792df39e3a97c9d364b70e80c79"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-554861436859257643",
+      "path": "content/blog/list-of-country-names.md",
+      "originalPath": "/2007/09/list-of-country-names.html",
+      "newPath": "/blog/list-of-country-names",
+      "checksum": "ffbaaceb6906881fff92652dd1bfe21ed1c02d56cb9fb105cf4a8a3f8692dc8d"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1161897624541060473",
+      "path": "content/blog/more-on-interop.md",
+      "originalPath": "/2006/07/more-on-interop.html",
+      "newPath": "/blog/more-on-interop",
+      "checksum": "f936becf68a3d1bbcd5dfe05034a2f1e86558cf7f3f77389c552c84bdd5a4c02"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2140608852551935922",
+      "path": "content/blog/more-visual-studio-2008-beta-2-to-rtm.md",
+      "originalPath": "/2007/11/more-visual-studio-2008-beta-2-to-rtm.html",
+      "newPath": "/blog/more-visual-studio-2008-beta-2-to-rtm",
+      "checksum": "30bb51527fc92fce2036fba37dd646b0a9d6a3ef278f836898ccbddc9ede660d"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6147256010649956063",
+      "path": "content/blog/mr-sprite-sheet-meet-ms-movieclip.md",
+      "originalPath": "/2010/03/mr-sprite-sheet-meet-ms-movieclip.html",
+      "newPath": "/blog/mr-sprite-sheet-meet-ms-movieclip",
+      "checksum": "da16f532169cef0a1a6d6d8addb13f6a98141b38f49cfa2b218a272a4ddef426"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2083274888998170874",
+      "path": "content/blog/net-20-web-service-hair-puller.md",
+      "originalPath": "/2006/05/net-20-web-service-hair-puller.html",
+      "newPath": "/blog/net-20-web-service-hair-puller",
+      "checksum": "9f5a97a89e56c210f648b073e8823d25790a3b386eb3764dd71eeba87b569c0b"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6630336472210026047",
+      "path": "content/blog/new-basket-for-my-eggs.md",
+      "originalPath": "/2009/06/new-basket-for-my-eggs.html",
+      "newPath": "/blog/new-basket-for-my-eggs",
+      "checksum": "2cdf548246b6cf23910d5d0b8b1a6059a2f61cd309a5977ff4e773553f877d26"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8579264127606836594",
+      "path": "content/blog/new-kind-of-application-server.md",
+      "originalPath": "/2008/02/new-kind-of-application-server.html",
+      "newPath": "/blog/new-kind-of-application-server",
+      "checksum": "d4b9f14bb40a386c58b5dfab0b9f497cb5cfc5416be46b4fb9b42225678b4e31"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7087191807678130888",
+      "path": "content/blog/photo-feeds-facebook-application.md",
+      "originalPath": "/2011/07/photo-feeds-facebook-application.html",
+      "newPath": "/blog/photo-feeds-facebook-application",
+      "checksum": "be0ac7d5f7aef43bdca741d8798a65aa15df25309a118452f7a7edaa40eb61f0"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7314456103484989963",
+      "path": "content/blog/put-down-abstract-factory-and-get.md",
+      "originalPath": "/2009/01/put-down-abstract-factory-and-get.html",
+      "newPath": "/blog/put-down-abstract-factory-and-get",
+      "checksum": "48df001143a00746be6df61f80ca2f658fd3eb58a301ab8d7e60a6e7a14ce36f"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3800237020780798768",
+      "path": "content/blog/relocation.md",
+      "originalPath": "/2007/08/relocation.html",
+      "newPath": "/blog/relocation",
+      "checksum": "65159f6cc4f4d36b508aa6eecf07cc88698dc96a98eb1b45e6c198fc9b6f848b"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4159598516278882360",
+      "path": "content/blog/simpler-isnt-always-better.md",
+      "originalPath": "/2007/06/simpler-isnt-always-better.html",
+      "newPath": "/blog/simpler-isnt-always-better",
+      "checksum": "c0da34a227748f3c312bf2c685b5ded1420e43ce651bbe8bf7a72afc7cffc459"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4154510686697844042",
+      "path": "content/blog/small-gotcha-in-net-framework-35-beta-2.md",
+      "originalPath": "/2007/11/small-gotcha-in-net-framework-35-beta-2.html",
+      "newPath": "/blog/small-gotcha-in-net-framework-35-beta-2",
+      "checksum": "b775a213dbfc5b4a6fe286b88d9f0d2bd39203f115e31ba43dfe3fddd56afc20"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7900123433520559771",
+      "path": "content/blog/soapbox-platform-possibilities.md",
+      "originalPath": "/2006/06/soapbox-platform-possibilities.html",
+      "newPath": "/blog/soapbox-platform-possibilities",
+      "checksum": "1fd40c9ab6331f13246a014c7dd154808ed984e79174b163681c684e75267def"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4735818999066519398",
+      "path": "content/blog/sorted-affair-history-of-c-sort.md",
+      "originalPath": "/2008/01/sorted-affair-history-of-c-sort.html",
+      "newPath": "/blog/sorted-affair-history-of-c-sort",
+      "checksum": "cbdac9414c58648133fd0a4a41902cc89b82883b2c7639fb67bd0682e7b2ebaa"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6275555993787182064",
+      "path": "content/blog/sql-table-manhunt.md",
+      "originalPath": "/2008/03/sql-table-manhunt.html",
+      "newPath": "/blog/sql-table-manhunt",
+      "checksum": "7337ecad5b9fcca511dd8e03fa6f484e5f41903fea963474c0ac5da1a1403163"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6881000841619034399",
+      "path": "content/blog/stringbuildify.md",
+      "originalPath": "/2007/09/stringbuildify.html",
+      "newPath": "/blog/stringbuildify",
+      "checksum": "fde0fe5bce8ff2807f55982cf7ed4fd730513b216ca74d32bc1fde31fe7cd728"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3585706395835555227",
+      "path": "content/blog/unadulterated-expurgation.md",
+      "originalPath": "/2007/12/unadulterated-expurgation.html",
+      "newPath": "/blog/unadulterated-expurgation",
+      "checksum": "35b6da1b8dd54529d0cd9dff9cebd91fe1425c0c0922d5ebf87b3f89dcbf6727"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7735018220357202657",
+      "path": "content/blog/using-mysql-command-line-from-cnet.md",
+      "originalPath": "/2006/08/using-mysql-command-line-from-cnet.html",
+      "newPath": "/blog/using-mysql-command-line-from-cnet",
+      "checksum": "ac146ddfe0b4a01b551f7a8b43fef6f5ccb87f04a7d4da9d040b104d335026f9"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4927664133002778517",
+      "path": "content/blog/using-wcfclient-kaboom.md",
+      "originalPath": "/2007/08/using-wcfclient-kaboom.html",
+      "newPath": "/blog/using-wcfclient-kaboom",
+      "checksum": "814e19868926918cb16333775c63c350bb9f6f12c5afb0cceb43186ab7262cb2"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7924513367780140302",
+      "path": "content/blog/validateinput-attribute-doesnt-work-in.md",
+      "originalPath": "/2010/04/validateinput-attribute-doesnt-work-in.html",
+      "newPath": "/blog/validateinput-attribute-doesnt-work-in",
+      "checksum": "1d47aa0c8b61d510ef1a2fd3c26510583ba2f8239594031d41c4022e05e39170"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2948995150946085884",
+      "path": "content/blog/validating-jabberid-nodes-xmppsoapbox.md",
+      "originalPath": "/2007/03/validating-jabberid-nodes-xmppsoapbox.html",
+      "newPath": "/blog/validating-jabberid-nodes-xmppsoapbox",
+      "checksum": "a1a2dcb9c2fe2c12cf3e7e8a5e90686c33152d940a819bc97c6318872f4ad9d5"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8612167056838636292",
+      "path": "content/blog/vista-rant.md",
+      "originalPath": "/2007/10/vista-rant.html",
+      "newPath": "/blog/vista-rant",
+      "checksum": "16cb90424786a1c160dd4d814f00b9a14115881a08f3ead60352517b3080fedc"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6930063535698047898",
+      "path": "content/blog/windows-server-2008.md",
+      "originalPath": "/2008/05/windows-server-2008.html",
+      "newPath": "/blog/windows-server-2008",
+      "checksum": "134dd26da761bf8a5f99b9d3d3f01630ee36ab33651cb0da666dd71c2b8572a7"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4836117030040205910",
+      "path": "content/blog/worry-less-do-more-be-fearless.md",
+      "originalPath": "/2013/07/worry-less-do-more-be-fearless.html",
+      "newPath": "/blog/worry-less-do-more-be-fearless",
+      "checksum": "8d944d06338117665d4a675ddcaa895b1dbbbe977e16a6b90dbe8ba67e79066c"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2106830143411505646",
+      "path": "content/blog/xmpp-presence-priority.md",
+      "originalPath": "/2007/05/xmpp-presence-priority.html",
+      "newPath": "/blog/xmpp-presence-priority",
+      "checksum": "dccd6071996430b72806e364acfb2572d17d82f67850ccff4acbb9abc8abb294"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8638020826163728097",
+      "path": "content/blog/xslt-for-msdn-product-keys.md",
+      "originalPath": "/2006/11/xslt-for-msdn-product-keys.html",
+      "newPath": "/blog/xslt-for-msdn-product-keys",
+      "checksum": "6d7142aa64325c9278ac1a6dcd45137834f0b2dce023ec199758a35719f38e98"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8143439452965828995",
+      "path": "content/blog/you-might-be-great-hacker-if-you.md",
+      "originalPath": "/2009/02/you-might-be-great-hacker-if-you.html",
+      "newPath": "/blog/you-might-be-great-hacker-if-you",
+      "checksum": "99606ac3ca92b945dcc4b0d457e9492582e12065cc9a4d2c5bb2f5afde565f09"
+    },
+    {
+      "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6469503447914068558",
+      "path": "content/blog/youtube-getter.md",
+      "originalPath": "/2007/04/youtube-getter.html",
+      "newPath": "/blog/youtube-getter",
+      "checksum": "6e3650564dc5a1eae2385498cb1e6f9baafb982fb19738b508bafa5e57014428"
+    }
+  ],
+  "assets": [
+    {
+      "url": "http://knight.fb.hive7.com/res/img/area/wall.png?63356112540",
+      "error": "https://knight.fb.hive7.com/res/img/area/wall.png?63356112540: fetch failed; http://knight.fb.hive7.com/res/img/area/wall.png?63356112540: fetch failed",
+      "posts": [
+        {
+          "id": "tag:blogger.com,1999:blog-1741199026308686058.post-148808662145526727",
+          "title": "Functional Optimistic Concurrency in C#",
+          "path": "content/blog/functional-optimistic-concurrency-in-c.md"
+        }
+      ]
+    },
+    {
+      "url": "http://photos-c.ak.facebook.com/photos-ak-sctm/v43/1/718761709/app3_718761709_2466327790_7506.gif",
+      "error": "https://photos-c.ak.facebook.com/photos-ak-sctm/v43/1/718761709/app3_718761709_2466327790_7506.gif: fetch failed; http://photos-c.ak.facebook.com/photos-ak-sctm/v43/1/718761709/app3_718761709_2466327790_7506.gif: fetch failed",
+      "posts": [
+        {
+          "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1477714049596343834",
+          "title": "Friend Photosaver for Facebook",
+          "path": "content/blog/friend-photosaver-for-facebook.md"
+        }
+      ]
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg4E5aLNrn4K8YqhHLglEOVEmA9gNIVLo7UJ1ktX7BJakOB55WkJoPGaJ1V6tjlLmO81ceYFYpxjVQixqdEcZxKEE8N8HFg8yOVorZPpmWc9g4CqFjv1ArAqM2VEgXl098KsBR6UWpnz58/s1600/971746_10151413526117117_1345713512_n.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg4E5aLNrn4K8YqhHLglEOVEmA9gNIVLo7UJ1ktX7BJakOB55WkJoPGaJ1V6tjlLmO81ceYFYpxjVQixqdEcZxKEE8N8HFg8yOVorZPpmWc9g4CqFjv1ArAqM2VEgXl098KsBR6UWpnz58/s1600/971746_10151413526117117_1345713512_n.jpg",
+      "path": "/blog-assets/imported/9706cb7d763ab922080fc0a7.jpg",
+      "checksum": "9706cb7d763ab922080fc0a7a442f763537cce534ccdad60dee77758ed3a6d13",
+      "bytes": 81676,
+      "mime": "image/jpeg",
+      "width": 720,
+      "height": 960
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg4E5aLNrn4K8YqhHLglEOVEmA9gNIVLo7UJ1ktX7BJakOB55WkJoPGaJ1V6tjlLmO81ceYFYpxjVQixqdEcZxKEE8N8HFg8yOVorZPpmWc9g4CqFjv1ArAqM2VEgXl098KsBR6UWpnz58/s320/971746_10151413526117117_1345713512_n.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg4E5aLNrn4K8YqhHLglEOVEmA9gNIVLo7UJ1ktX7BJakOB55WkJoPGaJ1V6tjlLmO81ceYFYpxjVQixqdEcZxKEE8N8HFg8yOVorZPpmWc9g4CqFjv1ArAqM2VEgXl098KsBR6UWpnz58/s320/971746_10151413526117117_1345713512_n.jpg",
+      "path": "/blog-assets/imported/d7192a4ef57536034caff04f.jpg",
+      "checksum": "d7192a4ef57536034caff04f895b8a0aa187e7519e9adee0c7a2d400e0f053a4",
+      "bytes": 32769,
+      "mime": "image/jpeg",
+      "width": 240,
+      "height": 320
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgAVVtB3ftls9Fa-o0lKD6B6P3WAJZI8AZwKDbft6NpzuT26sy3Bk6BpT8-SKn9bpAMG7vuhHIAAd2bz_FZmSgQ7V00qPdnFTUeN-uZ88rmJKTfi6Og_3qK77sMifZrpwYMw7TY6SPkvLdA/s400/linq-before-thumb.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgAVVtB3ftls9Fa-o0lKD6B6P3WAJZI8AZwKDbft6NpzuT26sy3Bk6BpT8-SKn9bpAMG7vuhHIAAd2bz_FZmSgQ7V00qPdnFTUeN-uZ88rmJKTfi6Og_3qK77sMifZrpwYMw7TY6SPkvLdA/s400/linq-before-thumb.png",
+      "path": "/blog-assets/imported/825aa880d8179194b3f085cc.png",
+      "checksum": "825aa880d8179194b3f085cc4f7073cb746ae22e03d37067944cbe367e86a5fa",
+      "bytes": 1149,
+      "mime": "image/png",
+      "width": 320,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgBv1J0DCvVJoBtxA5XXY_vYWe7fcSbpJ9QpWuVGLRRjnfqaoSuLWD6yfciFHBJsJC1Fb-EpkzD9EcZCBI9XE1meY_TYMN69IzlZzlgL6gfnnydUti8lR_vodhDlnRqzdr34cfd31QNYwP8/s1600/nails.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgBv1J0DCvVJoBtxA5XXY_vYWe7fcSbpJ9QpWuVGLRRjnfqaoSuLWD6yfciFHBJsJC1Fb-EpkzD9EcZCBI9XE1meY_TYMN69IzlZzlgL6gfnnydUti8lR_vodhDlnRqzdr34cfd31QNYwP8/s1600/nails.jpg",
+      "path": "/blog-assets/imported/06a43d6af5469f401d91f551.jpg",
+      "checksum": "06a43d6af5469f401d91f551efa942ee5ace181863160d88b5bae397a9f4d173",
+      "bytes": 11905,
+      "mime": "image/jpeg",
+      "width": 300,
+      "height": 189
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgBv1J0DCvVJoBtxA5XXY_vYWe7fcSbpJ9QpWuVGLRRjnfqaoSuLWD6yfciFHBJsJC1Fb-EpkzD9EcZCBI9XE1meY_TYMN69IzlZzlgL6gfnnydUti8lR_vodhDlnRqzdr34cfd31QNYwP8/s400/nails.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgBv1J0DCvVJoBtxA5XXY_vYWe7fcSbpJ9QpWuVGLRRjnfqaoSuLWD6yfciFHBJsJC1Fb-EpkzD9EcZCBI9XE1meY_TYMN69IzlZzlgL6gfnnydUti8lR_vodhDlnRqzdr34cfd31QNYwP8/s400/nails.jpg",
+      "path": "/blog-assets/imported/72fd0c21a6c286157dc3ecc2.jpg",
+      "checksum": "72fd0c21a6c286157dc3ecc2f1242597c9c6f70ae6ece20697df62fa8266a081",
+      "bytes": 12745,
+      "mime": "image/jpeg",
+      "width": 300,
+      "height": 189
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgE2-IbbQPyV2i2DruyU2J4Dla_5RSjnjIlLS6huzNzO3HliZQKsiY3Qxx5I7TlbmV7_xmz31PoTcQzg1rXeUS-GDJz-Jxypk50npzPUxKnt6chTwhGClr85vvf7yCKZl4XIvsdLM6IThQ/s1600/Window+Close.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgE2-IbbQPyV2i2DruyU2J4Dla_5RSjnjIlLS6huzNzO3HliZQKsiY3Qxx5I7TlbmV7_xmz31PoTcQzg1rXeUS-GDJz-Jxypk50npzPUxKnt6chTwhGClr85vvf7yCKZl4XIvsdLM6IThQ/s1600/Window+Close.jpg",
+      "path": "/blog-assets/imported/7f4a3f079aed22e6c3fc013e.jpg",
+      "checksum": "7f4a3f079aed22e6c3fc013e66544411cc7e1bb065e6d147e732d705fbd82ce7",
+      "bytes": 330854,
+      "mime": "image/jpeg",
+      "width": 1200,
+      "height": 1600
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgE2-IbbQPyV2i2DruyU2J4Dla_5RSjnjIlLS6huzNzO3HliZQKsiY3Qxx5I7TlbmV7_xmz31PoTcQzg1rXeUS-GDJz-Jxypk50npzPUxKnt6chTwhGClr85vvf7yCKZl4XIvsdLM6IThQ/s320/Window+Close.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgE2-IbbQPyV2i2DruyU2J4Dla_5RSjnjIlLS6huzNzO3HliZQKsiY3Qxx5I7TlbmV7_xmz31PoTcQzg1rXeUS-GDJz-Jxypk50npzPUxKnt6chTwhGClr85vvf7yCKZl4XIvsdLM6IThQ/s320/Window+Close.jpg",
+      "path": "/blog-assets/imported/36d0d9e90929cce42c2f0018.jpg",
+      "checksum": "36d0d9e90929cce42c2f00187665f1f63db6c7b718b2ebe2ba3b6ecefef1fe9f",
+      "bytes": 22434,
+      "mime": "image/jpeg",
+      "width": 240,
+      "height": 320
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgGJjjV0u6b24OShxVtlolrVhy9kLvjH_us5_QLkwqt1koprhCnABrNf5o7O3sJuFgbk4m2L_jtOblOMqOIg_7xPSn4Tiz21-WhuVOHN8JcJcoO38MQkpvEcN2_cgwWwfhqRW5jTzTpCOc7/s1600/160px-Dirty_dishes.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgGJjjV0u6b24OShxVtlolrVhy9kLvjH_us5_QLkwqt1koprhCnABrNf5o7O3sJuFgbk4m2L_jtOblOMqOIg_7xPSn4Tiz21-WhuVOHN8JcJcoO38MQkpvEcN2_cgwWwfhqRW5jTzTpCOc7/s1600/160px-Dirty_dishes.jpg",
+      "path": "/blog-assets/imported/6d6ec83c329ac21f37a87801.jpg",
+      "checksum": "6d6ec83c329ac21f37a878015fa5d578868ebfad7f606204251f07cd8c9c3173",
+      "bytes": 6497,
+      "mime": "image/jpeg",
+      "width": 160,
+      "height": 120
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgGJjjV0u6b24OShxVtlolrVhy9kLvjH_us5_QLkwqt1koprhCnABrNf5o7O3sJuFgbk4m2L_jtOblOMqOIg_7xPSn4Tiz21-WhuVOHN8JcJcoO38MQkpvEcN2_cgwWwfhqRW5jTzTpCOc7/s400/160px-Dirty_dishes.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgGJjjV0u6b24OShxVtlolrVhy9kLvjH_us5_QLkwqt1koprhCnABrNf5o7O3sJuFgbk4m2L_jtOblOMqOIg_7xPSn4Tiz21-WhuVOHN8JcJcoO38MQkpvEcN2_cgwWwfhqRW5jTzTpCOc7/s400/160px-Dirty_dishes.jpg",
+      "path": "/blog-assets/imported/e1a7ffa8f735273bd4df49bc.jpg",
+      "checksum": "e1a7ffa8f735273bd4df49bcd7a19256c59445c18463a023ad6b35acae6be173",
+      "bytes": 7992,
+      "mime": "image/jpeg",
+      "width": 160,
+      "height": 120
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgQ2DIVE1X4RBW0teaBmnyV5krVOds1Z2ZulUQKQ6A_aMcOzEtOZx5XhL7H6WAoEx-Dbm4ifRPEvgABc9P4lrpfF64iBLTq-JnLlSs66Pjd82_u-Vw1Ry1FywSeBQW_qhUlino6iWHyKCA1/s1600/mc-ops.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgQ2DIVE1X4RBW0teaBmnyV5krVOds1Z2ZulUQKQ6A_aMcOzEtOZx5XhL7H6WAoEx-Dbm4ifRPEvgABc9P4lrpfF64iBLTq-JnLlSs66Pjd82_u-Vw1Ry1FywSeBQW_qhUlino6iWHyKCA1/s1600/mc-ops.png",
+      "path": "/blog-assets/imported/cdaa40da4f577e445a0bce77.png",
+      "checksum": "cdaa40da4f577e445a0bce77ff0940a926b39c2bb6ea7a7d6f1a6e89e5ece3df",
+      "bytes": 8149,
+      "mime": "image/png",
+      "width": 483,
+      "height": 291
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSPTkNg5HzczomFry6q04g6q5WEz9JB3rMaAoUwQQFgB_dHqy__ngzCHmZsI12m7XrEI8fIGnxiUC-r8E4Yc3NJj-P1p4hiFr5ICiGsr5ftr-RDJF8_RxtsqQ7KcpgKPkAg2n8iWlvZsnr/s1600/ApplicationIdleInvoker.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSPTkNg5HzczomFry6q04g6q5WEz9JB3rMaAoUwQQFgB_dHqy__ngzCHmZsI12m7XrEI8fIGnxiUC-r8E4Yc3NJj-P1p4hiFr5ICiGsr5ftr-RDJF8_RxtsqQ7KcpgKPkAg2n8iWlvZsnr/s1600/ApplicationIdleInvoker.png",
+      "path": "/blog-assets/imported/2b8ff899c303642584ed16e6.png",
+      "checksum": "2b8ff899c303642584ed16e6a3b2ab6f27cdc28c3a2bd696cf1a687395ce74d7",
+      "bytes": 8834,
+      "mime": "image/png",
+      "width": 334,
+      "height": 100
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSPTkNg5HzczomFry6q04g6q5WEz9JB3rMaAoUwQQFgB_dHqy__ngzCHmZsI12m7XrEI8fIGnxiUC-r8E4Yc3NJj-P1p4hiFr5ICiGsr5ftr-RDJF8_RxtsqQ7KcpgKPkAg2n8iWlvZsnr/s400/ApplicationIdleInvoker.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSPTkNg5HzczomFry6q04g6q5WEz9JB3rMaAoUwQQFgB_dHqy__ngzCHmZsI12m7XrEI8fIGnxiUC-r8E4Yc3NJj-P1p4hiFr5ICiGsr5ftr-RDJF8_RxtsqQ7KcpgKPkAg2n8iWlvZsnr/s400/ApplicationIdleInvoker.png",
+      "path": "/blog-assets/imported/2b8ff899c303642584ed16e6.png",
+      "checksum": "2b8ff899c303642584ed16e6a3b2ab6f27cdc28c3a2bd696cf1a687395ce74d7",
+      "bytes": 8834,
+      "mime": "image/png",
+      "width": 334,
+      "height": 100
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgT-dGh22BVPrD5-GnxGoFCnFaP6Ivzj6BcfYkZDY52A8UleFpDhJEt0G7VF8jAYFC8IJ5wP5YlKyvOOqAOiUp7BJyZnFQ6pFy61kqnmdoynS2UwuEOsfuwP29klPNQY1PE06TQi2xrJUCF/s1600/feed-screenshot.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgT-dGh22BVPrD5-GnxGoFCnFaP6Ivzj6BcfYkZDY52A8UleFpDhJEt0G7VF8jAYFC8IJ5wP5YlKyvOOqAOiUp7BJyZnFQ6pFy61kqnmdoynS2UwuEOsfuwP29klPNQY1PE06TQi2xrJUCF/s1600/feed-screenshot.png",
+      "path": "/blog-assets/imported/afac6ada2089089f450ccec0.png",
+      "checksum": "afac6ada2089089f450ccec0a210986d32a663fa1f1cdeb12aa3baea23bc5398",
+      "bytes": 4909,
+      "mime": "image/png",
+      "width": 550,
+      "height": 298
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwzVcr7b8kbGE8nFnd_M69r3ZyAyEwZBR8J5rrs2MeczYVDTYeZl4yHP7TTEdGGcd_o_fEhy0NSxG_Y1FOuzaw2fNnGvnhNxk5TM9IqdAoH2Ly6p53c7uVjB6QupK9XPjcVWp5HbFxnXaY/s1600/highlevel.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwzVcr7b8kbGE8nFnd_M69r3ZyAyEwZBR8J5rrs2MeczYVDTYeZl4yHP7TTEdGGcd_o_fEhy0NSxG_Y1FOuzaw2fNnGvnhNxk5TM9IqdAoH2Ly6p53c7uVjB6QupK9XPjcVWp5HbFxnXaY/s1600/highlevel.png",
+      "path": "/blog-assets/imported/545427e849e19249bb213df0.png",
+      "checksum": "545427e849e19249bb213df0cf2f743cf556df7da1e4f75c5410177472fe51d6",
+      "bytes": 10013,
+      "mime": "image/png",
+      "width": 337,
+      "height": 221
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwzVcr7b8kbGE8nFnd_M69r3ZyAyEwZBR8J5rrs2MeczYVDTYeZl4yHP7TTEdGGcd_o_fEhy0NSxG_Y1FOuzaw2fNnGvnhNxk5TM9IqdAoH2Ly6p53c7uVjB6QupK9XPjcVWp5HbFxnXaY/s400/highlevel.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwzVcr7b8kbGE8nFnd_M69r3ZyAyEwZBR8J5rrs2MeczYVDTYeZl4yHP7TTEdGGcd_o_fEhy0NSxG_Y1FOuzaw2fNnGvnhNxk5TM9IqdAoH2Ly6p53c7uVjB6QupK9XPjcVWp5HbFxnXaY/s400/highlevel.png",
+      "path": "/blog-assets/imported/545427e849e19249bb213df0.png",
+      "checksum": "545427e849e19249bb213df0cf2f743cf556df7da1e4f75c5410177472fe51d6",
+      "bytes": 10013,
+      "mime": "image/png",
+      "width": 337,
+      "height": 221
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBRT57mkdMApW_qQX-IBloDKTHCdgIF7Lsyp2SCD1aYvP8KceiQ3U_QbflQXBBoS59X_upbSo4PJV5eeHzEwGL_z0w4e487OSm8MMTDxu5upC-SnnIp2D0E6fzHasSdpJt7hnq4QgoKKZy/s1600/fbasync-1-port.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBRT57mkdMApW_qQX-IBloDKTHCdgIF7Lsyp2SCD1aYvP8KceiQ3U_QbflQXBBoS59X_upbSo4PJV5eeHzEwGL_z0w4e487OSm8MMTDxu5upC-SnnIp2D0E6fzHasSdpJt7hnq4QgoKKZy/s1600/fbasync-1-port.png",
+      "path": "/blog-assets/imported/6e49d1c0913759e63e9c21e6.png",
+      "checksum": "6e49d1c0913759e63e9c21e6b18eed6d7d8dcd1664c362789303b87c622f1a5a",
+      "bytes": 5676,
+      "mime": "image/png",
+      "width": 400,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBRT57mkdMApW_qQX-IBloDKTHCdgIF7Lsyp2SCD1aYvP8KceiQ3U_QbflQXBBoS59X_upbSo4PJV5eeHzEwGL_z0w4e487OSm8MMTDxu5upC-SnnIp2D0E6fzHasSdpJt7hnq4QgoKKZy/s400/fbasync-1-port.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhBRT57mkdMApW_qQX-IBloDKTHCdgIF7Lsyp2SCD1aYvP8KceiQ3U_QbflQXBBoS59X_upbSo4PJV5eeHzEwGL_z0w4e487OSm8MMTDxu5upC-SnnIp2D0E6fzHasSdpJt7hnq4QgoKKZy/s400/fbasync-1-port.png",
+      "path": "/blog-assets/imported/6e49d1c0913759e63e9c21e6.png",
+      "checksum": "6e49d1c0913759e63e9c21e6b18eed6d7d8dcd1664c362789303b87c622f1a5a",
+      "bytes": 5676,
+      "mime": "image/png",
+      "width": 400,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhKMJm0qQxjWFBLC0kK67UqgHEa7nQHpyJ5fgf3O_C1TRC57sXSnO2HgiiDZTU2hVrO7y2BLX90ipUR-TqcTW8-lWyAOnohr44_ViBl7ZVa2taX4ScFVoRNjMxVHrlXJ4NpjqVATrpZqFA3/s1600/fbasync-1-getusers.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhKMJm0qQxjWFBLC0kK67UqgHEa7nQHpyJ5fgf3O_C1TRC57sXSnO2HgiiDZTU2hVrO7y2BLX90ipUR-TqcTW8-lWyAOnohr44_ViBl7ZVa2taX4ScFVoRNjMxVHrlXJ4NpjqVATrpZqFA3/s1600/fbasync-1-getusers.png",
+      "path": "/blog-assets/imported/4a5672f537a1af6858328e99.png",
+      "checksum": "4a5672f537a1af6858328e9984d754eed4f26cfd7b4d8e56e61d1c6449c8da1d",
+      "bytes": 4016,
+      "mime": "image/png",
+      "width": 400,
+      "height": 275
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhKMJm0qQxjWFBLC0kK67UqgHEa7nQHpyJ5fgf3O_C1TRC57sXSnO2HgiiDZTU2hVrO7y2BLX90ipUR-TqcTW8-lWyAOnohr44_ViBl7ZVa2taX4ScFVoRNjMxVHrlXJ4NpjqVATrpZqFA3/s400/fbasync-1-getusers.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhKMJm0qQxjWFBLC0kK67UqgHEa7nQHpyJ5fgf3O_C1TRC57sXSnO2HgiiDZTU2hVrO7y2BLX90ipUR-TqcTW8-lWyAOnohr44_ViBl7ZVa2taX4ScFVoRNjMxVHrlXJ4NpjqVATrpZqFA3/s400/fbasync-1-getusers.png",
+      "path": "/blog-assets/imported/4a5672f537a1af6858328e99.png",
+      "checksum": "4a5672f537a1af6858328e9984d754eed4f26cfd7b4d8e56e61d1c6449c8da1d",
+      "bytes": 4016,
+      "mime": "image/png",
+      "width": 400,
+      "height": 275
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhhoLUsAI30m3FEHDRjm6c9E2r3jai0l6D3DzSwSfhvQocZ5iswn2JSE7e3DThBaUUYnne2DCdEC_q6WdGFJ3a_fasUI9AazRAcqLVCyYXi5wLXjnzKZEgPgT5izs4q3ycDcktcfKGMAu8r/s1600/linq-before.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhhoLUsAI30m3FEHDRjm6c9E2r3jai0l6D3DzSwSfhvQocZ5iswn2JSE7e3DThBaUUYnne2DCdEC_q6WdGFJ3a_fasUI9AazRAcqLVCyYXi5wLXjnzKZEgPgT5izs4q3ycDcktcfKGMAu8r/s1600/linq-before.png",
+      "path": "/blog-assets/imported/0e8af65acaef134307d84b6d.png",
+      "checksum": "0e8af65acaef134307d84b6d5549a63029e70cddcf94d1397cf02fd845d62d60",
+      "bytes": 32010,
+      "mime": "image/png",
+      "width": 1047,
+      "height": 735
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhjb2baTooDkc3Z9RtGAxi-0FFx0yEtBk8-rueHOBhSoWVR5P0Ys4dpPz02WZ1YlcXgaxHIjdDlsD_6KJkjzVcG7NiH0IHN2KX9BJfkKltIOjZOiGwqBvbgBB9Hna-CjQtUpPnzWpJrcfrq/s1600/d-ops.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhjb2baTooDkc3Z9RtGAxi-0FFx0yEtBk8-rueHOBhSoWVR5P0Ys4dpPz02WZ1YlcXgaxHIjdDlsD_6KJkjzVcG7NiH0IHN2KX9BJfkKltIOjZOiGwqBvbgBB9Hna-CjQtUpPnzWpJrcfrq/s1600/d-ops.png",
+      "path": "/blog-assets/imported/6c16f17d34de3564e0fe8a4b.png",
+      "checksum": "6c16f17d34de3564e0fe8a4b17c7a82ac7ff7c31ab60a3dfb7c2813f1484486e",
+      "bytes": 8043,
+      "mime": "image/png",
+      "width": 483,
+      "height": 291
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhspiDjYIdcKYx5YA-mxpYsvlG9KbfbXG-FQ9CXFhdtJeNNJxMvAPvhmZfNcuVEoOMn9dKaJe8vodv1H2zAU9gt7vYXaqI2C5PZL3iMXVRUpBWOmwOEQYe6mOoJwnn7_qGdsxPXRtxqZfXa/s1600/fbasync-1-sessioncreated.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhspiDjYIdcKYx5YA-mxpYsvlG9KbfbXG-FQ9CXFhdtJeNNJxMvAPvhmZfNcuVEoOMn9dKaJe8vodv1H2zAU9gt7vYXaqI2C5PZL3iMXVRUpBWOmwOEQYe6mOoJwnn7_qGdsxPXRtxqZfXa/s1600/fbasync-1-sessioncreated.png",
+      "path": "/blog-assets/imported/987a8f36a88921c3ccaf6a46.png",
+      "checksum": "987a8f36a88921c3ccaf6a4656e34fc089b0eced06364ffdaf634c597816bf0b",
+      "bytes": 4940,
+      "mime": "image/png",
+      "width": 400,
+      "height": 303
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhspiDjYIdcKYx5YA-mxpYsvlG9KbfbXG-FQ9CXFhdtJeNNJxMvAPvhmZfNcuVEoOMn9dKaJe8vodv1H2zAU9gt7vYXaqI2C5PZL3iMXVRUpBWOmwOEQYe6mOoJwnn7_qGdsxPXRtxqZfXa/s400/fbasync-1-sessioncreated.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhspiDjYIdcKYx5YA-mxpYsvlG9KbfbXG-FQ9CXFhdtJeNNJxMvAPvhmZfNcuVEoOMn9dKaJe8vodv1H2zAU9gt7vYXaqI2C5PZL3iMXVRUpBWOmwOEQYe6mOoJwnn7_qGdsxPXRtxqZfXa/s400/fbasync-1-sessioncreated.png",
+      "path": "/blog-assets/imported/987a8f36a88921c3ccaf6a46.png",
+      "checksum": "987a8f36a88921c3ccaf6a4656e34fc089b0eced06364ffdaf634c597816bf0b",
+      "bytes": 4940,
+      "mime": "image/png",
+      "width": 400,
+      "height": 303
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhw2dI44LYzbgju_8SpdkJ5AsjPBS2ahYwl5sN-iPZbhETHZza6G98-iwYD8Rr3SQchE_AGoYVMhCir2InWvfYQr4BIq5hHThWlimJl_ZSj3Y_ubZb5ih3cDFxkdgwvN2uwgubj-0dH1NTT/s1600/h7raidsetup.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhw2dI44LYzbgju_8SpdkJ5AsjPBS2ahYwl5sN-iPZbhETHZza6G98-iwYD8Rr3SQchE_AGoYVMhCir2InWvfYQr4BIq5hHThWlimJl_ZSj3Y_ubZb5ih3cDFxkdgwvN2uwgubj-0dH1NTT/s1600/h7raidsetup.png",
+      "path": "/blog-assets/imported/52cfc90a61e4ca22231a591c.png",
+      "checksum": "52cfc90a61e4ca22231a591cfe663570b379e90b0c1c1a0b4fcb3e00db20bf75",
+      "bytes": 3221,
+      "mime": "image/png",
+      "width": 369,
+      "height": 94
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0-MaS1YYypF38zmpGq6cqxN10F0mp4s2PV_JOgpCMHf61homrQkyXhFyifIYRCBTb0QRvZ7sbSjPjMkgQgyquXpxCmMEEQljGkILBN2VpIvcenc58wv6F_eDLNtzWNGl7oKJ7l3Ld5FY/s1600/5418_10151310297357117_1205031682_n.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0-MaS1YYypF38zmpGq6cqxN10F0mp4s2PV_JOgpCMHf61homrQkyXhFyifIYRCBTb0QRvZ7sbSjPjMkgQgyquXpxCmMEEQljGkILBN2VpIvcenc58wv6F_eDLNtzWNGl7oKJ7l3Ld5FY/s1600/5418_10151310297357117_1205031682_n.jpg",
+      "path": "/blog-assets/imported/7f33a0235ce52e036af95ef2.jpg",
+      "checksum": "7f33a0235ce52e036af95ef216b630cb9253c1b06d4561bb47dfa553071f9fe9",
+      "bytes": 117594,
+      "mime": "image/jpeg",
+      "width": 720,
+      "height": 960
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0-MaS1YYypF38zmpGq6cqxN10F0mp4s2PV_JOgpCMHf61homrQkyXhFyifIYRCBTb0QRvZ7sbSjPjMkgQgyquXpxCmMEEQljGkILBN2VpIvcenc58wv6F_eDLNtzWNGl7oKJ7l3Ld5FY/s320/5418_10151310297357117_1205031682_n.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0-MaS1YYypF38zmpGq6cqxN10F0mp4s2PV_JOgpCMHf61homrQkyXhFyifIYRCBTb0QRvZ7sbSjPjMkgQgyquXpxCmMEEQljGkILBN2VpIvcenc58wv6F_eDLNtzWNGl7oKJ7l3Ld5FY/s320/5418_10151310297357117_1205031682_n.jpg",
+      "path": "/blog-assets/imported/485760479f72e63980d9e246.jpg",
+      "checksum": "485760479f72e63980d9e2469c11f732018bec7009c9bcf0dbc0d91f9e805104",
+      "bytes": 34962,
+      "mime": "image/jpeg",
+      "width": 240,
+      "height": 320
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0mfNhuX6PmOElIHiqiYg7KBi8osqRkj2ifinA2dKeeekJRbDMjUEOWR8_QUmiu_I48rmF7m5jMwhbIB5VbLnCfVGb9AbZAFfCxjRper4V1Qfg-0LuaQT8CPUnXNOmLfTKfX1uC_N-LUm4/s1600/d-avgtime.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi0mfNhuX6PmOElIHiqiYg7KBi8osqRkj2ifinA2dKeeekJRbDMjUEOWR8_QUmiu_I48rmF7m5jMwhbIB5VbLnCfVGb9AbZAFfCxjRper4V1Qfg-0LuaQT8CPUnXNOmLfTKfX1uC_N-LUm4/s1600/d-avgtime.png",
+      "path": "/blog-assets/imported/84e3aa062bc274fff952e0bf.png",
+      "checksum": "84e3aa062bc274fff952e0bf108306be3870c248048324578330a1d6093529e0",
+      "bytes": 8007,
+      "mime": "image/png",
+      "width": 483,
+      "height": 291
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi8Ssrt19pV6_jmx5Vq3H1y2rtq1BiFHr3k5KOGA1vfuGKKRLsx86LrGXcuRraFnv_-DQi7sXMFOGzFbQRgUgUSzU0unKveHRqeQcw4rB8Caf0MrKoYuigq79nkK1ruRfzFE1pYcG-_0f8j/s400/linq-calls-thumb.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEi8Ssrt19pV6_jmx5Vq3H1y2rtq1BiFHr3k5KOGA1vfuGKKRLsx86LrGXcuRraFnv_-DQi7sXMFOGzFbQRgUgUSzU0unKveHRqeQcw4rB8Caf0MrKoYuigq79nkK1ruRfzFE1pYcG-_0f8j/s400/linq-calls-thumb.png",
+      "path": "/blog-assets/imported/d586d9bc34215a3e984d9f81.png",
+      "checksum": "d586d9bc34215a3e984d9f81a73ae57ca3ac631190b0a3cfa4d4bc5122618940",
+      "bytes": 2238,
+      "mime": "image/png",
+      "width": 320,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiEoQwJrGGnUz3DiL2KR2PZhzarYUlPx7gSwG438pEgSdziSuDFy1-C9ruMEkga_GHuF7ThPh45PliEmKUIN2SSwbw0rj9NKFaRWZRuuuhf8vTi-KO98qnhsvNmcAa2-qd1X5u8c1EyAAbT/s1600/linq-calls.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiEoQwJrGGnUz3DiL2KR2PZhzarYUlPx7gSwG438pEgSdziSuDFy1-C9ruMEkga_GHuF7ThPh45PliEmKUIN2SSwbw0rj9NKFaRWZRuuuhf8vTi-KO98qnhsvNmcAa2-qd1X5u8c1EyAAbT/s1600/linq-calls.png",
+      "path": "/blog-assets/imported/383f34aad87f62a7f2701d55.png",
+      "checksum": "383f34aad87f62a7f2701d559d11dd74b98c3240d2f2024e9663dc3de1151425",
+      "bytes": 31631,
+      "mime": "image/png",
+      "width": 1127,
+      "height": 783
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiIBA-k3CtIugm0fpPMyyf-SQRlGfAdWmrqnlg56MOt4uoh-XvDFJ9ynp5qpPVqtUGtgs91b3qGf1Mh-A9QqNaMIIvOsObv90S29fgkCPGo18F4g9i8Z9raxGUMpGyWueUu7GyX0MUY2apH/s1600/fbasync-1-pageasync.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiIBA-k3CtIugm0fpPMyyf-SQRlGfAdWmrqnlg56MOt4uoh-XvDFJ9ynp5qpPVqtUGtgs91b3qGf1Mh-A9QqNaMIIvOsObv90S29fgkCPGo18F4g9i8Z9raxGUMpGyWueUu7GyX0MUY2apH/s1600/fbasync-1-pageasync.png",
+      "path": "/blog-assets/imported/a328404ddc563610eb8ba0f8.png",
+      "checksum": "a328404ddc563610eb8ba0f8d72e6438d642c5e06bdb89215d7732772920e20c",
+      "bytes": 7862,
+      "mime": "image/png",
+      "width": 400,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiIBA-k3CtIugm0fpPMyyf-SQRlGfAdWmrqnlg56MOt4uoh-XvDFJ9ynp5qpPVqtUGtgs91b3qGf1Mh-A9QqNaMIIvOsObv90S29fgkCPGo18F4g9i8Z9raxGUMpGyWueUu7GyX0MUY2apH/s400/fbasync-1-pageasync.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiIBA-k3CtIugm0fpPMyyf-SQRlGfAdWmrqnlg56MOt4uoh-XvDFJ9ynp5qpPVqtUGtgs91b3qGf1Mh-A9QqNaMIIvOsObv90S29fgkCPGo18F4g9i8Z9raxGUMpGyWueUu7GyX0MUY2apH/s400/fbasync-1-pageasync.png",
+      "path": "/blog-assets/imported/a328404ddc563610eb8ba0f8.png",
+      "checksum": "a328404ddc563610eb8ba0f8d72e6438d642c5e06bdb89215d7732772920e20c",
+      "bytes": 7862,
+      "mime": "image/png",
+      "width": 400,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiJ8cZFq0ZOo4Xusr1T92yMjRtutaP99i8ClAm3CCQdiNdESq4-0NH48jd8Fkr7K1DodAHAAKyXrx0R2YkhQnDUSh_ePTsXzPg1_SwfXyScXUaCn8FB8nCUwqd1et5k0-6Yps4IVidGKQ2q/s1600/mc-time.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiJ8cZFq0ZOo4Xusr1T92yMjRtutaP99i8ClAm3CCQdiNdESq4-0NH48jd8Fkr7K1DodAHAAKyXrx0R2YkhQnDUSh_ePTsXzPg1_SwfXyScXUaCn8FB8nCUwqd1et5k0-6Yps4IVidGKQ2q/s1600/mc-time.png",
+      "path": "/blog-assets/imported/e0338291f4f4b1d0f1597a4e.png",
+      "checksum": "e0338291f4f4b1d0f1597a4e94fd591753f57bb20ab0d3a8f7ed0689d5d57b68",
+      "bytes": 7900,
+      "mime": "image/png",
+      "width": 483,
+      "height": 291
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiUcuoUuUG0QsyGHSksIiPBHEWXughiFsqs3CopfuvgHKVdhGLQOusfB6pqysQsjbkbyd3WSxTJEYe271SFC-6At1B4SL8GV9bAN4VUGeMxjx6MtXrov3pU2926IPCRN3JVSPgYiYuPTgHr/s1600/mc-avgtime.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiUcuoUuUG0QsyGHSksIiPBHEWXughiFsqs3CopfuvgHKVdhGLQOusfB6pqysQsjbkbyd3WSxTJEYe271SFC-6At1B4SL8GV9bAN4VUGeMxjx6MtXrov3pU2926IPCRN3JVSPgYiYuPTgHr/s1600/mc-avgtime.png",
+      "path": "/blog-assets/imported/42cc10d05f0d863f21b62370.png",
+      "checksum": "42cc10d05f0d863f21b62370a59abff252127ddf78c95b70bdecfe5908e26455",
+      "bytes": 8256,
+      "mime": "image/png",
+      "width": 483,
+      "height": 291
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiWEVK_etsGOH23GdqUN6fd7svcLDvvOFfWH0HamBSH1oqhQEo5_jOr-B1o1kgly7-kIlyTDCWcaVnYOi1djMiZsQ-WiWFU-JkPcA61nNXV4IVxgMprylBqassjtp22a9mWHKgxET-3rRv_/s400/linq-after-thumb.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiWEVK_etsGOH23GdqUN6fd7svcLDvvOFfWH0HamBSH1oqhQEo5_jOr-B1o1kgly7-kIlyTDCWcaVnYOi1djMiZsQ-WiWFU-JkPcA61nNXV4IVxgMprylBqassjtp22a9mWHKgxET-3rRv_/s400/linq-after-thumb.png",
+      "path": "/blog-assets/imported/1f05627ab83e945d361e5521.png",
+      "checksum": "1f05627ab83e945d361e5521600e333e1f8388561e72fda8daac6031c8664f07",
+      "bytes": 1625,
+      "mime": "image/png",
+      "width": 320,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEij7LM0kWQ42WyG1gxB3YsVxWKmKgOLOCw01xTR2hCXFGtj7rhrc0THcloHrg5BvR6JaVdnrsaTmGpth6tPNLpO_ueu9us6weo8et-XtMbXXPoarjGof_6UphW5_E6KTxfZtcjevBlX3Qk4/s1600/linq-after.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEij7LM0kWQ42WyG1gxB3YsVxWKmKgOLOCw01xTR2hCXFGtj7rhrc0THcloHrg5BvR6JaVdnrsaTmGpth6tPNLpO_ueu9us6weo8et-XtMbXXPoarjGof_6UphW5_E6KTxfZtcjevBlX3Qk4/s1600/linq-after.png",
+      "path": "/blog-assets/imported/c4dae5ba17ce8170652ccb40.png",
+      "checksum": "c4dae5ba17ce8170652ccb40b624ec8451749345c1e99c5e7f74cd1f0f17afe0",
+      "bytes": 32136,
+      "mime": "image/png",
+      "width": 1047,
+      "height": 735
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEirkDRaKTFrle24-LBzeIfaTiotOgfzW3LzEgdvCYd_49GdD-hWS8zPgZZiyaqilNRHx3PhmBI4fX_J5HdR2h8C_2mWTauvSU2v0c0gg5qvucAqP-lrWqRkmgcy11Msnd3LSkdfjCpOjdHM/s1600/vistablank.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEirkDRaKTFrle24-LBzeIfaTiotOgfzW3LzEgdvCYd_49GdD-hWS8zPgZZiyaqilNRHx3PhmBI4fX_J5HdR2h8C_2mWTauvSU2v0c0gg5qvucAqP-lrWqRkmgcy11Msnd3LSkdfjCpOjdHM/s1600/vistablank.png",
+      "path": "/blog-assets/imported/50a9d48773c9808962558f5d.png",
+      "checksum": "50a9d48773c9808962558f5df22fb5bf77ee4b2caabbb0a1cc9382c8d66515cc",
+      "bytes": 12820,
+      "mime": "image/png",
+      "width": 354,
+      "height": 148
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEirkDRaKTFrle24-LBzeIfaTiotOgfzW3LzEgdvCYd_49GdD-hWS8zPgZZiyaqilNRHx3PhmBI4fX_J5HdR2h8C_2mWTauvSU2v0c0gg5qvucAqP-lrWqRkmgcy11Msnd3LSkdfjCpOjdHM/s320/vistablank.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEirkDRaKTFrle24-LBzeIfaTiotOgfzW3LzEgdvCYd_49GdD-hWS8zPgZZiyaqilNRHx3PhmBI4fX_J5HdR2h8C_2mWTauvSU2v0c0gg5qvucAqP-lrWqRkmgcy11Msnd3LSkdfjCpOjdHM/s320/vistablank.png",
+      "path": "/blog-assets/imported/5eae5111d928a1cc9d1f5544.png",
+      "checksum": "5eae5111d928a1cc9d1f55447a63a0bf10e6eebbc703f01e2f6d3f5025f46602",
+      "bytes": 14192,
+      "mime": "image/png",
+      "width": 320,
+      "height": 134
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNF0k0nn6xfdTYh_6OsMxCiI2MshRmxKn142ADHJx32FpPF1HQywqIbnbrzvLvl8QHvR_ToK9XoYYXvwL3ZCvbp8vaeEx_ZLYHcMD4aD-RfwYXH6kZGanW5zl5mE8c7DkcvtmlM5YSp1x7/s1600/fbasync-1-inherit.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNF0k0nn6xfdTYh_6OsMxCiI2MshRmxKn142ADHJx32FpPF1HQywqIbnbrzvLvl8QHvR_ToK9XoYYXvwL3ZCvbp8vaeEx_ZLYHcMD4aD-RfwYXH6kZGanW5zl5mE8c7DkcvtmlM5YSp1x7/s1600/fbasync-1-inherit.png",
+      "path": "/blog-assets/imported/00d9eb78e0709a898d8af2f6.png",
+      "checksum": "00d9eb78e0709a898d8af2f6cccaa619b153bd05d90738a0818c34b3dc5302bf",
+      "bytes": 4585,
+      "mime": "image/png",
+      "width": 400,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNF0k0nn6xfdTYh_6OsMxCiI2MshRmxKn142ADHJx32FpPF1HQywqIbnbrzvLvl8QHvR_ToK9XoYYXvwL3ZCvbp8vaeEx_ZLYHcMD4aD-RfwYXH6kZGanW5zl5mE8c7DkcvtmlM5YSp1x7/s400/fbasync-1-inherit.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNF0k0nn6xfdTYh_6OsMxCiI2MshRmxKn142ADHJx32FpPF1HQywqIbnbrzvLvl8QHvR_ToK9XoYYXvwL3ZCvbp8vaeEx_ZLYHcMD4aD-RfwYXH6kZGanW5zl5mE8c7DkcvtmlM5YSp1x7/s400/fbasync-1-inherit.png",
+      "path": "/blog-assets/imported/00d9eb78e0709a898d8af2f6.png",
+      "checksum": "00d9eb78e0709a898d8af2f6cccaa619b153bd05d90738a0818c34b3dc5302bf",
+      "bytes": 4585,
+      "mime": "image/png",
+      "width": 400,
+      "height": 240
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjPYBvlfB9wbusqPhOnap-3M738QhcgukLGsEP9h7IKRg2L2VQ9-7H3m67yfgfuY4sw-gGTnzjVlMSyFZpe-gPVgt1rH9Es-DtydSywxkLg3NoE2nC2N_2ljnRJ2SR61aZNCgZ7ahVC5tre/s1600/winforms.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjPYBvlfB9wbusqPhOnap-3M738QhcgukLGsEP9h7IKRg2L2VQ9-7H3m67yfgfuY4sw-gGTnzjVlMSyFZpe-gPVgt1rH9Es-DtydSywxkLg3NoE2nC2N_2ljnRJ2SR61aZNCgZ7ahVC5tre/s1600/winforms.png",
+      "path": "/blog-assets/imported/677e7b141e81e737955a7d30.png",
+      "checksum": "677e7b141e81e737955a7d301a35d198e6344f704031c793d762e068a523fa8f",
+      "bytes": 8831,
+      "mime": "image/png",
+      "width": 300,
+      "height": 300
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjPYBvlfB9wbusqPhOnap-3M738QhcgukLGsEP9h7IKRg2L2VQ9-7H3m67yfgfuY4sw-gGTnzjVlMSyFZpe-gPVgt1rH9Es-DtydSywxkLg3NoE2nC2N_2ljnRJ2SR61aZNCgZ7ahVC5tre/s400/winforms.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjPYBvlfB9wbusqPhOnap-3M738QhcgukLGsEP9h7IKRg2L2VQ9-7H3m67yfgfuY4sw-gGTnzjVlMSyFZpe-gPVgt1rH9Es-DtydSywxkLg3NoE2nC2N_2ljnRJ2SR61aZNCgZ7ahVC5tre/s400/winforms.png",
+      "path": "/blog-assets/imported/677e7b141e81e737955a7d30.png",
+      "checksum": "677e7b141e81e737955a7d301a35d198e6344f704031c793d762e068a523fa8f",
+      "bytes": 8831,
+      "mime": "image/png",
+      "width": 300,
+      "height": 300
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjRVyMZ9noghl60cNOxtQuz1Hy4CshQM64IiHyuMkkWmVe3dfKOnW8lhLheShg4_F8pQmKNwChGBk5UApbnGpmbQSO_1TWHtn4fUK78D_lazNs3aaBDkdMFjhj5uLIybO3Pl44Q9Rm_U8Wu/s1600/apgsequence.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjRVyMZ9noghl60cNOxtQuz1Hy4CshQM64IiHyuMkkWmVe3dfKOnW8lhLheShg4_F8pQmKNwChGBk5UApbnGpmbQSO_1TWHtn4fUK78D_lazNs3aaBDkdMFjhj5uLIybO3Pl44Q9Rm_U8Wu/s1600/apgsequence.jpg",
+      "path": "/blog-assets/imported/f354242a4442521fede8c951.jpg",
+      "checksum": "f354242a4442521fede8c951d6a262b817ef02acd28baae6cf8d34d1e9417b98",
+      "bytes": 100690,
+      "mime": "image/jpeg",
+      "width": 639,
+      "height": 725
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjRVyMZ9noghl60cNOxtQuz1Hy4CshQM64IiHyuMkkWmVe3dfKOnW8lhLheShg4_F8pQmKNwChGBk5UApbnGpmbQSO_1TWHtn4fUK78D_lazNs3aaBDkdMFjhj5uLIybO3Pl44Q9Rm_U8Wu/s320/apgsequence.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjRVyMZ9noghl60cNOxtQuz1Hy4CshQM64IiHyuMkkWmVe3dfKOnW8lhLheShg4_F8pQmKNwChGBk5UApbnGpmbQSO_1TWHtn4fUK78D_lazNs3aaBDkdMFjhj5uLIybO3Pl44Q9Rm_U8Wu/s320/apgsequence.jpg",
+      "path": "/blog-assets/imported/b0e463757dee3f268b91e3d1.jpg",
+      "checksum": "b0e463757dee3f268b91e3d15610592978be0a7dec529ec7945d3763edf20bf6",
+      "bytes": 14474,
+      "mime": "image/jpeg",
+      "width": 282,
+      "height": 320
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjZjJ0EU_e7KWdHrENUgHTJirGvpZ1vdlRvMGWSgVxzlK_ztY26mSwUJqoq7R86wyI2zfivzu30Zpez7zFMYlweJG8emppQZV_Ni2sEpRTuFubICiHPvhKmbj9YQ_RE9hah85QBxC8gpHfn/s1600/d-time.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjZjJ0EU_e7KWdHrENUgHTJirGvpZ1vdlRvMGWSgVxzlK_ztY26mSwUJqoq7R86wyI2zfivzu30Zpez7zFMYlweJG8emppQZV_Ni2sEpRTuFubICiHPvhKmbj9YQ_RE9hah85QBxC8gpHfn/s1600/d-time.png",
+      "path": "/blog-assets/imported/42fc3efdfb886aa95c321d1c.png",
+      "checksum": "42fc3efdfb886aa95c321d1cdc0d208eff31998f745844d17b853f3adf04dd57",
+      "bytes": 7730,
+      "mime": "image/png",
+      "width": 483,
+      "height": 291
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj_wVGHOLLs2PYLZoWuYn7xAGWHs3TmgnrdGyL7K4Dfqgn7Qw_a0JQisr5sKo4RIJnhOib6TJ7ulXrfO7K8K6NMnT7X4Fn9EruLbj-xbr6JuZ6XS1XS9-OTrRYRolQ4mlvsEGTEVWKIKNhb/s1600/vista2869.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj_wVGHOLLs2PYLZoWuYn7xAGWHs3TmgnrdGyL7K4Dfqgn7Qw_a0JQisr5sKo4RIJnhOib6TJ7ulXrfO7K8K6NMnT7X4Fn9EruLbj-xbr6JuZ6XS1XS9-OTrRYRolQ4mlvsEGTEVWKIKNhb/s1600/vista2869.png",
+      "path": "/blog-assets/imported/a9c4c1a675feb6b0ee6a9a0a.png",
+      "checksum": "a9c4c1a675feb6b0ee6a9a0a3fa6ce2ea0f2c27ce7f628ddd53cd98256de0c83",
+      "bytes": 15317,
+      "mime": "image/png",
+      "width": 354,
+      "height": 148
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj_wVGHOLLs2PYLZoWuYn7xAGWHs3TmgnrdGyL7K4Dfqgn7Qw_a0JQisr5sKo4RIJnhOib6TJ7ulXrfO7K8K6NMnT7X4Fn9EruLbj-xbr6JuZ6XS1XS9-OTrRYRolQ4mlvsEGTEVWKIKNhb/s320/vista2869.png",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj_wVGHOLLs2PYLZoWuYn7xAGWHs3TmgnrdGyL7K4Dfqgn7Qw_a0JQisr5sKo4RIJnhOib6TJ7ulXrfO7K8K6NMnT7X4Fn9EruLbj-xbr6JuZ6XS1XS9-OTrRYRolQ4mlvsEGTEVWKIKNhb/s320/vista2869.png",
+      "path": "/blog-assets/imported/3baf51f18330d4a8c00233bd.png",
+      "checksum": "3baf51f18330d4a8c00233bd881b24416aee886306be6577200c5a89d98ba031",
+      "bytes": 28536,
+      "mime": "image/png",
+      "width": 320,
+      "height": 134
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjowbFpV4DOKWO9NFJqy5a5d5OtWOQXZXXhsQ-D-xes4zdX9I22UIlCdO71GzAsthbfaWfKVCYmH_cNZxqecTwxvOUBF0Y6anj-5TOdeEErEFfDMCg4ArUTD7bmmK3a4uaUdIC2UsCIzSQ/s1600/Peyton+post+op.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjowbFpV4DOKWO9NFJqy5a5d5OtWOQXZXXhsQ-D-xes4zdX9I22UIlCdO71GzAsthbfaWfKVCYmH_cNZxqecTwxvOUBF0Y6anj-5TOdeEErEFfDMCg4ArUTD7bmmK3a4uaUdIC2UsCIzSQ/s1600/Peyton+post+op.jpg",
+      "path": "/blog-assets/imported/6616a9ae27677b56a010ebd4.jpg",
+      "checksum": "6616a9ae27677b56a010ebd4257e8a9dac914314f905d0457339b4f31121350d",
+      "bytes": 86649,
+      "mime": "image/jpeg",
+      "width": 720,
+      "height": 960
+    },
+    {
+      "url": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjowbFpV4DOKWO9NFJqy5a5d5OtWOQXZXXhsQ-D-xes4zdX9I22UIlCdO71GzAsthbfaWfKVCYmH_cNZxqecTwxvOUBF0Y6anj-5TOdeEErEFfDMCg4ArUTD7bmmK3a4uaUdIC2UsCIzSQ/s320/Peyton+post+op.jpg",
+      "recoveredUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjowbFpV4DOKWO9NFJqy5a5d5OtWOQXZXXhsQ-D-xes4zdX9I22UIlCdO71GzAsthbfaWfKVCYmH_cNZxqecTwxvOUBF0Y6anj-5TOdeEErEFfDMCg4ArUTD7bmmK3a4uaUdIC2UsCIzSQ/s320/Peyton+post+op.jpg",
+      "path": "/blog-assets/imported/777f69da01829e802cdbb45d.jpg",
+      "checksum": "777f69da01829e802cdbb45d2524f01b3d09d9baa34dd78aace6b54bad70cfec",
+      "bytes": 30663,
+      "mime": "image/jpeg",
+      "width": 240,
+      "height": 320
+    }
+  ],
+  "failures": [
+    {
+      "url": "http://knight.fb.hive7.com/res/img/area/wall.png?63356112540",
+      "error": "https://knight.fb.hive7.com/res/img/area/wall.png?63356112540: fetch failed; http://knight.fb.hive7.com/res/img/area/wall.png?63356112540: fetch failed",
+      "posts": [
+        {
+          "id": "tag:blogger.com,1999:blog-1741199026308686058.post-148808662145526727",
+          "title": "Functional Optimistic Concurrency in C#",
+          "path": "content/blog/functional-optimistic-concurrency-in-c.md"
+        }
+      ]
+    },
+    {
+      "url": "http://photos-c.ak.facebook.com/photos-ak-sctm/v43/1/718761709/app3_718761709_2466327790_7506.gif",
+      "error": "https://photos-c.ak.facebook.com/photos-ak-sctm/v43/1/718761709/app3_718761709_2466327790_7506.gif: fetch failed; http://photos-c.ak.facebook.com/photos-ak-sctm/v43/1/718761709/app3_718761709_2466327790_7506.gif: fetch failed",
+      "posts": [
+        {
+          "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1477714049596343834",
+          "title": "Friend Photosaver for Facebook",
+          "path": "content/blog/friend-photosaver-for-facebook.md"
+        }
+      ]
+    }
+  ]
+}

@@ -2,10 +2,13 @@ import { handleLocations } from "./locations.js";
 import { handleSupporters } from "./supporters.js";
 import { injectRuntimeConfig } from "./html.js";
 import { handleShareImage } from "./share-image.js";
+import { legacyBlogRedirect } from "./blog-redirects.js";
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const blogRedirect = legacyBlogRedirect(url);
+    if (blogRedirect) return blogRedirect;
     if (url.hostname === "www.jdconley.com") {
       url.hostname = "jdconley.com";
       url.protocol = "https:";

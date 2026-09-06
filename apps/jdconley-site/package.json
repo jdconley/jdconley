@@ -24,7 +24,9 @@
     "test:e2e": "playwright test",
     "test:e2e:ci": "playwright test --reporter=line",
     "test:e2e:wrangler": "TURNSTILE_SITE_KEY=1x00000000000000000000AA E2E_SERVER=wrangler playwright test",
-    "deploy": "pnpm run build && dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'printf \"%s\" \"$TURNSTILE_SITE_KEY\" | grep -Eq \"^[A-Za-z0-9_-]{10,}$\" || { echo \"TURNSTILE_SITE_KEY is missing or malformed.\" >&2; exit 1; }; wrangler deploy --var \"TURNSTILE_SITE_KEY:$TURNSTILE_SITE_KEY\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'"
+    "deploy": "pnpm run build && dotenvx run --ignore=MISSING_ENV_FILE -- sh -c 'printf \"%s\" \"$TURNSTILE_SITE_KEY\" | grep -Eq \"^[A-Za-z0-9_-]{10,}$\" || { echo \"TURNSTILE_SITE_KEY is missing or malformed.\" >&2; exit 1; }; wrangler deploy --var \"TURNSTILE_SITE_KEY:$TURNSTILE_SITE_KEY\" --var \"SUPPORT_ORIGIN:${SUPPORT_ORIGIN:-https://jdconley.com}\"'",
+    "blog:new": "node ./scripts/new-blog-post.mjs",
+    "blog:import": "node ./scripts/import-blogger.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
@@ -33,11 +35,15 @@
     "@playwright/test": "latest",
     "html-minifier-terser": "latest",
     "linkedom": "^0.18.12",
+    "markdown-it": "^15.0.1",
+    "sanitize-html": "^2.17.7",
     "sharp": "latest",
     "turndown": "^7.2.2",
+    "turndown-plugin-gfm": "^1.0.2",
     "vite": "latest",
     "vitest": "^4.1.0",
-    "wrangler": "4.111.0"
+    "wrangler": "4.111.0",
+    "yaml": "^2.9.0"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",

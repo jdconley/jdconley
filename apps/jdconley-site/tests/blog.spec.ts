@@ -1,0 +1,69 @@
+import { expect, test } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+test("blog has dedicated navigation and opens articles without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto(process.env.E2E_SERVER === "wrangler" ? "http://127.0.0.1:8788/blog" : "http://127.0.0.1:4173/blog");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Starin’ at the Wall.");
+  await expect(page.locator(".story")).toHaveCount(71);
+  await expect(page.getByRole("navigation", { name: "Blog navigation" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "About JD" })).toHaveAttribute("href", "/");
+  await page.getByRole("heading", { name: "Put down the abstract factory and get something done" }).getByRole("link").click();
+  await expect(page.locator(".prose")).toContainText("shipping your product");
+  await expect(page.locator(".prose")).toHaveCSS("font-family", /Georgia/);
+  await expect(page.getByRole("link", { name: "All writing" })).toHaveAttribute("href", "/blog");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://jdconley.com/blog/put-down-abstract-factory-and-get");
+  await context.close();
+});
+
+test("historical code, tables, and recovered images render on narrow screens", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/blog/install-nodejs-in-10-seconds-or-less");
+  await expect(page.locator(".prose pre")).toContainText("#!/bin/sh");
+  await page.goto("/blog/iodrive-changing-way-you-code");
+  await expect(page.locator(".prose table")).toHaveCount(2);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.goto("/blog/worry-less-do-more-be-fearless");
+  const images = page.locator(".prose img");
+  expect(await images.count()).toBeGreaterThan(0);
+  for (const image of await images.all()) {
+    await image.scrollIntoViewIfNeeded();
+    await expect(image).toHaveAttribute("src", /^\/blog-assets\/imported\//);
+    await expect.poll(() => image.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test("blog pages meet automated accessibility checks in both color schemes", async ({ page }) => {
+  for (const scheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await page.goto("/blog/put-down-abstract-factory-and-get");
+    const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+    expect(results.violations).toEqual([]);
+  }
+});
+
+test("RSS, sitemap, Markdown mirrors and absent-post status are correct", async ({ request }) => {
+  const feed = await request.get("/blog/feed.xml");
+  expect(feed.ok()).toBe(true);
+  const xml = await feed.text();
+  expect((xml.match(/<item>/g) || [])).toHaveLength(71);
+  expect(xml).toContain("https://jdconley.com/blog/worry-less-do-more-be-fearless");
+  expect(xml).toContain("https://jdconley.com/blog-assets/imported/");
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  expect(sitemap).toContain("<loc>https://jdconley.com/blog/put-down-abstract-factory-and-get</loc>");
+  expect((await request.get("/blog/put-down-abstract-factory-and-get.html.md")).ok()).toBe(true);
+  expect((await request.get("/blog/a-post-that-does-not-exist")).status()).toBe(404);
+});
+
+test("legacy permalinks redirect through the Worker", async ({ request }) => {
+  test.skip(process.env.E2E_SERVER !== "wrangler", "Worker routing only");
+  const response = await request.get("/2009/01/functional-optimistic-concurrency-in-c.html?m=1&utm_source=archive", { maxRedirects: 0 });
+  expect(response.status()).toBe(301);
+  // Wrangler rewrites same-site Location origins to its local preview origin.
+  // The unit test verifies the production origin; here verify routing and query handling.
+  const destination = new URL(response.headers().location);
+  expect(destination.pathname + destination.search).toBe("/blog/functional-optimistic-concurrency-in-c?utm_source=archive");
+  expect((await request.get(destination.pathname + destination.search)).status()).toBe(200);
+});

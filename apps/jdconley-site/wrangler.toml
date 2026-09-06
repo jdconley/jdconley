@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [assets]
 directory = "dist"
 binding = "ASSETS"
-run_worker_first = ["/a-better-time", "/a-better-time/*", "/api/a-better-time/*"]
+run_worker_first = ["/a-better-time", "/a-better-time/*", "/api/a-better-time/*", "/blog/archive/*", "/2006/*", "/2007/*", "/2008/*", "/2009/*", "/2010/*", "/2011/*", "/2013/*", "/feeds/*", "/atom.xml", "/rss.xml"]
 
 [[routes]]
 pattern = "jdconley.com"

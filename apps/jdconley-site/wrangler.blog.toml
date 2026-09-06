@@ -1,0 +1,8 @@
+# Separate, optional hostname cutover. Do not deploy until the main blog is live.
+name = "jdconley-blog-redirects"
+main = "worker/blog-legacy.js"
+compatibility_date = "2026-07-15"
+
+[[routes]]
+pattern = "blog.jdconley.com"
+custom_domain = true
