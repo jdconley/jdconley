@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T02:12:45.479-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8612167056838636292
 originalUrl: http://blog.jdconley.com/2007/10/vista-rant.html
+ogImage: /blog-assets/og/vista-rant-v1.jpg
+ogImageAlt: "A damaged Windows Vista box sits in a metal trash can. — JD Conley."
 ---
 
 Next month Vista will have been out in RTM for a year (it was released on 11/30/2006 to the volume/dev world). Why is it then, that it still doesn't work?

@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T02:18:15.197-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7724535890622942356
 originalUrl: http://blog.jdconley.com/2007/11/dvoraks-gone-mad.html
+ogImage: /blog-assets/og/dvoraks-gone-mad-v1.jpg
+ogImageAlt: "OPEN BEATS CLOSED. An open phone platform breaks out of a closed walled garden. — JD Conley."
 ---
 
 Maybe I'm just young, arrogant, and naive, but I think John's getting a little senile. In his latest [rant](http://www.pcmag.com/article2/0,2704,2212850,00.asp) for his [PC Mag column](http://www.pcmag.com/category2/0,2705,3574,00.asp) he bashes Google's plans for the Open Handset Alliance with the title "The Google Phone is Doomed". Go read that if you haven't already and work your way back here. Don't get me wrong, I'm not convinced the project will work either – more on that later, but his reasoning confuses me.

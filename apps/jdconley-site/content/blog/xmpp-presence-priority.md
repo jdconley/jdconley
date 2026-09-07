@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-29T23:01:07.512-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2106830143411505646
 originalUrl: http://blog.jdconley.com/2007/05/xmpp-presence-priority.html
+ogImage: /blog-assets/og/xmpp-presence-priority-v1.jpg
+ogImageAlt: "Colored presence figures stand at different priority levels. — JD Conley."
 ---
 
 In XMPP (the messaging and presence protocol SoapBox uses) you can log in simultaneously on multiple systems. How your contat list is displayed and how messages are routed are based on hints the client software provides to the server. One of these is presence priority. Priority is just an integer value between -128 and 127 defined in [RFC 3921 Section 2.2.2.3](http://www.xmpp.org/rfcs/rfc3921.html#rfc.section.2.2.2.3).

@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T01:22:57.597-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2521490268521831687
 originalUrl: http://blog.jdconley.com/2007/08/dont-forget-to-close-your-linq-to-sql.html
+ogImage: /blog-assets/og/dont-forget-to-close-your-linq-to-sql-v1.jpg
+ogImageAlt: "A database connection pipe leaks beneath an open valve. — JD Conley."
 ---
 
 Today I was working on some Linq to Sql code that dealt with an event management system. There are events people can attend, and attendees fill out a form to register for the event. The fields for each event are configurable by the person that creates the event. When I save a set of event fields I want to do it in a transaction so I don't end up with a partial "record". Here's what my code looked like originally:  

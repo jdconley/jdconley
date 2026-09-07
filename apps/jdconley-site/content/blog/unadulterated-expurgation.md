@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-23T04:41:58.802-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3585706395835555227
 originalUrl: http://blog.jdconley.com/2007/12/unadulterated-expurgation.html
+ogImage: /blog-assets/og/unadulterated-expurgation-v1.jpg
+ogImageAlt: "A broom sweeps every container from an office refrigerator. — JD Conley."
 ---
 
 Alright, so, occasionally I post [something funny](/blog/geeks-with-kids) that happened recently. Yesterday I received a ~~spam~~ company broadcast email from an anonymous customer of mine. You know who you are! :)  

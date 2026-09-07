@@ -5,6 +5,8 @@ slug: from-odesk-to-codex
 description: "In 2011, moving my blog cost $150 and hours of my attention. Fifteen years later, Codex handled the migration with about ten minutes of my time."
 tags: []
 draft: false
+ogImage: /blog-assets/og/from-odesk-to-codex-v1.jpg
+ogImageAlt: "An old oDesk archive transforms into a glowing terminal through a mountain portal. — JD Conley."
 ---
 
 There was a time in the not too distant past when there were tedious and time-consuming tasks that humans were paid to do using a computer. That time is officially over. Our children will grow up in a world where AI handles these tasks effortlessly.

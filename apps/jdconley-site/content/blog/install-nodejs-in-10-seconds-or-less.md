@@ -9,6 +9,8 @@ draft: false
 updated: 2011-08-01T15:05:25.053-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4679098985155157274
 originalUrl: http://blog.jdconley.com/2011/08/install-nodejs-in-10-seconds-or-less.html
+ogImage: /blog-assets/og/install-nodejs-in-10-seconds-or-less-v1.jpg
+ogImageAlt: "NODE.JS IN SECONDS. A green stopwatch and a fast-moving Node.js emblem. — JD Conley."
 ---
 
 I've been playing around a bit with [node](http://nodejs.org/) recently. One thing it's quite good at is quickly bringing up a developer workstation. You can just run a quick command line to have the server running rather than futzing with config files, virtual directories, software installations, and such. When your team uses different development platforms (Linux, Mac, Windows) or your development environment is different from production, a bit of scripting makes it much easier to insure everyone is on a level playing field.  

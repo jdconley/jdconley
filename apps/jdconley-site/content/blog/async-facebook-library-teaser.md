@@ -12,6 +12,8 @@ draft: false
 updated: 2011-07-23T04:10:31.286-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2939929600917594074
 originalUrl: http://blog.jdconley.com/2007/12/async-facebook-library-teaser.html
+ogImage: /blog-assets/og/async-facebook-library-teaser-v1.jpg
+ogImageAlt: "An asynchronous Facebook race car speeds past a slow queue. — JD Conley."
 ---
 
 I've been trolling the Facebook Developer Forums recently and talking with other developers. I've also been reading a lot and trying to get a feel for what people might want out of the asynchronous Facebook library I've been (slowly) building. In particular, I've been participating in [this thread](http://forum.developers.facebook.com/viewtopic.php?pid=19659) about Facebook scalability issues. I thought I would share my [most recent](http://forum.developers.facebook.com/viewtopic.php?pid=19659#p19659) post as a bit of a teaser as what's to come. Here it is, reproduced:

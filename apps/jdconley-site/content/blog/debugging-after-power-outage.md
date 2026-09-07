@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-23T05:10:06.923-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4184339582627726952
 originalUrl: http://blog.jdconley.com/2008/09/debugging-after-power-outage.html
+ogImage: /blog-assets/og/debugging-after-power-outage-v1.jpg
+ogImageAlt: "WHEN POWER FAILS. A lantern illuminates dark server racks and a disconnected power cable. — JD Conley."
 ---
 
 Here at [Hive7](http://www.hive7.com/) we host all our servers with a hybrid co-location/hosting provider. When you host your servers in a colo facility there are a few key things you look for. Stuff like multiple redundant internet routes, clean power, zero interruption backup power systems, adequate cooling, and decent security. While our host has all of these, after all they come standard in any decent co-location, they also provide us with a few services above and beyond a bare bones colo like good prices on rented servers of any configuration and hardware load balancers. We've had our share of small mishaps, but things have been pretty smooth sailing. That is, until, about 36 hours ago.

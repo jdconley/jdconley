@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T04:20:09.327-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3298497982786863353
 originalUrl: http://blog.jdconley.com/2009/11/angry-players-make-sunday-more.html
+ogImage: /blog-assets/og/angry-players-make-sunday-more-v1.jpg
+ogImageAlt: "SERVER MELTDOWN. An angry crowd of game characters gathers beside an overloaded server. — JD Conley."
 ---
 
 Youtopia has been growing quickly the last couple of weeks. It's fun to watch and the team is really excited about it. Of course, with the growth comes a lot of performance tuning with our code. Today we hit an issue I wasn't expecting at all. . .

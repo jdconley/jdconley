@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T03:22:23.645-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3522871326611177809
 originalUrl: http://blog.jdconley.com/2007/11/entrepreneurial-story.html
+ogImage: /blog-assets/og/entrepreneurial-story-v1.jpg
+ogImageAlt: "A small green shoot grows through broken pavement. — JD Conley."
 ---
 
 I don't remember how exactly I got there, but while clicking through my morning feeds I ended up at [the very interesting story](http://blog.shuffletext.com/?p=4) of an Australian .NET micro ISV startup called [Shuffle Text](http://www.shuffletext.com/). They outline pretty much everything we learned when we started [Coversant](http://www.coversant.com/) nearly seven years ago.

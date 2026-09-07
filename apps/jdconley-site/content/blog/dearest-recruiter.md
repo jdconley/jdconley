@@ -10,6 +10,8 @@ draft: false
 updated: 2011-08-01T17:32:05.656-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4712520386674400450
 originalUrl: http://blog.jdconley.com/2011/06/dearest-recruiter.html
+ogImage: /blog-assets/og/dearest-recruiter-v1.jpg
+ogImageAlt: "A mechanical hand delivers a sealed letter to an empty office chair. — JD Conley."
 ---
 
 *Update:* I expanded on this a bit over here: [http://blog.jdconley.com/2011/07/how-to-recruit-great-engineering-talent.html](/blog/how-to-recruit-great-engineering-talent)  

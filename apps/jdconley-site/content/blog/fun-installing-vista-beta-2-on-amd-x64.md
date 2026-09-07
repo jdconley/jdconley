@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-26T05:41:03.300-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-5719775486610590806
 originalUrl: http://blog.jdconley.com/2006/06/fun-installing-vista-beta-2-on-amd-x64.html
+ogImage: /blog-assets/og/fun-installing-vista-beta-2-on-amd-x64-v1.jpg
+ogImageAlt: "VISTA MEETS X64. A Windows Vista installer descends toward an x64 processor. — JD Conley."
 ---
 
 As a self proclaimed geek and MSDN subscriber I feel as though it's my duty to explore all the new software that Microsoft comes out with. This last week I have been embarking on one such journey. Working with beta software is always a bit trying, but tack on a beta driver model and a "new" hardware platform (x64) and things get really interesting.

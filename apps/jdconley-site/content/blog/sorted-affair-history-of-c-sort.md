@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T01:37:34.086-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4735818999066519398
 originalUrl: http://blog.jdconley.com/2008/01/sorted-affair-history-of-c-sort.html
+ogImage: /blog-assets/og/sorted-affair-history-of-c-sort-v1.jpg
+ogImageAlt: "A SORTED AFFAIR. Old filing systems transition into neatly ordered cards. — JD Conley."
 ---
 
 Next month I'll be giving a talk at the Sacramento .NET User's group titled [C# 3.0 Overview](http://www.sacnetug.org/sacnet/speakers16.htm#JDConley) where I'll be presenting the great new features in the third version of C#. I've been developing .NET/C# software since the first pre-release copies of Visual Studio .NET reached MSDN. It's been fun to see the fledgling C# language evolve with the times. In just a few short years it's gone from what many considered to be an uninspired Java clone to a highly productive, unique, language.

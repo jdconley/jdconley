@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T02:26:00.069-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4154510686697844042
 originalUrl: http://blog.jdconley.com/2007/11/small-gotcha-in-net-framework-35-beta-2.html
+ogImage: /blog-assets/og/small-gotcha-in-net-framework-35-beta-2-v1.jpg
+ogImageAlt: "A framework version change sits inside a sharp mechanical trap. — JD Conley."
 ---
 
 Visual Studio 2008 was officially released today to MSDN subscribers so I took the leap and did the upgrade. I ran into an issue with a simple fix that I thought everyone should be aware of. You'll get an error message stating: "Could not load file or assembly 'System.Data.DataSetExtensions, Version=2.0.0.0...". This is somewhat cryptic, but easy to fix.

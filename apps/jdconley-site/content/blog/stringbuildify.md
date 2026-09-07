@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-22T01:54:08.800-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6881000841619034399
 originalUrl: http://blog.jdconley.com/2007/09/stringbuildify.html
+ogImage: /blog-assets/og/stringbuildify-v1.jpg
+ogImageAlt: "A crane stacks code strings like construction blocks. — JD Conley."
 ---
 
 A task that I often end up doing when coding an actual web site (i.e. not writing a sample or some such) is adding client script to a page/control in codebehind using the [ClientScriptManager](http://msdn2.microsoft.com/en-us/library/ms178207.aspx). Let's say you've got the following alert script you want to add to the page so you can use it in a control:  

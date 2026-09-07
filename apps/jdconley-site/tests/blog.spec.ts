@@ -131,3 +131,26 @@ test("published blog header, author portraits, and favicon load as images", asyn
     expect(response.headers()["content-type"]).toContain("image/");
   }
 });
+
+test("social crawlers receive static large-card metadata and real PNG artwork", async ({ request }) => {
+  for (const userAgent of ["Twitterbot/1.0", "LinkedInBot/1.0", "facebookexternalhit/1.1"]) {
+    for (const path of ["/blog", "/blog/worry-less-do-more-be-fearless"]) {
+      const response = await request.get(path, { headers: { "User-Agent": userAgent } });
+      expect(response.status()).toBe(200);
+      const html = await response.text();
+      const { parseHTML } = await import("linkedom");
+      const { document } = parseHTML(html);
+      expect(document.querySelector('[name="twitter:card"]')?.getAttribute("content")).toBe("summary_large_image");
+      const image = document.querySelector('[property="og:image"]')!.getAttribute("content")!;
+      expect(image).toMatch(/^https:\/\/jdconley.com\/blog-assets\/social\/.+\.png\?v=[a-f0-9]{12}$/);
+      expect(document.querySelector('[name="twitter:image"]')?.getAttribute("content")).toBe(image);
+      const png = await request.get(new URL(image).pathname + new URL(image).search, { headers: { "User-Agent": userAgent } });
+      expect(png.status()).toBe(200);
+      expect(png.headers()["content-type"]).toContain("image/png");
+      const bytes = await png.body();
+      expect(bytes.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+      expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([1200, 630]);
+      expect(bytes.length).toBeLessThan(5_000_000);
+    }
+  }
+});

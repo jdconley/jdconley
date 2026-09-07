@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import MarkdownIt from "markdown-it";
 import { parseHTML } from "linkedom";
-import { parse } from "yaml";
+import { parse, parseDocument } from "yaml";
 import sharp from "sharp";
 import { validateFeed, remapUrl } from "../import-blogger.mjs";
 
@@ -29,7 +29,17 @@ export async function verifyImportedArchive({ root }) {
     const metadata = parse(match[1]);
     const originalUrl = entry.link.find(link => link.rel === "alternate").href;
     if (metadata.title !== entry.title.$t || metadata.date !== entry.published.$t || metadata.updated !== (entry.updated?.$t || entry.published.$t) || metadata.bloggerId !== entry.id.$t || metadata.originalUrl !== originalUrl || metadata.draft !== false || !metadata.description || `/blog/${metadata.slug}` !== item.newPath || JSON.stringify(metadata.tags) !== JSON.stringify((entry.category || []).map(category => category.term).sort())) fail("Metadata does not match source");
-    if (createHash("sha256").update(content).digest("hex") !== item.checksum) fail("Markdown checksum differs from manifest");
+    // Sharing artwork is maintained after migration. Exclude only these YAML
+    // entries from this historical checksum; the importer still checks the full
+    // file and refuses to overwrite any editorial changes.
+    let archivedFrontmatter = `${match[1]}\n`;
+    const socialRanges = parseDocument(archivedFrontmatter).contents.items
+      .filter(pair => ["ogImage", "ogImageAlt"].includes(pair.key.value))
+      .map(pair => [archivedFrontmatter.lastIndexOf("\n", pair.key.range[0] - 1) + 1, pair.value.range[2]])
+      .sort((a, b) => b[0] - a[0]);
+    for (const [start, end] of socialRanges) archivedFrontmatter = archivedFrontmatter.slice(0, start) + archivedFrontmatter.slice(end);
+    const archivedContent = `---\n${archivedFrontmatter}---\n${match[2]}`;
+    if (createHash("sha256").update(archivedContent).digest("hex") !== item.checksum) fail("Markdown checksum differs from manifest");
     const before = documentFor(entry.content.$t); const after = documentFor(markdown.render(match[2]));
     for (const node of before.querySelectorAll("[id],a[name]")) {
       for (const id of new Set([node.getAttribute("id"), node.getAttribute("name")].filter(Boolean))) {

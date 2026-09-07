@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-22T01:41:22.982-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2009462146535283982
 originalUrl: http://blog.jdconley.com/2007/09/aspnet-centric-extensions.html
+ogImage: /blog-assets/og/aspnet-centric-extensions-v1.jpg
+ogImageAlt: "A wrench connects a .NET hub to useful extension pieces. — JD Conley."
 ---
 
 I've been loving the new [Extension Methods](http://weblogs.asp.net/scottgu/archive/2007/03/13/new-orcas-language-feature-extension-methods.aspx) in Orcas. If you haven't had the pleasure of working with them, well, you're really missing out. They are utility at its finest. Here is a list of my favorite extensions I've written thus far.

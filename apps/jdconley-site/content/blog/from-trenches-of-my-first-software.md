@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-29T23:24:30.033-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-5102928330552291797
 originalUrl: http://blog.jdconley.com/2006/05/from-trenches-of-my-first-software.html
+ogImage: /blog-assets/og/from-trenches-of-my-first-software-v1.jpg
+ogImageAlt: "STARTUP TRENCHES. A software flag rises above a muddy startup trench. — JD Conley."
 ---
 
 I was born and raised an entrepreneur (I'm pretty sure that's how you speel that). During my lifetime my dad never had a single "real job". He has always been a small business owner. From a carpet cleaning business, to a trucking company, to a coffee shop, he was always working on something he could call his own. Every time we get together we end up talking about businesses we'd like to start. If only I had the time. . . Somehow, after seeing him (and my mom) constantly working at least 80 hour weeks, stressed out, and exhausted, I still decided I wanted to start a company.

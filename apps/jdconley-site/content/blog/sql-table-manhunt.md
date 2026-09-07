@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-23T05:02:37.969-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6275555993787182064
 originalUrl: http://blog.jdconley.com/2008/03/sql-table-manhunt.html
+ogImage: /blog-assets/og/sql-table-manhunt-v1.jpg
+ogImageAlt: "A magnifying glass searches a missing-table notice. — JD Conley."
 ---
 
 As I mentioned in my last post I recently took on the exciting new position of Chief Software Architect at [Hive7, Inc.](http://www.hive7.com/) We're building all kinds of great stuff. Our most popular game [Knighthood](http://apps.facebook.com/knighthood) has over a million registered users and over 100,000 daily actives. This game is growing quickly. Over 125,000 people added the game two weeks ago, and over 150,000 added it in the last week. The game came into existence in December.

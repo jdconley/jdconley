@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-27T01:33:17.958-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-9168415833215846898
 originalUrl: http://blog.jdconley.com/2008/02/c-30-overview.html
+ogImage: /blog-assets/og/c-30-overview-v1.jpg
+ogImageAlt: "C# 3.0 launches above the earlier language versions. — JD Conley."
 ---
 
 It's been forever since my last post. I promise I'll do better. I've just been juggling three jobs. ;) But that has changed (more on that soon)!

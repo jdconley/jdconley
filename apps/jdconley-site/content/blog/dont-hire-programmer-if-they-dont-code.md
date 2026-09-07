@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-23T09:17:44.958-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4135665883135653249
 originalUrl: http://blog.jdconley.com/2009/01/dont-hire-programmer-if-they-dont-code.html
+ogImage: /blog-assets/og/dont-hire-programmer-if-they-dont-code-v1.jpg
+ogImageAlt: "A cheerful robot with a glowing heart builds at a desk. — JD Conley."
 ---
 
 I'm not the first person to talk about this paradigm and I won't be the last. Every single programmer I've seen that is *exceptionally good at their job* also does it for fun. They have an itch. It must be scratched. No matter how fun and lenient the work place, they always have their own project to work on. Their own passion. But, I think there is more to it, or I'd just site some previous articles and be done with it.

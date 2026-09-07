@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-22T00:59:26.920-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-1477714049596343834
 originalUrl: http://blog.jdconley.com/2007/06/friend-photosaver-for-facebook.html
+ogImage: /blog-assets/og/friend-photosaver-for-facebook-v1.jpg
+ogImageAlt: "A magnet collects a stream of friends’ photographs. — JD Conley."
 ---
 
 By now everybody who knows what [Facebook](http://www.facebook.com/) is, knows they announced [an open platform](http://developers.facebook.com/) for integrating with it. Interestingly enough Microsoft was a launch partner of theirs so there is also a shared source .NET API layer available. We decided to jump on the opportunity and published [SoapBox for Facebook](http://soapbox.net/facebook.aspx). Chris mentioned this in his [announcement blog](http://www.coversant.com/Coversant/Blogs/tabid/88/EntryID/43/Default.aspx) earlier.

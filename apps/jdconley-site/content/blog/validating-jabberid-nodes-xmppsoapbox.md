@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T00:25:02.945-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2948995150946085884
 originalUrl: http://blog.jdconley.com/2007/03/validating-jabberid-nodes-xmppsoapbox.html
+ogImage: /blog-assets/og/validating-jabberid-nodes-xmppsoapbox-v1.jpg
+ogImageAlt: "A shield admits valid message identities and blocks an invalid one. — JD Conley."
 ---
 
 One of the most common, and tedious, tasks that comes up while writing software is validating user input. "Don't trust the user," the mantra goes. Even with current development tools it is still suprisingly difficult (i.e. not automatic) to validate user input and provide useful feedback to people who enter bad data.

@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-26T05:50:11.806-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7735018220357202657
 originalUrl: http://blog.jdconley.com/2006/08/using-mysql-command-line-from-cnet.html
+ogImage: /blog-assets/og/using-mysql-command-line-from-cnet-v1.jpg
+ogImageAlt: "Data flows from C# into a MySQL terminal. — JD Conley."
 ---
 
 We have added two new data access providers to the upcoming SoapBox Server 2007 release. We now support PostgreSql and MySql as well as Microsoft SQL and Oracle. The code for these databases has been in our server and test libraries for a couple of months and this last week it was time to add them into our post installation configuration wizard. We strive to make our setup process as simple as possible. You'll notice many improvements over the 2005 wizard. We have better auto-configuration and fewer wizard screens.

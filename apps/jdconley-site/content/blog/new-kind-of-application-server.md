@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-23T04:56:43.321-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8579264127606836594
 originalUrl: http://blog.jdconley.com/2008/02/new-kind-of-application-server.html
+ogImage: /blog-assets/og/new-kind-of-application-server-v1.jpg
+ogImageAlt: "RETHINK THE SERVER. A chat-enabled server launches on rocket engines. — JD Conley."
 ---
 
 As you probably know, I'm a cofounder of [Coversant](http://www.coversant.com/) which, at its heart, is an XMPP development platform. Most of our larger customers (thousands of simultaneous users) are ISV's that have built on the SoapBox Platform®. We allow you to easily develop XMPP applications using .NET technology.

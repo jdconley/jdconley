@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-21T23:52:43.519-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4142246971923325819
 originalUrl: http://blog.jdconley.com/2006/09/catch-with-godaddy-dedicated-hosting.html
+ogImage: /blog-assets/og/catch-with-godaddy-dedicated-hosting-v1.jpg
+ogImageAlt: "THE HOSTING TRAP. Money drains from a hosting server caught in a trap. — JD Conley."
 ---
 
 I'm not known to get easily frustrated or publicly rant about something, but here goes. The public web site and soapbox.net IM service for Coversant is hosted with [GoDaddy](http://www.godaddy.com/) using their [dedicated server](https://www.godaddy.com/gdshop/hosting/dedicated.asp?se=%2B&ci=722&display=dedicated) plans. This makes things real easy for us. We don't have to manage hardware somewhere in a colo. We get an ftp site for backups. And most of all we get the convenience and control of a dedicated system. It's also very reasonably priced. Ah, but there's always a catch.

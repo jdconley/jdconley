@@ -160,3 +160,17 @@ test("rejects failed HTTP responses, corrupt raster data and MIME mismatches", a
   expect(result.failures).toHaveLength(3);
   expect(result.assets.every(asset => !asset.path)).toBe(true);
 });
+
+test("archive validation permits sharing metadata while retaining content and reimport protection", async () => {
+  const root = await mkdtemp(join(tmpdir(), "blogger-social-")); directories.push(root);
+  const source = feed([entry("1", "first")]);
+  await importBlogger({ root, source });
+  const path = join(root, "content/blog/first.md");
+  const original = await readFile(path, "utf8");
+  const customized = original.replace("\n---\n", '\nogImage: /blog-assets/og/first.jpg\nogImageAlt: >-\n  A bright\n  illustration.\n---\n');
+  await writeFile(path, customized);
+  expect((await verifyImportedArchive({ root })).failures).toEqual([]);
+  await expect(importBlogger({ root, source })).rejects.toThrow(/manually edited|modified/i);
+  await writeFile(path, customized + "\n<!-- editorial change -->\n");
+  expect((await verifyImportedArchive({ root })).failures).toContainEqual(expect.objectContaining({ message: "Markdown checksum differs from manifest" }));
+});

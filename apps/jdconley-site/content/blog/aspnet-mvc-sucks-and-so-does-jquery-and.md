@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-23T09:15:59.616-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7640307391466323137
 originalUrl: http://blog.jdconley.com/2009/01/aspnet-mvc-sucks-and-so-does-jquery-and.html
+ogImage: /blog-assets/og/aspnet-mvc-sucks-and-so-does-jquery-and-v1.jpg
+ogImageAlt: "EVERY FRAMEWORK SUCKS?. A wrecking ball crashes through competing software frameworks. — JD Conley."
 ---
 
 Apparently, saying something sucks gets you a lot of hits. I think I'll use this tactic more often. My post on [10 Reasons ASP.NET Webforms Suck](/blog/10-reasons-aspnet-webforms-suck) has been quite the talk in our tiny little .NET blog world this week. Who knew you all had such strong opinions on the matter!

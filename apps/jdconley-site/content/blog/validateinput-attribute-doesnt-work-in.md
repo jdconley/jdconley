@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-23T10:59:08.795-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7924513367780140302
 originalUrl: http://blog.jdconley.com/2010/04/validateinput-attribute-doesnt-work-in.html
+ogImage: /blog-assets/og/validateinput-attribute-doesnt-work-in-v1.jpg
+ogImageAlt: "A cracked ASP.NET 4.0 shield and a broken chain. — JD Conley."
 ---
 
 Today I decided to upgrade some of our new projects (top secret, shhh) to [Visual Studio 2010](http://weblogs.asp.net/scottgu/archive/2010/04/12/visual-studio-2010-and-net-4-released.aspx), ASP.NET 4.0, and [ASP.NET MVC 2.0](http://weblogs.asp.net/scottgu/archive/2010/03/11/asp-net-mvc-2-released.aspx). There are about a million new features that look quite useful in all of these new releases. We have some fairly complex projects so I was excepting a few speed bumps, but, not this one.

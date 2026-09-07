@@ -1,0 +1,40 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { parseHTML } from "linkedom";
+import sharp from "sharp";
+import { loadPosts } from "./content.mjs";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const posts = await loadPosts(resolve(root, "content/blog"));
+const pages = [{ slug: "index", file: "blog.html" }, ...posts.map(post => ({ ...post, file: `blog/${post.slug}.html` }))];
+let maxBytes = 0;
+const imageUrls = new Set();
+for (const page of pages) {
+  const { document } = parseHTML(await readFile(resolve(root, "dist", page.file), "utf8"));
+  const content = selector => document.querySelector(selector)?.getAttribute("content");
+  const canonical = new URL(document.querySelector('[rel="canonical"]').getAttribute("href"));
+  const image = new URL(content('[property="og:image"]'));
+  assert.equal(image.protocol, "https:", page.file);
+  assert.equal(image.origin, canonical.origin, page.file);
+  assert.match(image.href, /\/blog-assets\/social\/[a-z0-9-]+\.png\?v=[a-f0-9]{12}$/, page.file);
+  assert.equal(content('[name="twitter:card"]'), "summary_large_image", page.file);
+  for (const selector of ['[property="og:image:secure_url"]', '[name="twitter:image"]']) assert.equal(content(selector), image.href, page.file);
+  assert.equal(content('[property="og:image:type"]'), "image/png", page.file);
+  assert.equal(content('[property="og:image:width"]'), "1200", page.file);
+  assert.equal(content('[property="og:image:height"]'), "630", page.file);
+  assert.match(content('[property="og:image:alt"]'), /Author portrait of JD Conley\.$/, page.file);
+  assert.equal(content('[name="twitter:image:alt"]'), content('[property="og:image:alt"]'), page.file);
+  assert.ok(!/noindex|noimageindex/.test(content('[name="robots"]')), page.file);
+  const schema = JSON.parse(document.querySelector('[type="application/ld+json"]').textContent);
+  assert.equal(typeof schema.image === "string" ? schema.image : schema.image.url, image.href, page.file);
+  const bytes = await readFile(resolve(root, "dist", `.${image.pathname}`));
+  const meta = await sharp(bytes).metadata();
+  assert.deepEqual([meta.format, meta.width, meta.height], ["png", 1200, 630], page.file);
+  assert.ok(bytes.length < 5_000_000, page.file);
+  imageUrls.add(image.href);
+  maxBytes = Math.max(maxBytes, bytes.length);
+}
+assert.equal(imageUrls.size, pages.length, "Every page needs its own image URL");
+console.log(JSON.stringify({ pages: pages.length, publishedPosts: posts.length, configuredArtwork: posts.filter(post => post.ogImage).length, automaticFallback: posts.filter(post => !post.ogImage).map(post => post.slug), uniqueImages: imageUrls.size, dimensions: "1200x630", format: "PNG", maxBytes }, null, 2));

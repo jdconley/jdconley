@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-22T01:27:05.736-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-554861436859257643
 originalUrl: http://blog.jdconley.com/2007/09/list-of-country-names.html
+ogImage: /blog-assets/og/list-of-country-names-v1.jpg
+ogImageAlt: "A globe is assembled from colorful national flags. — JD Conley."
 ---
 
 Today I had to build yet-another-list of country names for a web site drop down form. I did some Google searching for about 10 minutes and didn't find anything that was free. I dunno, maybe I'm just blind... I did, however, find a list on Wikipedia. So, I decided I'd pull it down and parse it up. Here's the code:  

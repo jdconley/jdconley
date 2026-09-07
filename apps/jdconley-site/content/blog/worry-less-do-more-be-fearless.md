@@ -10,6 +10,8 @@ draft: false
 updated: 2013-07-18T10:42:07.945-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4836117030040205910
 originalUrl: http://blog.jdconley.com/2013/07/worry-less-do-more-be-fearless.html
+ogImage: /blog-assets/og/worry-less-do-more-be-fearless-v1.jpg
+ogImageAlt: "BE FEARLESS. A child holds a parent’s hand beside a window overlooking Lake Tahoe at sunrise. — JD Conley."
 ---
 
 [![](/blog-assets/imported/485760479f72e63980d9e246.jpg)](/blog-assets/imported/7f33a0235ce52e036af95ef2.jpg)**"we better have health insurance"**  

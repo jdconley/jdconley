@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T01:16:52.286-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3636100427201199919
 originalUrl: http://blog.jdconley.com/2007/08/clean-up-string-for-url.html
+ogImage: /blog-assets/og/clean-up-string-for-url-v1.jpg
+ogImageAlt: "CLEAN URLS. A brush clears unwanted symbols from a URL string. — JD Conley."
 ---
 
 This is a quickie. Yesterday I was doing some Url rewriting for a project and accepting user input for said Url. It's basically like this blog system. I can specify the friendly url of each post. So, I wrote a little extension method to clean up a string and make it URL friendly. Yes, you can just escape everything someone enters, but it's much friendlier to just make it work. Be lenient in what you accept! Here it is:  

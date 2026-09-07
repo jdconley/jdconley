@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T01:14:31.571-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6581387070107928666
 originalUrl: http://blog.jdconley.com/2009/02/abstracting-away-azure-how-to-run.html
+ogImage: /blog-assets/og/abstracting-away-azure-how-to-run-v1.jpg
+ogImageAlt: "A cloud breaks free from its chains above an open padlock. — JD Conley."
 ---
 
 I had a lot of fun over our holiday break this December working on prototype projects for up and coming technologies. One of those projects dealt with Windows Azure, or, the Azure Services Platform. Azure is basically a cloud application hosting environment put together by Microsoft. The idea is, you build your web apps in .NET and publish them to the nebulous cloud. Once in the cloud they scale and perform well and you don't have to deal with any of the headaches of managing things at the OS/System level.

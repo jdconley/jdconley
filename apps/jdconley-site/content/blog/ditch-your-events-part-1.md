@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-27T00:12:59.280-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7793214738393095802
 originalUrl: http://blog.jdconley.com/2009/11/ditch-your-events-part-1.html
+ogImage: /blog-assets/og/ditch-your-events-part-1-v1.jpg
+ogImageAlt: "An event symbol is discarded into a metal trash can. — JD Conley."
 ---
 
 About four months ago Max, Hive7's [Lawful Evil CEO](http://corp.hive7.com/about/), decided we needed to take our games to the next level and build something fun and accessible that everyone who plays "those farming games" would want to play. We all brainstormed, pitched our ideas to the company, and everyone voted by comparing every idea against every other – I wish we had a digital photo of the giant matrix on the whiteboard. There were a bunch of great ideas, but in the end... I won! [Youtopia](http://apps.facebook.com/you-topia/landing?ref=jd) was born.

@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-21T23:30:00.269-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8439273755609074001
 originalUrl: http://blog.jdconley.com/2006/09/cross-platform-deployment-project.html
+ogImage: /blog-assets/og/cross-platform-deployment-project-v1.jpg
+ogImageAlt: "A deployment toolbox connects different operating systems. — JD Conley."
 ---
 
 I think we are one of a very small set of companies out there building consumer grade, shrink wrapped products on .NET. Why? Well, I'm not sure. It might have to do with Microsoft's positioning on the matter. All their documentation talks about enterprise deployments. It could also have to do with the runtime size. Some people think 50MB download for prerequisites is too much. In general, though, .NET, and Visual Studio 2005 especially, provide all kinds of great tools for building shrink-wrapped products. One of these is the Deployment Project.

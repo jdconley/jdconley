@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T00:55:46.344-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-4159598516278882360
 originalUrl: http://blog.jdconley.com/2007/06/simpler-isnt-always-better.html
+ogImage: /blog-assets/og/simpler-isnt-always-better-v1.jpg
+ogImageAlt: "A tangled asynchronous machine struggles to process messages. — JD Conley."
 ---
 
 AsyncOperationManager... die!  

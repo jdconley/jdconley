@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T00:02:30.617-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6147256010649956063
 originalUrl: http://blog.jdconley.com/2010/03/mr-sprite-sheet-meet-ms-movieclip.html
+ogImage: /blog-assets/og/mr-sprite-sheet-meet-ms-movieclip-v1.jpg
+ogImageAlt: "SPRITES TO MOVIECLIPS. A sheet of game sprites transforms into an animated knight on a filmstrip. — JD Conley."
 ---
 
 In [Youtopia](http://pushbuttonengine.com/devgallery/youtopia) we wanted to have animations. We also wanted to have thousands of buildings on the screen at once. Anyone who has done a lot of Flash development will tell you that these two things are not compatible. You simply cannot create that many movie clip instances and have them playing. But, all is not lost! With a sprite sheet animation system like the one in [PushButton Engine](http://pushbuttonengine.com/) (PBE) you can have your cake and eat it too!

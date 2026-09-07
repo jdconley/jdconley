@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-23T09:45:13.050-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8143439452965828995
 originalUrl: http://blog.jdconley.com/2009/02/you-might-be-great-hacker-if-you.html
+ogImage: /blog-assets/og/you-might-be-great-hacker-if-you-v1.jpg
+ogImageAlt: "A glowing piece emerges from an unsolved puzzle cube. — JD Conley."
 ---
 
 A number of years ago I was doing some [mentoring](http://www.kieferconsulting.com/Pages/Mentoring.aspx) at a California state agency that shall remain nameless. I got my butt up in time to be into their office at 8am. (Ok, I'll be honest, usually I got up in time. I was late on a few occasions.) I led them down the path of learning ASP.NET from scratch. Together we built a great product that is still in use today on a highly trafficked web site. Some time late in the mentoring project a student came up to me and asked the strangest question. He wanted to know how I learned everything I was teaching them. He wanted to take the same classes.

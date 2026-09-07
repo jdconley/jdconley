@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T04:34:08.821-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2083274888998170874
 originalUrl: http://blog.jdconley.com/2006/05/net-20-web-service-hair-puller.html
+ogImage: /blog-assets/og/net-20-web-service-hair-puller-v1.jpg
+ogImageAlt: "SOAP SURPRISE. An unruly web-service machine pulls a bundle of wires. — JD Conley."
 ---
 
 Every couple of weeks I spend four hours doing something that should take five minutes. It just happened, and now I feel compelled to take another few minutes and explain so it doesn't happen to you. Not only did I waste my time, but the time of another one of our developers. What might waste four hours, you say?

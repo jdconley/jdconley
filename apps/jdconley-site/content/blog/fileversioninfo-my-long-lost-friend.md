@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T02:35:16.081-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6128067537066896627
 originalUrl: http://blog.jdconley.com/2007/11/fileversioninfo-my-long-lost-friend.html
+ogImage: /blog-assets/og/fileversioninfo-my-long-lost-friend-v1.jpg
+ogImageAlt: "A glowing FileVersionInfo card is discovered in a dusty chest. — JD Conley."
 ---
 
 I've been doing .NET development professionally since the first public beta release of the 1.0 framework. That's... well, a long time. It constantly amazes me how big the framework really is. There are a number of times I've written tens or hundreds of lines of code for a task that I later realized – or was smacked over the head with by a colleague with – that were in the framework. Heck, even after writing my [Extension Methods](/blog/aspnet-centric-extensions) post a couple months ago some friendly readers [pointed out](/blog/aspnet-centric-extensions#2) how I was writing too much code.

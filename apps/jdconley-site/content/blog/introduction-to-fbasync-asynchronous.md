@@ -12,6 +12,8 @@ draft: false
 updated: 2011-07-23T04:38:32.946-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8830681557683240270
 originalUrl: http://blog.jdconley.com/2007/12/introduction-to-fbasync-asynchronous.html
+ogImage: /blog-assets/og/introduction-to-fbasync-asynchronous-v1.jpg
+ogImageAlt: "Facebook messages stream through a glowing asynchronous loop. — JD Conley."
 ---
 
 I'd like to start off by saying asynchronous programming is easy. Building asynchronous frameworks is hard, but using them is easy. Everybody doing programming in AJAX and Flash do it every day without thinking about it. There's no reason us C# .NET programmers can't do the same!

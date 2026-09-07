@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-21T23:05:04.808-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3475430821530758052
 originalUrl: http://blog.jdconley.com/2006/07/interoperability-yup-we-got-it-covered.html
+ogImage: /blog-assets/og/interoperability-yup-we-got-it-covered-v1.jpg
+ogImageAlt: "Different servers connect through a central messaging hub. — JD Conley."
 ---
 
 Today was the first day of the first ever official [XMPP Interop Event](http://wiki.jabber.org/index.php/Interop_Event). In fact, it was probably the first day of any open instant messaging and presence interop event, ever.

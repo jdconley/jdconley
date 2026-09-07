@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-23T10:35:07.041-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3759175721413587676
 originalUrl: http://blog.jdconley.com/2009/11/anyone-still-out-there.html
+ogImage: /blog-assets/og/anyone-still-out-there-v1.jpg
+ogImageAlt: "A small robot sits beneath a spotlight in a deserted landscape. — JD Conley."
 ---
 
 Wow, I haven't posted in a while. In recent months I've been focused intently on a few things.  

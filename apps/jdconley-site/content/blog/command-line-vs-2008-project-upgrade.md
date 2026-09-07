@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T01:53:01.094-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2481574914174471447
 originalUrl: http://blog.jdconley.com/2007/11/command-line-vs-2008-project-upgrade.html
+ogImage: /blog-assets/og/command-line-vs-2008-project-upgrade-v1.jpg
+ogImageAlt: "SKIP THE WIZARD. A command terminal competes with a wizard’s hat. — JD Conley."
 ---
 
 I've converted a few projects to 2008 RTM now (from 2003 to 2005 to 2008 beta projects), and I wish John Robbins had published [this blog](http://www.wintellect.com/cs/blogs/jrobbins/archive/2007/11/21/easily-converting-to-visual-studio-2008.aspx) earlier. For those of us that don't like clicking in things he presents a built-in command line switch on devenv to upgrade solutions. I decided to take it to the next level.

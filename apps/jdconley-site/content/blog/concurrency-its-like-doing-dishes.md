@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-23T09:21:45.657-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3845481521114917521
 originalUrl: http://blog.jdconley.com/2009/01/concurrency-its-like-doing-dishes.html
+ogImage: /blog-assets/og/concurrency-its-like-doing-dishes-v1.jpg
+ogImageAlt: "CONCURRENCY, EXPLAINED. Dirty dishes and an open dishwasher illustrate parallel work. — JD Conley."
 ---
 
 Since we moved to Palo Alto I've had the luxury of walking to work every day. Usually that's where I do my deep thinking. By the time I cruise by the Whole Foods it's really easy to ignore the activist-of-the-day petitioning something about global warming. But yesterday was different.

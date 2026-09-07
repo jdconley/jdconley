@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-23T05:04:35.929-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6930063535698047898
 originalUrl: http://blog.jdconley.com/2008/05/windows-server-2008.html
+ogImage: /blog-assets/og/windows-server-2008-v1.jpg
+ogImageAlt: "A Windows Server tower stands beneath a dramatic sky. — JD Conley."
 ---
 
 For anybody who's been watching you will have noticed that I have had [some](/blog/fun-installing-vista-beta-2-on-amd-x64) [fun](/blog/vista-rant) trying to get x64 Windows Vista stable on my workstation. Well, because of all that fun I've been running good ole trusty XP Pro 32 bit (and Ubuntu) for the last 8 months or so. I noticed both Server 2008 and Vista SP1 came out and I thought, "hey, it's time for an upgrade!"

@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-23T09:23:32.911-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7314456103484989963
 originalUrl: http://blog.jdconley.com/2009/01/put-down-abstract-factory-and-get.html
+ogImage: /blog-assets/og/put-down-abstract-factory-and-get-v1.jpg
+ogImageAlt: "JUST SHIP IT. A racing car escapes a complicated factory into daylight. — JD Conley."
 ---
 
 It seems as a group, us programmers have our priorities screwed up. Programmers value clean, concise code. Code that requires no documentation. Code that perfectly uses design patterns and best practices. Code that other programmers will look at and think "wow, I wish I was as l33t as this guy."

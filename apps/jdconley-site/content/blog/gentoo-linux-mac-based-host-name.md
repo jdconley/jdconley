@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-21T23:48:55.569-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7389091125871809749
 originalUrl: http://blog.jdconley.com/2006/09/gentoo-linux-mac-based-host-name.html
+ogImage: /blog-assets/og/gentoo-linux-mac-based-host-name-v1.jpg
+ogImageAlt: "NAME YOUR MACHINES. A penguin wears an identity tag beside an Ethernet cable. — JD Conley."
 ---
 
 We use [Gentoo](http://www.gentoo.org/) for all our Linux development (yeah, we do Linux -- coming very very soon). In fact we are currently putting together a test lab with quite a few computers using Gentoo, [Mono](http://www.mono-project.com/), and our own StressBot software to drive client load to our server.

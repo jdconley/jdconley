@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-21T23:08:37.379-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-1161897624541060473
 originalUrl: http://blog.jdconley.com/2006/07/more-on-interop.html
+ogImage: /blog-assets/og/more-on-interop-v1.jpg
+ogImageAlt: "Two server-shaped puzzle pieces bridge a gap. — JD Conley."
 ---
 
 I'm sitting on a plane on my way back to Sacramento (a whopping 1 hour flight) and I thought I'd try to give a little more information about the interop event. After two days of testing it appears as though we're actually very close to having quite a few fully interoperable XMPP implementations. As I mentioned last time, Monday was a cake walk. Unfortunately Tuesday wasn't quite so easy.

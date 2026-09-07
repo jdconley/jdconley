@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-29T23:17:12.459-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-5839251310447380729
 originalUrl: http://blog.jdconley.com/2007/04/building-reactive-user-interfaces-in.html
+ogImage: /blog-assets/og/building-reactive-user-interfaces-in-v1.jpg
+ogImageAlt: "A valve schedules work items into orderly UI updates. — JD Conley."
 ---
 
 One of the most common things to do in a multi-threaded .NET Windows Forms application is to use the [ISynchronizeInvoke interface](http://msdn2.microsoft.com/en-us/library/system.componentmodel.isynchronizeinvoke.aspx) on [a Control](http://www.interact-sw.co.uk/iangblog/2004/08/17/badsynclocking) to marshal things into the UI thread. The basic jist of things is: you can have the Windows Forms engine call your delegate on the thread that created the Control instance you're using. It does this using the window message pump. Typical uses of the ISynchronizeInvoke are: you want to read some data from a file, database, socket, or web service and you want your application to be responsive while you do it. When you're done you do a BeginInvoke/Invoke on the Control to update some UI elements. Well, sometimes using a Control's ISynchronizeInvoke leads to hung GUI's.

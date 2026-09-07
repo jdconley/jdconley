@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T02:52:45.848-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7087191807678130888
 originalUrl: http://blog.jdconley.com/2011/07/photo-feeds-facebook-application.html
+ogImage: /blog-assets/og/photo-feeds-facebook-application-v1.jpg
+ogImageAlt: "A strip of photos flows from Facebook into an RSS feed. — JD Conley."
 ---
 
 I've built quite a few applications for Facebook. These include [SoapBox](http://www.facebook.com/apps/application.php?id=2447886974), [Friend Photosaver](http://www.facebook.com/apps/application.php?id=2466327790), [Photozap](http://www.facebook.com/apps/application.php?id=5577408502), and my latest creation (late last night) is called [Photo Feeds](http://www.facebook.com/apps/application.php?id=7515202213).

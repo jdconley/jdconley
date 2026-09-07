@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T00:22:00.219-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-1317392116403861647
 originalUrl: http://blog.jdconley.com/2006/12/installing-coversant-products-on-vista.html
+ogImage: /blog-assets/og/installing-coversant-products-on-vista-v1.jpg
+ogImageAlt: "UNLOCK THE INSTALL. A golden key unlocks a Windows installation shield. — JD Conley."
 ---
 
 Due to the enhanced security in Windows Vista, not all Coversant products are able to be installed out of the box. Luckily, this is really easy to work around and rest assured, future version of our installation packages will not suffer from these issues.

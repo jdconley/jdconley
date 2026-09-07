@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T01:18:09.847-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6717842052803519212
 originalUrl: http://blog.jdconley.com/2009/01/fire-and-forget-email-webservices-and.html
+ogImage: /blog-assets/og/fire-and-forget-email-webservices-and-v1.jpg
+ogImageAlt: "An envelope launches like a rocket. — JD Conley."
 ---
 
 Often times when you're working on a web site you want to fire and forget an email, a web method or, most common in our case, a Facebook call. There's a good chance there's a Framework method available to do that for you quite simply. They're suffixed with the word Async. For email there's the [System.Net.Mail.SmtpClient](http://msdn.microsoft.com/en-us/library/system.net.mail.smtpclient.aspx) class. The following dirt simple code will send an email for you asynchronously:

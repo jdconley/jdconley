@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-27T04:35:55.215-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6390406425317569855
 originalUrl: http://blog.jdconley.com/2006/05/fakeouttheusertothinkwedontuseanymemory.html
+ogImage: /blog-assets/og/fakeouttheusertothinkwedontuseanymemory-v1.jpg
+ogImageAlt: "A magician makes a memory module disappear into a top hat. — JD Conley."
 ---
 
 There comes a time in every project where the developers realize we are building software for the users, rather than for ourselves. A user's perception can be the difference between a good and a bad reference, and we all know how detrimental bad word of mouth can be. This unfortunate reality hit me square in the face recently when I was told by a customer that "your application is bloatware".

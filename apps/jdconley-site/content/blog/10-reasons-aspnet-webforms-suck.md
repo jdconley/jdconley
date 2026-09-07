@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-23T05:14:41.201-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8150011986971385423
 originalUrl: http://blog.jdconley.com/2009/01/10-reasons-aspnet-webforms-suck.html
+ogImage: /blog-assets/og/10-reasons-aspnet-webforms-suck-v1.jpg
+ogImageAlt: "WEBFORMS SUCK. An overgrown WebForms monument crumbles. — JD Conley."
 ---
 
 I've always been a .NET Fanboy. I've been on the bandwagon since its inception. I've developed quite a few shipping .NET products for the web, Windows, and Linux. I've given talks at user groups, created a consulting company, and mentored developers new to .NET. I always experiment with the latest toys and try to stay ahead of the technolgoy curve. In my most recent role at Hive7, I've been focused on web technology. We have some pretty large scale games (millions of players) built on ASP.NET webforms and ASP.NET AJAX. It's been about 8 years since I've written a full blown web app that wasn't in ASP.NET webforms. Sure, there's the occasional small PHP or static html site, but no "real" applications have been built on anything but ASP.NET. I think I've been missing out.

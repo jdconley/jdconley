@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-23T04:16:15.116-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-9056388359802407533
 originalUrl: http://blog.jdconley.com/2007/12/geeks-with-kids.html
+ogImage: /blog-assets/og/geeks-with-kids-v1.jpg
+ogImageAlt: "A robot monitors cameras while children sit in opposite corners. — JD Conley."
 ---
 
 I was just IMing with a good geek friend of mine. This is what happens when you give paranoid geeks kids (names removed for obvious reasons).  

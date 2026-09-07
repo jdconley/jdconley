@@ -12,6 +12,8 @@ draft: false
 updated: 2011-07-22T02:29:10.095-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-2140608852551935922
 originalUrl: http://blog.jdconley.com/2007/11/more-visual-studio-2008-beta-2-to-rtm.html
+ogImage: /blog-assets/og/more-visual-studio-2008-beta-2-to-rtm-v1.jpg
+ogImageAlt: "Visual Studio release boxes stand beside a hidden trap. — JD Conley."
 ---
 
 Yesterday I posted on the first thing I ran into. Today I ported another project and hit a couple more snags.  

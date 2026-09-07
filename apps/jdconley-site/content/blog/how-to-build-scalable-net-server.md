@@ -12,6 +12,8 @@ draft: false
 updated: 2011-07-21T23:05:55.077-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7402889212575295063
 originalUrl: http://blog.jdconley.com/2006/06/how-to-build-scalable-net-server.html
+ogImage: /blog-assets/og/how-to-build-scalable-net-server-v1.jpg
+ogImageAlt: "MAKE MEMORY SCALE. Memory flows through a powerful .NET server core. — JD Conley."
 ---
 
 I'll get this out of the way from the start. This series of blogs will have nothing to do with ASP.NET or web services. However, if you plan on writing you own implementation of IIS in managed code this would probably be a good place to start. :) I also won't be providing very many code examples, as I'd be flogged by our intellectual property lawyers. You will not be able to copy and paste and create your own scalable server. However, I hope to provide enough insight so you can avoid a big list of gotchas we have had to figure out the hard way. This is one piece of a huge puzzle, memory management. Yes, you do have to think about that in .NET, at least if you want to build a large scale application.

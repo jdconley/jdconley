@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-27T01:58:03.994-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-188156924369495615
 originalUrl: http://blog.jdconley.com/2007/09/asyncify-your-code.html
+ogImage: /blog-assets/og/asyncify-your-code-v1.jpg
+ogImageAlt: "Multiple colored streams flow through an hourglass. — JD Conley."
 ---
 
 Asyncify your code. Everybody's doing it. (Chicks|Dudes)'ll dig it. It'll make you cool.

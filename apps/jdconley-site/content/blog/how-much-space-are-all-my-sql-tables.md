@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T02:49:45.455-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7346749600347321380
 originalUrl: http://blog.jdconley.com/2007/11/how-much-space-are-all-my-sql-tables.html
+ogImage: /blog-assets/og/how-much-space-are-all-my-sql-tables-v1.jpg
+ogImageAlt: "A crowded database cylinder stands beside a measuring tape. — JD Conley."
 ---
 
 I deal with a few dozen databases on a daily basis. Often times I wonder "What the heck is making this database 100GB?" Sure, you can click around in Management Studio and find figures on a table by table and index by index basis, but there has to be a better way!

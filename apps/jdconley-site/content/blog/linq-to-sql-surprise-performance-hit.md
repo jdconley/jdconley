@@ -12,6 +12,8 @@ draft: false
 updated: 2011-07-22T03:14:11.657-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-1887030120170852789
 originalUrl: http://blog.jdconley.com/2007/11/linq-to-sql-surprise-performance-hit.html
+ogImage: /blog-assets/og/linq-to-sql-surprise-performance-hit-v1.jpg
+ogImageAlt: "THE HIDDEN SQL COST. A wrecking ball strikes a database cylinder. — JD Conley."
 ---
 
 A couple days ago I built [Photo Feeds](http://apps.facebook.com/photofeeds/). I wrote about it [here](/blog/photo-feeds-facebook-application). After using the app a bit I noticed something peculiar. The page took a really long time to load. From my local web server it was on the order of 2-5 seconds. That's *way* too slow.

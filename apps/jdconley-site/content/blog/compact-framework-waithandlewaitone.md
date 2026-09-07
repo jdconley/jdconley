@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-21T23:57:56.545-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6288449040506861270
 originalUrl: http://blog.jdconley.com/2006/11/compact-framework-waithandlewaitone.html
+ogImage: /blog-assets/og/compact-framework-waithandlewaitone-v1.jpg
+ogImageAlt: "A WaitOne button sits inside a mechanical trap. — JD Conley."
 ---
 
 I ran into a behavior in the 2.0 Compact Framework today that was most vexing. It wasn't hard to find like a subtle race condition. It wasn't an issue that only duplicated with a certain system configuration, under a full moon, on Wednesday. No, it duplicated every single time the code was ran. But, it wasn't documented anywhere I could find.

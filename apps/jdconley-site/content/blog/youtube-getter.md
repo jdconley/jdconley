@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-22T00:30:30.866-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6469503447914068558
 originalUrl: http://blog.jdconley.com/2007/04/youtube-getter.html
+ogImage: /blog-assets/og/youtube-getter-v1.jpg
+ogImageAlt: "Video frames emerge from a red play-button device. — JD Conley."
 ---
 
 Usually everything I post here is serious business. Well, not today! Today, we're going to look at how to get the raw video stream for YouTube videos. Why, you ask? Well, curiosity, mostly. :) Some people like sports, I like problem solving. There are a number of browser plug-ins and web sites that do this already, but hey, it was still fun.

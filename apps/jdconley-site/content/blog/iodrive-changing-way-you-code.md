@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-27T00:32:46.120-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-3039767605246329505
 originalUrl: http://blog.jdconley.com/2009/03/iodrive-changing-way-you-code.html
+ogImage: /blog-assets/og/iodrive-changing-way-you-code-v1.jpg
+ogImageAlt: "STORAGE CHANGES EVERYTHING. A storage card races through blue and gold light trails. — JD Conley."
 ---
 
 <a id="intro"></a>

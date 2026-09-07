@@ -9,6 +9,8 @@ draft: false
 updated: 2011-07-22T00:13:22.585-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8638020826163728097
 originalUrl: http://blog.jdconley.com/2006/11/xslt-for-msdn-product-keys.html
+ogImage: /blog-assets/og/xslt-for-msdn-product-keys-v1.jpg
+ogImageAlt: "A golden key transforms product-key data into a readable table. — JD Conley."
 ---
 
 Here at Coversant we're Microsoft partners. We have MSDN subscriptions for all our developers/testers, and we share the same set of license keys. Rather than give everyone willy-nilly access to the MSDN download web site (ick, lots of bandwidth suck) we setup an internal file share for MSDN installation files, CD images, etc. We used to have all the product keys in there just saved as html from Microsoft's web site. However, that's no fun!  

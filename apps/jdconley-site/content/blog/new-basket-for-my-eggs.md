@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-23T10:17:04.088-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-6630336472210026047
 originalUrl: http://blog.jdconley.com/2009/06/new-basket-for-my-eggs.html
+ogImage: /blog-assets/og/new-basket-for-my-eggs-v1.jpg
+ogImageAlt: "A NEW BET. A basket holds glowing eggs made of photographs. — JD Conley."
 ---
 
 Hopefully after reading that title you're thinking of the old adage "Don't put all your eggs in one basket" and not something crude. Ok, I admit, either way it works for me. You're still reading.

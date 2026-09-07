@@ -8,6 +8,8 @@ draft: false
 updated: 2011-07-29T09:17:59.592-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-8119001092534412284
 originalUrl: http://blog.jdconley.com/2011/07/how-to-recruit-great-engineering-talent.html
+ogImage: /blog-assets/og/how-to-recruit-great-engineering-talent-v1.jpg
+ogImageAlt: "A giant magnet lifts one glowing figure from a crowd of metal figures. — JD Conley."
 ---
 
 [Raiders of the Last Nerd](http://www.betabeat.com/2011/07/27/tech-recruiters/) made the front page of Hacker News yesterday and went a bit viral around the geek ecosystem. For good reason. Fueled by accelerating technology innovation, VC money, and even sometimes profit, the job market for experienced engineering talent has been heating up all over the place. In recent months I have received an email or phone call from at least one recruiter per day and I haven't even worked for Google or Facebook or one of those other Golden Names. Last month, out of sheer frustration with the lack of quality, I wrote an open letter to recruiters titled [Dearest Recruiter](/blog/dearest-recruiter). I'd like to expand on that a bit.  

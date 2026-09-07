@@ -2,7 +2,7 @@ import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { loadPosts } from "./content.mjs";
 import { buildBlog, renderArchive, renderArticle, renderFeed } from "./render.mjs";
-import { renderShareImage } from "./share-image.mjs";
+import { archiveSocial, prepareShareImage } from "./share-image.mjs";
 
 export function blogPlugin(root) {
   const directory = resolve(root, "content/blog");
@@ -16,9 +16,14 @@ export function blogPlugin(root) {
       // Generated blog HTML bypasses Vite's HTML asset discovery.
       // Explicitly ship the shared portrait at the URL used by the templates.
       this.emitFile({ type: "asset", fileName: "images/headshot-256x256.png", source: await readFile(resolve(root, "images/headshot-256x256.png")) });
-      for (const [fileName, source] of buildBlog(posts, origin)) this.emitFile({ type: "asset", fileName, source });
+      const shareImages = {};
+      for (const post of [archiveSocial, ...posts]) {
+        const image = await prepareShareImage(post, root);
+        shareImages[post.slug] = image.path;
+        this.emitFile({ type: "asset", fileName: image.path.slice(1).split("?")[0], source: image.source });
+      }
+      for (const [fileName, source] of buildBlog(posts, origin, { shareImages })) this.emitFile({ type: "asset", fileName, source });
       for (const name of fontFiles) this.emitFile({ type: "asset", fileName: `blog-assets/${name}`, source: await readFile(fontPath(name)) });
-      for (const post of [{ slug: "index", title: "Starin’ at the Wall" }, ...posts]) this.emitFile({ type: "asset", fileName: `blog-assets/social/${post.slug}.png`, source: await renderShareImage({ ...post, root }) });
     },
     configurePreviewServer(server) {
       // Vite defaults to SPA fallback; blog pages must retain static-host 404 semantics.
@@ -40,9 +45,12 @@ export function blogPlugin(root) {
         const name = url.pathname.slice("/blog-assets/".length);
         if (/^\/blog-assets\/social\/[a-z0-9-]+\.png$/.test(url.pathname)) {
           const slug = url.pathname.split("/").pop().replace(/\.png$/, "");
-          const post = slug === "index" ? { title: "Starin’ at the Wall" } : (await loadPosts(directory, { includeDrafts: true })).find(p => p.slug === slug);
+          const post = slug === "index" ? archiveSocial : (await loadPosts(directory, { includeDrafts: true })).find(p => p.slug === slug);
           if (!post) { res.statusCode = 404; res.end(); return; }
-          res.setHeader("Content-Type", "image/png"); res.end(await renderShareImage({ ...post, root })); return;
+          try {
+            const image = await prepareShareImage(post, root);
+            res.setHeader("Content-Type", "image/png"); res.end(image.source); return;
+          } catch (error) { next(error); return; }
         }
         if (url.pathname.startsWith("/blog-assets/") && fontFiles.includes(name)) {
           res.setHeader("Content-Type", "font/woff2"); res.end(await readFile(fontPath(name))); return;
@@ -57,7 +65,9 @@ export function blogPlugin(root) {
           const slug = url.pathname.slice("/blog/".length);
           const post = posts.find(item => item.slug === slug);
           if (url.pathname !== "/blog" && !post) { res.statusCode = 404; res.setHeader("Content-Type", "text/html; charset=utf-8"); res.end('<h1>Post not found</h1><a href="/blog">All writing</a>'); return; }
-          const html = post ? renderArticle(post, posts, origin) : renderArchive(posts, origin, { preview: true });
+          const image = await prepareShareImage(post || archiveSocial, root);
+          const shareImages = { [post?.slug || "index"]: image.path };
+          const html = post ? renderArticle(post, posts, origin, { shareImages }) : renderArchive(posts, origin, { preview: true, shareImages });
           res.setHeader("Content-Type", "text/html; charset=utf-8"); res.setHeader("Cache-Control", "no-store");
           res.end(await server.transformIndexHtml(url.pathname, html));
         } catch (error) { server.config.logger.error(error.stack); next(error); }

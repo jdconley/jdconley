@@ -15,6 +15,7 @@ const markdown = new MarkdownIt({
   }
 });
 export const validSlug = slug => typeof slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && !["feed", "index"].includes(slug);
+export const validOgImage = value => typeof value === "string" && /^\/blog-assets\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:png|jpe?g|webp)$/.test(value);
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 
 export function renderMarkdown(body) {
@@ -55,6 +56,8 @@ export function parsePost(source, filename) {
     if (meta.updated !== undefined) validateDate(meta.updated, "updated");
     if (meta.draft !== undefined && typeof meta.draft !== "boolean") throw new Error("draft must be a boolean");
     if (meta.description !== undefined && typeof meta.description !== "string") throw new Error("description must be text");
+    if (meta.ogImage !== undefined && !validOgImage(meta.ogImage)) throw new Error("ogImage must be a local /blog-assets/ PNG, JPG, or WebP path");
+    if (meta.ogImageAlt !== undefined && (typeof meta.ogImageAlt !== "string" || !meta.ogImageAlt.trim())) throw new Error("ogImageAlt must be nonempty text");
     if (meta.tags !== undefined && (!Array.isArray(meta.tags) || meta.tags.some(tag => typeof tag !== "string" || !tag.trim()))) throw new Error("tags must be an array of nonempty strings");
     for (const field of ["originalUrl", "bloggerId"]) if (meta[field] !== undefined && typeof meta[field] !== "string") throw new Error(`${field} must be text`);
     const body = front[2].trim();

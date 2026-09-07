@@ -11,6 +11,8 @@ draft: false
 updated: 2011-07-27T00:23:20.462-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-148808662145526727
 originalUrl: http://blog.jdconley.com/2009/01/functional-optimistic-concurrency-in-c.html
+ogImage: /blog-assets/og/functional-optimistic-concurrency-in-c-v1.jpg
+ogImageAlt: "A C# shield protects a castle from incoming arrows. — JD Conley."
 ---
 
 A few months ago Phil Haack wrote about how C# 3.0 is a [gateway drug](http://haacked.com/archive/2009/02/15/the-functional-language-gateway-drug.aspx) to functional programming. (Yeah, that's how long ago I started writing this blog.) I couldn't agree more. I find myself solving problems using functional rather than imperative programming quite often nowadays. It's much more elegant for many problem spaces.

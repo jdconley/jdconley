@@ -10,6 +10,8 @@ draft: false
 updated: 2011-07-21T23:36:45.777-07:00
 bloggerId: tag:blogger.com,1999:blog-1741199026308686058.post-7900123433520559771
 originalUrl: http://blog.jdconley.com/2006/06/soapbox-platform-possibilities.html
+ogImage: /blog-assets/og/soapbox-platform-possibilities-v1.jpg
+ogImageAlt: "Connected applications rise from a glowing messaging toolbox. — JD Conley."
 ---
 
 Our customers do some very interesting things with our platform, including:  
