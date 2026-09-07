@@ -34,8 +34,23 @@ Wow! That's a long time (and a lot of hits). I was definitely right. I'm hitting
 
 Here's the offending code:  
 
-```
-public static Feed GetOrCreateFeed(FeedsDataContext dc,string owner,FeedSourceType sourceType,string facebookId){var q = from f in dc.Feeds       where f.OwnerId == owner &&       f.FeedSourceType == (byte)sourceType &&       f.FacebookId == facebookId       select f;Feed existingItem = q.SingleOrDefault();...}
+```csharp
+public static Feed GetOrCreateFeed(
+FeedsDataContext dc,
+string owner,
+FeedSourceType sourceType,
+string facebookId)
+{
+var q = from f in dc.Feeds
+       where f.OwnerId == owner &&
+       f.FeedSourceType == (byte)sourceType &&
+       f.FacebookId == facebookId
+       select f;
+
+Feed existingItem = q.SingleOrDefault();
+
+...
+}
 ```
 
 So I dug into the call graph a bit and found out the code causing by far the most damage was the creation of the LINQ query object for every call! The actual round trip to the database paled in comparison. Now that was, again, a *huge* surprise. Check out the hit counts on this call – holy cow!
@@ -50,8 +65,31 @@ So I dug into the call graph a bit and found out the code causing by far the mos
 
 I started doing some research. I remembered [reading about](http://blogs.msdn.com/ricom/archive/2007/07/05/dlinq-linq-to-sql-performance-part-4.aspx) using compiled LINQ to SQL queries for optimization a few months ago. I did a little more searching and ran into [this gem](http://devauthority.com/blogs/jwooley/archive/2007/09/05/75645.aspx) for anybody scared of lambda functions. *Warning, scary .NET 3.5 lambda functions ahead* . Here's the magic fix:
 
-```
-private static readonly Func<FeedsDataContext, string, FeedSourceType,string, IQueryable<Feed>> _compiledGet =CompiledQuery.Compile((FeedsDataContext dc, string owner,FeedSourceType sourceType, string facebookId) =>   from f in dc.Feeds   where f.OwnerId == owner &&   f.FeedSourceType == (byte)sourceType &&   f.FacebookId == facebookId   select f);public static Feed GetOrCreateFeed(FeedsDataContext dc,string owner,FeedSourceType sourceType,string facebookId){Feed existingItem = _compiledGet(dc, owner, sourceType, facebookId)   .SingleOrDefault();...}
+```csharp
+private static readonly Func<
+FeedsDataContext, string, FeedSourceType,
+string, IQueryable<Feed>> _compiledGet =
+CompiledQuery.Compile(
+(FeedsDataContext dc, string owner,
+FeedSourceType sourceType, string facebookId) =>
+   from f in dc.Feeds
+   where f.OwnerId == owner &&
+   f.FeedSourceType == (byte)sourceType &&
+   f.FacebookId == facebookId
+   select f);
+
+public static Feed GetOrCreateFeed(
+FeedsDataContext dc,
+string owner,
+FeedSourceType sourceType,
+string facebookId)
+{
+Feed existingItem = _compiledGet(
+dc, owner, sourceType, facebookId)
+   .SingleOrDefault();
+
+...
+}
 ```
 
 If that's your first time seeing lambdas in C#, I feel for you. I'd suggest trying them out and doing a lot of [research](http://www.google.com/search?q=c%23+lambda+functions). That *simple* change yielded the following result:

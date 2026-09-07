@@ -31,7 +31,16 @@ or
 That's it! Quick and easy. The output will look something like:
 
 ```
-    Searching for solutions under c:\svn\websites Upgrade "c:\svn\websites\mysite\my.sln"? [Y/N] n Skipped "c:\svn\websites\mysite\my.sln" Upgrade "c:\svn\websites\broken\site.sln"? [Y/N] y Converting "c:\svn\websites\broken\site.sln" Unable to convert solution "c:\svn\websites\broken\site.sln" Check out the errors in the UpgradeLog.xml file. Upgrade "c:\svn\websites\ok\site.sln"? [Y/N] y Converting "c:\svn\websites\ok\site.sln" Converted "c:\svn\websites\ok\site.sln"
+    Searching for solutions under c:\svn\websites
+ Upgrade "c:\svn\websites\mysite\my.sln"? [Y/N] n
+ Skipped "c:\svn\websites\mysite\my.sln"
+ Upgrade "c:\svn\websites\broken\site.sln"? [Y/N] y
+ Converting "c:\svn\websites\broken\site.sln"
+ Unable to convert solution "c:\svn\websites\broken\site.sln"
+ Check out the errors in the UpgradeLog.xml file.
+ Upgrade "c:\svn\websites\ok\site.sln"? [Y/N] y
+ Converting "c:\svn\websites\ok\site.sln"
+ Converted "c:\svn\websites\ok\site.sln"
 ```
 
 Well, that's my simple app that took just a few minutes to write and saved the pain of many clicks through a wizard. [Download it here](http://jdconley.com/upgrader2008.zip).

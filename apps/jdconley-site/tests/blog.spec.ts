@@ -53,6 +53,45 @@ test("blog pages meet automated accessibility checks in both color schemes", asy
   }
 });
 
+test("migrated C# code preserves lines and highlighting without JavaScript in both themes", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
+  const page = await context.newPage();
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const colorScheme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme });
+      await page.goto("/blog/sorted-affair-history-of-c-sort");
+      const blocks = page.locator(".prose pre code");
+      await expect(blocks).toHaveCount(6);
+      expect(await blocks.first().textContent()).toContain("public class Person\n{\n  public string FirstName");
+      expect(await blocks.nth(4).textContent()).toBe("public IEnumerable<Person> SortCS3(IEnumerable<Person> people)\n{\n  return people.OrderBy(p => p.FirstName);\n}\n");
+      await expect(blocks.first()).toHaveAttribute("class", "language-csharp");
+      await expect(page.locator(".prose pre").first()).toHaveCSS("white-space", "pre");
+      const keywordColor = await blocks.first().locator(".hljs-keyword").first().evaluate(node => getComputedStyle(node).color);
+      const textColor = await blocks.first().evaluate(node => getComputedStyle(node).color);
+      expect(keywordColor).not.toBe(textColor);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      if (width === 390) {
+        const firstBlock = page.locator(".prose pre").first();
+        await firstBlock.focus();
+        await expect(firstBlock).toBeFocused();
+        await page.keyboard.press("ArrowRight");
+        await expect.poll(() => firstBlock.evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+      }
+    }
+  }
+  await context.close();
+});
+
+test("highlighted code has accessible contrast in both color schemes", async ({ page }) => {
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/blog/sorted-affair-history-of-c-sort");
+    const results = await new AxeBuilder({ page }).include(".prose pre").withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+    expect(results.violations).toEqual([]);
+  }
+});
+
 test("RSS, sitemap, Markdown mirrors and absent-post status are correct", async ({ request }) => {
   const feed = await request.get("/blog/feed.xml");
   expect(feed.ok()).toBe(true);

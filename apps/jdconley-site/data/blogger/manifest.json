@@ -14,14 +14,14 @@
       "path": "content/blog/abstracting-away-azure-how-to-run.md",
       "originalPath": "/2009/02/abstracting-away-azure-how-to-run.html",
       "newPath": "/blog/abstracting-away-azure-how-to-run",
-      "checksum": "63c2ecb45cb4f35a8fa2ce512e5b7a790ee1d3153acf4f62c1d4393b10086a83"
+      "checksum": "b52240f61435948bf3af3c7d55d7f5e06f4cac03fbf1a2ead1fc3d6580a7913c"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3298497982786863353",
       "path": "content/blog/angry-players-make-sunday-more.md",
       "originalPath": "/2009/11/angry-players-make-sunday-more.html",
       "newPath": "/blog/angry-players-make-sunday-more",
-      "checksum": "4910767978d4d7e767b8d2f8907a4e36382b518fe4830549dfdeeea118f7c08c"
+      "checksum": "47729ad5a2bcaf5c3aa242b9fa694bdc22705bd15d2d637851c5e3d839285c54"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3759175721413587676",
@@ -35,7 +35,7 @@
       "path": "content/blog/aspnet-centric-extensions.md",
       "originalPath": "/2007/09/aspnet-centric-extensions.html",
       "newPath": "/blog/aspnet-centric-extensions",
-      "checksum": "71ab6b3df9c186ef992ddef471601e6374bf8a895012233420e6ad4e225d1a9f"
+      "checksum": "00f63c1c00de561f18bbcad134881c41c1616f5e066fdf91fa926e8847ec80eb"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2413166326787052170",
@@ -63,21 +63,21 @@
       "path": "content/blog/async-facebook-library-teaser.md",
       "originalPath": "/2007/12/async-facebook-library-teaser.html",
       "newPath": "/blog/async-facebook-library-teaser",
-      "checksum": "37dbb2cb1c08939d834ea4a74cc8e21bad34bde33eb040b70270fe2836c055b0"
+      "checksum": "08730221b5486bfdefc6bf53ea6794d29ef074a5a406f2798ba8f9ff31d4bf38"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-188156924369495615",
       "path": "content/blog/asyncify-your-code.md",
       "originalPath": "/2007/09/asyncify-your-code.html",
       "newPath": "/blog/asyncify-your-code",
-      "checksum": "5f5ac8a8df58cf6614d7a9f9d1c1b5c38f959bc0c255722b87179a8e7f83e8d1"
+      "checksum": "1df7899c6bc06a689eae331873aea1f5b825bd40dd548f89d90ce5b56df13e4d"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-5839251310447380729",
       "path": "content/blog/building-reactive-user-interfaces-in.md",
       "originalPath": "/2007/04/building-reactive-user-interfaces-in.html",
       "newPath": "/blog/building-reactive-user-interfaces-in",
-      "checksum": "e72a49e533cbd4cca143b67ba8c938d3fbef78c1b2a70e70b93ad4d04fde99a9"
+      "checksum": "385e51c8d5c017e35c7d417f11756564c0bc7f8913f8d1ffba270c2c62d754e0"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-9168415833215846898",
@@ -98,14 +98,14 @@
       "path": "content/blog/clean-up-string-for-url.md",
       "originalPath": "/2007/08/clean-up-string-for-url.html",
       "newPath": "/blog/clean-up-string-for-url",
-      "checksum": "d0cb5968948b5b23f41c700d460524b0ebe58521d7a01ac8f071717afff59baa"
+      "checksum": "b76759244e31d0b5bbd2ec3fc0175f0cdb551694b69063fe6c8a552dc7dd80b2"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2481574914174471447",
       "path": "content/blog/command-line-vs-2008-project-upgrade.md",
       "originalPath": "/2007/11/command-line-vs-2008-project-upgrade.html",
       "newPath": "/blog/command-line-vs-2008-project-upgrade",
-      "checksum": "bea2dbb054660fb0e838f797bc39d9aeb41d0a1a46a3564b6456358328314962"
+      "checksum": "5c59e32b476f798b483ed437d963961bc06d9361eeaf3b694ca08cafb3caa0a3"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6288449040506861270",
@@ -147,14 +147,14 @@
       "path": "content/blog/ditch-your-events-part-1.md",
       "originalPath": "/2009/11/ditch-your-events-part-1.html",
       "newPath": "/blog/ditch-your-events-part-1",
-      "checksum": "d3845a2b125fd3005c560177861ab55a64959d23aff9fd045a1fb76660f4075a"
+      "checksum": "281cd328babbb54a922def4b71b43de4e160ef0311ab65347775cd77c497e782"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2521490268521831687",
       "path": "content/blog/dont-forget-to-close-your-linq-to-sql.md",
       "originalPath": "/2007/08/dont-forget-to-close-your-linq-to-sql.html",
       "newPath": "/blog/dont-forget-to-close-your-linq-to-sql",
-      "checksum": "2d28dd05b468b7e040026ce513ffd36df6bbb114c8b9f9c98a2ae53e0a524d51"
+      "checksum": "a5402d3a1413e7b083a6a98cdcd288541318d59314fa8cce62b1bf8cf8b238d9"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4135665883135653249",
@@ -182,7 +182,7 @@
       "path": "content/blog/fakeouttheusertothinkwedontuseanymemory.md",
       "originalPath": "/2006/05/fakeouttheusertothinkwedontuseanymemory.html",
       "newPath": "/blog/fakeouttheusertothinkwedontuseanymemory",
-      "checksum": "190fd50d8b94a71368b03867dd3b9e598e57b14491c6ee2f303c51d4bf741414"
+      "checksum": "9b41792f246b8c83750a1834e52238918ac9989be52662d418bed9dc07f16e55"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6128067537066896627",
@@ -196,7 +196,7 @@
       "path": "content/blog/fire-and-forget-email-webservices-and.md",
       "originalPath": "/2009/01/fire-and-forget-email-webservices-and.html",
       "newPath": "/blog/fire-and-forget-email-webservices-and",
-      "checksum": "bb9de99baa66b0c161044cd18e181e842332f76acaad9e4eba5f11581dd52dca"
+      "checksum": "e30870c8316e55063df5bcb3eed9605e17bcd6a60da7c329974633ec252cac4c"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1477714049596343834",
@@ -224,28 +224,28 @@
       "path": "content/blog/functional-optimistic-concurrency-in-c.md",
       "originalPath": "/2009/01/functional-optimistic-concurrency-in-c.html",
       "newPath": "/blog/functional-optimistic-concurrency-in-c",
-      "checksum": "1f34d46f195b1f1539af81cd3a9ae5111efb6c95a37438a760593ba1a96a866d"
+      "checksum": "3c50c05de0ab260b7413fe56eccf47532eb0b4c96082e8afd296627810ff4cc1"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-9056388359802407533",
       "path": "content/blog/geeks-with-kids.md",
       "originalPath": "/2007/12/geeks-with-kids.html",
       "newPath": "/blog/geeks-with-kids",
-      "checksum": "424e452bfa0e81086a80ce39c4860f6bfd10da8b2a4c14e01856e03bc2acd391"
+      "checksum": "4afa8a6b09bcfb4988869cdd85810a8d8459247bbf744db32d6cb57ebf940040"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7389091125871809749",
       "path": "content/blog/gentoo-linux-mac-based-host-name.md",
       "originalPath": "/2006/09/gentoo-linux-mac-based-host-name.html",
       "newPath": "/blog/gentoo-linux-mac-based-host-name",
-      "checksum": "8b8c103e4693c763ec03260c816a413e9d68f3170477079e49800c236f52db90"
+      "checksum": "0de35472ed986869483276cf0422fe04201eb6aa707959f612029c1d1c14b672"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7346749600347321380",
       "path": "content/blog/how-much-space-are-all-my-sql-tables.md",
       "originalPath": "/2007/11/how-much-space-are-all-my-sql-tables.html",
       "newPath": "/blog/how-much-space-are-all-my-sql-tables",
-      "checksum": "e2c5bab846d209aa3531704540cc720e6173d1625cdef312ba584ceca97ede47"
+      "checksum": "a191f0ea3740a2bfdfe5e1b32faf8bc5ac581eacf4b1517cf0072cf68ad9b912"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7402889212575295063",
@@ -273,7 +273,7 @@
       "path": "content/blog/installing-coversant-products-on-vista.md",
       "originalPath": "/2006/12/installing-coversant-products-on-vista.html",
       "newPath": "/blog/installing-coversant-products-on-vista",
-      "checksum": "4c70c9ab713882a5ffb3183addf75467a07fa9bd95981996a8d82950822e6f48"
+      "checksum": "2d85bd9c9c5b57c3d1955b93d7884617ba508f82cf4e3fc3f32a880cfb8ce7ea"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3475430821530758052",
@@ -287,7 +287,7 @@
       "path": "content/blog/introduction-to-fbasync-asynchronous.md",
       "originalPath": "/2007/12/introduction-to-fbasync-asynchronous.html",
       "newPath": "/blog/introduction-to-fbasync-asynchronous",
-      "checksum": "276eb9fd9527793ef822159fe953e32a195d3b653fa8bc5b218c7e78d56c8c06"
+      "checksum": "26477a161a6b7396da35049c1f16af1690cc8123af7ac05f0becee6c9d26220e"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3039767605246329505",
@@ -301,14 +301,14 @@
       "path": "content/blog/linq-to-sql-surprise-performance-hit.md",
       "originalPath": "/2007/11/linq-to-sql-surprise-performance-hit.html",
       "newPath": "/blog/linq-to-sql-surprise-performance-hit",
-      "checksum": "313df3d4edd1dc8b646e86525ad6008662c4a792df39e3a97c9d364b70e80c79"
+      "checksum": "bb5a393d878c1216bc4032fedc886ad367854ffc7c95350d8361887eaf5638f0"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-554861436859257643",
       "path": "content/blog/list-of-country-names.md",
       "originalPath": "/2007/09/list-of-country-names.html",
       "newPath": "/blog/list-of-country-names",
-      "checksum": "ffbaaceb6906881fff92652dd1bfe21ed1c02d56cb9fb105cf4a8a3f8692dc8d"
+      "checksum": "08099cdae0a104a538b5ac9a1016f31cc24bc8e583d67ae98cf341b24517e0b2"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-1161897624541060473",
@@ -329,7 +329,7 @@
       "path": "content/blog/mr-sprite-sheet-meet-ms-movieclip.md",
       "originalPath": "/2010/03/mr-sprite-sheet-meet-ms-movieclip.html",
       "newPath": "/blog/mr-sprite-sheet-meet-ms-movieclip",
-      "checksum": "da16f532169cef0a1a6d6d8addb13f6a98141b38f49cfa2b218a272a4ddef426"
+      "checksum": "b78e1f3d771e046d06a001805ede54945ffd139e49280844361159d2d9e1ca6e"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-2083274888998170874",
@@ -378,14 +378,14 @@
       "path": "content/blog/simpler-isnt-always-better.md",
       "originalPath": "/2007/06/simpler-isnt-always-better.html",
       "newPath": "/blog/simpler-isnt-always-better",
-      "checksum": "c0da34a227748f3c312bf2c685b5ded1420e43ce651bbe8bf7a72afc7cffc459"
+      "checksum": "736d646c1aea686feb1bf427d0a4c8076c03e6fad9b96d3e78bc8d9a6b9ae5e1"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4154510686697844042",
       "path": "content/blog/small-gotcha-in-net-framework-35-beta-2.md",
       "originalPath": "/2007/11/small-gotcha-in-net-framework-35-beta-2.html",
       "newPath": "/blog/small-gotcha-in-net-framework-35-beta-2",
-      "checksum": "b775a213dbfc5b4a6fe286b88d9f0d2bd39203f115e31ba43dfe3fddd56afc20"
+      "checksum": "2fcb48a26950359d4531ef150c3690de26d9cee60772f3e96aebebf399a3986f"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7900123433520559771",
@@ -399,21 +399,21 @@
       "path": "content/blog/sorted-affair-history-of-c-sort.md",
       "originalPath": "/2008/01/sorted-affair-history-of-c-sort.html",
       "newPath": "/blog/sorted-affair-history-of-c-sort",
-      "checksum": "cbdac9414c58648133fd0a4a41902cc89b82883b2c7639fb67bd0682e7b2ebaa"
+      "checksum": "e2d2378ef447c62104bb23785e6cc26cd32b6d3c304bf88b2132ceaa27d351df"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6275555993787182064",
       "path": "content/blog/sql-table-manhunt.md",
       "originalPath": "/2008/03/sql-table-manhunt.html",
       "newPath": "/blog/sql-table-manhunt",
-      "checksum": "7337ecad5b9fcca511dd8e03fa6f484e5f41903fea963474c0ac5da1a1403163"
+      "checksum": "16be994b625b0138f9cc1171b3e61d00cd9a35f94532b2a67b2a6759da6580c2"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-6881000841619034399",
       "path": "content/blog/stringbuildify.md",
       "originalPath": "/2007/09/stringbuildify.html",
       "newPath": "/blog/stringbuildify",
-      "checksum": "fde0fe5bce8ff2807f55982cf7ed4fd730513b216ca74d32bc1fde31fe7cd728"
+      "checksum": "6be600ecedfe13faa6f680569cb2175de98c70d496550064cf67f44f74fbf000"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-3585706395835555227",
@@ -427,14 +427,14 @@
       "path": "content/blog/using-mysql-command-line-from-cnet.md",
       "originalPath": "/2006/08/using-mysql-command-line-from-cnet.html",
       "newPath": "/blog/using-mysql-command-line-from-cnet",
-      "checksum": "ac146ddfe0b4a01b551f7a8b43fef6f5ccb87f04a7d4da9d040b104d335026f9"
+      "checksum": "e25b22246e84767e3324c175538c16741d6370caee8ff6c54c063049e38bf1d8"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-4927664133002778517",
       "path": "content/blog/using-wcfclient-kaboom.md",
       "originalPath": "/2007/08/using-wcfclient-kaboom.html",
       "newPath": "/blog/using-wcfclient-kaboom",
-      "checksum": "814e19868926918cb16333775c63c350bb9f6f12c5afb0cceb43186ab7262cb2"
+      "checksum": "561b5d7f756b4162b5370fd63d146104cf9cb5d613b1651cd5ab3f95c8728515"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-7924513367780140302",
@@ -483,7 +483,7 @@
       "path": "content/blog/xslt-for-msdn-product-keys.md",
       "originalPath": "/2006/11/xslt-for-msdn-product-keys.html",
       "newPath": "/blog/xslt-for-msdn-product-keys",
-      "checksum": "6d7142aa64325c9278ac1a6dcd45137834f0b2dce023ec199758a35719f38e98"
+      "checksum": "fc255f2c282637e40ee3ac20661ccd6f8d817a04b4bbefeddea1cb995a373d3d"
     },
     {
       "id": "tag:blogger.com,1999:blog-1741199026308686058.post-8143439452965828995",
@@ -497,7 +497,7 @@
       "path": "content/blog/youtube-getter.md",
       "originalPath": "/2007/04/youtube-getter.html",
       "newPath": "/blog/youtube-getter",
-      "checksum": "6e3650564dc5a1eae2385498cb1e6f9baafb982fb19738b508bafa5e57014428"
+      "checksum": "8bd6c319210d77f19eb953788a8ed9cb284b06644b2db18bce1c6f7a9b5f4ca6"
     }
   ],
   "assets": [

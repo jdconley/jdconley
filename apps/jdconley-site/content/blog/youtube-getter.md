@@ -16,8 +16,94 @@ Usually everything I post here is serious business. Well, not today! Today, we'r
 
 YouTube offers a [bit of an API](http://www.youtube.com/dev) for developers to mess with. It's mostly for grabbing sets of videos and preview images and such. They also let you embed their player in your pages. That's awfully nice of them, but what if I don't like their player? What if I want a sexier player? Well, if you've got something that can play/convert Flash Video (FLV's), here's the full C# code to grab the FLV URI (pieces dissected below):
 
-```
-using System;using System.Collections.Generic;using System.Text;using System.Net;using System.IO;using System.Web;using System.Collections.Specialized;namespace JDFun{  public static class YouTubeGetter  {      public static Uri GetFlvUri(string viewUri)      {          return GetFlvUri(new Uri(viewUri));      }      public static Uri GetWatchUri(Uri flvUri)      {          NameValueCollection qry = HttpUtility.ParseQueryString(flvUri.Query);          string videoID = qry["video_id"];          string watchUri = string.Concat("http://www.youtube.com/watch?v=", HttpUtility.UrlEncode(videoID));          return new Uri(watchUri);      }      public static Uri GetImageUri(Uri flvUri)      {          NameValueCollection qry = HttpUtility.ParseQueryString(flvUri.Query);          string imageUri = qry["iurl"];          return new Uri(imageUri);      }      public static Uri GetFlvUri(Uri viewUri)      {          // so either i've got the embed link or the watch link          //watch link: http://www.youtube.com/watch?v=up-RX_YN7yA          //embed link: http://www.youtube.com/v/up-RX_YN7yA          string toQuery = null;          NameValueCollection queryString = HttpUtility.ParseQueryString(viewUri.Query);          string videoId = queryString["v"];          if (null != videoId)          {              toQuery = string.Concat("http://www.youtube.com/v/", videoId);          }          else          {              toQuery = viewUri.ToString();          }          if (null == toQuery)              throw new InvalidOperationException("Not a valid YouTube Uri.");          Uri queryUri = new Uri(toQuery);          //ok we have the uri to query, now go there and get redirected.          HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(queryUri);          req.AllowAutoRedirect = true;          // make them think we're coming from a direct link          req.Referer = string.Empty;          // firefox rules!          req.UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3";          using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())          {              string absoluteRedirectLocation = resp.ResponseUri.AbsoluteUri;              //replace the swf with the get_video request              if (!absoluteRedirectLocation.Contains("/p.swf?"))                  throw new InvalidOperationException("Unrecognized Uri. YouTube changed something.");              absoluteRedirectLocation = absoluteRedirectLocation.Replace("/p.swf?", "/get_video?");              //return the absolute URI for this request              return new Uri(absoluteRedirectLocation);          }      }  }}
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Net;
+using System.IO;
+using System.Web;
+using System.Collections.Specialized;
+
+namespace JDFun
+{
+  public static class YouTubeGetter
+  {
+      public static Uri GetFlvUri(string viewUri)
+      {
+          return GetFlvUri(new Uri(viewUri));
+      }
+
+      public static Uri GetWatchUri(Uri flvUri)
+      {
+          NameValueCollection qry = HttpUtility.ParseQueryString(flvUri.Query);
+
+          string videoID = qry["video_id"];
+          string watchUri = string.Concat("http://www.youtube.com/watch?v=", HttpUtility.UrlEncode(videoID));
+
+          return new Uri(watchUri);
+      }
+
+      public static Uri GetImageUri(Uri flvUri)
+      {
+          NameValueCollection qry = HttpUtility.ParseQueryString(flvUri.Query);
+
+          string imageUri = qry["iurl"];
+
+          return new Uri(imageUri);
+      }
+
+      public static Uri GetFlvUri(Uri viewUri)
+      {
+          // so either i've got the embed link or the watch link
+
+          //watch link: http://www.youtube.com/watch?v=up-RX_YN7yA
+          //embed link: http://www.youtube.com/v/up-RX_YN7yA
+
+          string toQuery = null;
+
+          NameValueCollection queryString = HttpUtility.ParseQueryString(viewUri.Query);
+
+          string videoId = queryString["v"];
+
+          if (null != videoId)
+          {
+              toQuery = string.Concat("http://www.youtube.com/v/", videoId);
+          }
+          else
+          {
+              toQuery = viewUri.ToString();
+          }
+
+          if (null == toQuery)
+              throw new InvalidOperationException("Not a valid YouTube Uri.");
+
+          Uri queryUri = new Uri(toQuery);
+          //ok we have the uri to query, now go there and get redirected.
+          HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(queryUri);
+          req.AllowAutoRedirect = true;
+
+          // make them think we're coming from a direct link
+          req.Referer = string.Empty;
+
+          // firefox rules!
+          req.UserAgent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3";
+          using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse())
+          {
+              string absoluteRedirectLocation = resp.ResponseUri.AbsoluteUri;
+
+              //replace the swf with the get_video request
+              if (!absoluteRedirectLocation.Contains("/p.swf?"))
+                  throw new InvalidOperationException("Unrecognized Uri. YouTube changed something.");
+
+              absoluteRedirectLocation = absoluteRedirectLocation.Replace("/p.swf?", "/get_video?");
+
+              //return the absolute URI for this request
+              return new Uri(absoluteRedirectLocation);
+          }
+      }
+  }
+}
 ```
 
 Ok, wow, that's a lot bigger than I remember. Here's the basic idea.  

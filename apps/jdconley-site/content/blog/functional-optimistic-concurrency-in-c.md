@@ -42,28 +42,70 @@ The only problem is, to preserve consistency, an exception is thrown and the tra
 
 We have a little class named DataActions that is used to simplify and consolidate this retry process and make it painless to use. I'm going to use LINQ to SQL as the example here. Here's some usage code:
 
-```
-DataActions.ExecuteOptimisticSubmitChanges<GameDataContext>(dc =>{    var playerToMod = dc.Players.Where(p => p.ID == playerId).Single();    SetRandomGold(playerToMod);});
+```csharp
+DataActions.ExecuteOptimisticSubmitChanges<GameDataContext>(
+dc =>
+{
+    var playerToMod = dc.Players.Where(p => p.ID == playerId).Single();
+    SetRandomGold(playerToMod);
+});
 ```
 
 As you can see it's really straight forward. Notice all the goodness going on there. We don't have to instantiate our own DataContext, manually submit the changes, or worry at all about transactions. It's all handled by the wrapper. And, you just have to provide some code to execute once the DataContext has been instantiated.
 
 The ExecuteOptimisticSubmitChanges helper method itself is pretty simple as well:
 
-```
-public static voidExecuteOptimisticSubmitChanges<TDataContext>(Action<TDataContext> action) where TDataContext : DataContext, new(){ Retry(() =>     {         using (var ts = new TransactionScope())         {             using (var dc = new TDataContext())             {                 action(dc);                 dc.SubmitChanges();                 ts.Complete();             }         }     });}
+```csharp
+public static void
+ExecuteOptimisticSubmitChanges<TDataContext>(Action<TDataContext> action)
+ where TDataContext : DataContext, new()
+{
+ Retry(() =>
+
+     {
+         using (var ts = new TransactionScope())
+         {
+             using (var dc = new TDataContext())
+             {
+                 action(dc);
+                 dc.SubmitChanges();
+                 ts.Complete();
+             }
+         }
+     });
+}
 ```
 
 And, finally, we have the Retry method:
 
-```
-public static void Retry(Action a){ const int retries = 5; for (int i = 0; i < retries; i  ) {     try          {             a();             break;     }     catch         {             if (i == retries - 1) throw;         //exponential/random retry back-off.             var rand = new Random(Guid.NewGuid().GetHashCode());         int nextTry = rand.Next(           (int)Math.Pow(i, 2), (int)Math.Pow(i + 1, 2) + 1);         Thread.Sleep(nextTry);     } }}
+```csharp
+public static void Retry(Action a)
+{
+ const int retries = 5;
+ for (int i = 0; i < retries; i  )
+ {
+     try          {             a();             break;
+     }
+     catch         {             if (i == retries - 1) throw;
+
+         //exponential/random retry back-off.             var rand = new Random(Guid.NewGuid().GetHashCode());
+         int nextTry = rand.Next(
+           (int)Math.Pow(i, 2), (int)Math.Pow(i + 1, 2) + 1);
+
+         Thread.Sleep(nextTry);
+     }
+ }
+}
 ```
 
 When you string all this together you get pseudo-stacks that look like:
 
 ```
-MyCodeExecuteOptimisticSubmitChangesRetry  ExecuteOptimisticSubmitChanges    MyCode
+MyCode
+ExecuteOptimisticSubmitChanges
+Retry
+  ExecuteOptimisticSubmitChanges
+    MyCode
 ```
 
 So, why should you care? The calling code is really easy to read, and you get a number of other benefits with this code. In addition to handling exceptions caused by concurrency errors, you also get retries on deadlocks, and more common Sql Connection errors.
@@ -71,13 +113,34 @@ So, why should you care? The calling code is really easy to read, and you get a 
 I put together a little sample application you can play with. It uses these helpers and has a SQL Database with it. The sample simulates really high concurrency and you can watch it deal gracefully with deadlocks. Then you can change line 29 of Program.cs and execute the same concurrent code without retries enabled. It ouputs the number of failed transactions and a bunch of other interesting stuff to the console. Here's some example output:
 
 ```
- ...  Retrying after iteration 0 in 1ms Retrying after iteration 0 in 0ms Thread finished with 0 failures. Concurrency at 3Retrying after iteration 1 in 3msRetrying after iteration 1 in 4msThread finished with 0 failures. Concurrency at 2Retrying after iteration 2 in 5msThread finished with 0 failures. Concurrency at 1Retrying after iteration 3 in 15msThread finished with 0 failures. Concurrency at 00 total failures and 7 total retries.All done. Hit enter to exit.
+ ...  Retrying after iteration 0 in 1ms Retrying after iteration 0 in 0ms Thread finished with 0 failures. Concurrency at 3
+Retrying after iteration 1 in 3ms
+Retrying after iteration 1 in 4ms
+Thread finished with 0 failures. Concurrency at 2
+Retrying after iteration 2 in 5ms
+Thread finished with 0 failures. Concurrency at 1
+Retrying after iteration 3 in 15ms
+Thread finished with 0 failures. Concurrency at 0
+
+0 total failures and 7 total retries.
+All done. Hit enter to exit.
 ```
 
 And the same test run with retries disabled:
 
 ```
- ...  Starting worker. Concurrency at 8Thread finished with 0 failures. Concurrency at 7Thread finished with 0 failures. Concurrency at 6Thread finished with 1 failures. Concurrency at 5Thread finished with 1 failures. Concurrency at 4Thread finished with 1 failures. Concurrency at 2Thread finished with 2 failures. Concurrency at 3Thread finished with 0 failures. Concurrency at 1Thread finished with 2 failures. Concurrency at 07 total failures and 0 total retries.All done. Hit enter to exit.
+ ...  Starting worker. Concurrency at 8
+Thread finished with 0 failures. Concurrency at 7
+Thread finished with 0 failures. Concurrency at 6
+Thread finished with 1 failures. Concurrency at 5
+Thread finished with 1 failures. Concurrency at 4
+Thread finished with 1 failures. Concurrency at 2
+Thread finished with 2 failures. Concurrency at 3
+Thread finished with 0 failures. Concurrency at 1
+Thread finished with 2 failures. Concurrency at 0
+
+7 total failures and 0 total retries.
+All done. Hit enter to exit.
 ```
 
 Here's the download link again: [optimistic-concurrency.zip](https://docs.google.com/viewer?a=v&pid=explorer&chrome=true&srcid=0B7Ew2HKAAmajMGNmZGNjNTMtYzQwMy00MWJkLTk3MDItODJhYzJjOGIyZGZi&hl=en_US)

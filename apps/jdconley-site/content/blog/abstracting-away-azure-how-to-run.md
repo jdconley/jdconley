@@ -50,18 +50,98 @@ That's it. With your UI not talking directly to the Azure services you'll have a
 
 For all my non-Azure projects I use [log4net](http://logging.apache.org/log4net/) for logging. It's a simple, flexible, open-source logging engine. You might want to use Enterprise Framework. Whatever. Just like with the storage engines the key to being able to move off of the Azure logging service some day is to not use it in your applications directly. I wrote a little Appender plugin for log4net that writes logs to the Azure RoleManager if the app is loaded into the Azure context. Most of the code is mapping the multitude of log4net log levels to the Azure event log names. Here's the code:
 
-```
-public class AzureRoleManagerAppender: AppenderSkeleton{public AzureRoleManagerAppender(){}public AzureRoleManagerAppender(ILayout layout){   Layout = layout;}protected override void Append(log4net.Core.LoggingEvent loggingEvent){   if (null == Layout)       Layout = new log4net.Layout.SimpleLayout();   var sb = new StringBuilder();   using (var sr = new StringWriter(sb))   {       Layout.Format(sr, loggingEvent);       sr.Flush();       if (RoleManager.IsRoleManagerRunning)           RoleManager.WriteToLog(GetEventLogName(loggingEvent), sb.ToString());       else           System.Diagnostics.Trace.Write(sb.ToString(), GetEventLogName(loggingEvent));   }}protected virtual string GetEventLogName(LoggingEvent loggingEvent){   if (loggingEvent.Level == Level.Alert)       return "Critical";   else if (loggingEvent.Level == Level.Critical)       return "Critical";   else if (loggingEvent.Level == Level.Debug)       return "Verbose";   else if (loggingEvent.Level == Level.Emergency)       return "Critical";   else if (loggingEvent.Level == Level.Error)       return "Error";   else if (loggingEvent.Level == Level.Fatal)       return "Critical";   else if (loggingEvent.Level == Level.Fine)       return "Information";   else if (loggingEvent.Level == Level.Finer)       return "Information";   else if (loggingEvent.Level == Level.Finest)       return "Information";   else if (loggingEvent.Level == Level.Info)       return "Information";   else if (loggingEvent.Level == Level.Notice)       return "Information";   else if (loggingEvent.Level == Level.Severe)       return "Critical";   else if (loggingEvent.Level == Level.Trace)       return "Verbose";   else if (loggingEvent.Level == Level.Verbose)       return "Verbose";   else if (loggingEvent.Level == Level.Warn)       return "Warning";   else       return "Information";}}
+```csharp
+public class AzureRoleManagerAppender
+: AppenderSkeleton
+{
+public AzureRoleManagerAppender()
+{
+}
+
+public AzureRoleManagerAppender(ILayout layout)
+{
+   Layout = layout;
+}
+
+protected override void Append(log4net.Core.LoggingEvent loggingEvent)
+{
+   if (null == Layout)
+       Layout = new log4net.Layout.SimpleLayout();
+
+   var sb = new StringBuilder();
+   using (var sr = new StringWriter(sb))
+   {
+       Layout.Format(sr, loggingEvent);
+       sr.Flush();
+
+       if (RoleManager.IsRoleManagerRunning)
+           RoleManager.WriteToLog(GetEventLogName(loggingEvent), sb.ToString());
+       else
+           System.Diagnostics.Trace.Write(sb.ToString(), GetEventLogName(loggingEvent));
+   }
+}
+
+protected virtual string GetEventLogName(LoggingEvent loggingEvent)
+{
+   if (loggingEvent.Level == Level.Alert)
+       return "Critical";
+   else if (loggingEvent.Level == Level.Critical)
+       return "Critical";
+   else if (loggingEvent.Level == Level.Debug)
+       return "Verbose";
+   else if (loggingEvent.Level == Level.Emergency)
+       return "Critical";
+   else if (loggingEvent.Level == Level.Error)
+       return "Error";
+   else if (loggingEvent.Level == Level.Fatal)
+       return "Critical";
+   else if (loggingEvent.Level == Level.Fine)
+       return "Information";
+   else if (loggingEvent.Level == Level.Finer)
+       return "Information";
+   else if (loggingEvent.Level == Level.Finest)
+       return "Information";
+   else if (loggingEvent.Level == Level.Info)
+       return "Information";
+   else if (loggingEvent.Level == Level.Notice)
+       return "Information";
+   else if (loggingEvent.Level == Level.Severe)
+       return "Critical";
+   else if (loggingEvent.Level == Level.Trace)
+       return "Verbose";
+   else if (loggingEvent.Level == Level.Verbose)
+       return "Verbose";
+   else if (loggingEvent.Level == Level.Warn)
+       return "Warning";
+   else
+       return "Information";
+}
+}
 ```
 
 Then you just configure log4net as usual, and go on your merry way. Write your logs to log4net rather than to the Azure log manager.
 
-```
-<log4net><appender name="azure" type="AzureRoleManagerAppender,MyAssembly"><layout type="log4net.Layout.PatternLayout"> <conversionPattern value="%logger - %message" /></layout></appender><root><level value="ALL" /><appender-ref ref="azure" /></root></log4net>
+```csharp
+<log4net>
+<appender name="azure" type="AzureRoleManagerAppender,MyAssembly">
+<layout type="log4net.Layout.PatternLayout">
+ <conversionPattern value="%logger - %message" />
+</layout>
+</appender>
+
+<root>
+<level value="ALL" />
+<appender-ref ref="azure" />
+</root>
+</log4net>
 ```
 
-```
-private ILog _log = LogManager.GetLogger(typeof(WorkerRole));..._log.Info("Starting worker process");
+```csharp
+private ILog _log = LogManager.GetLogger(typeof(WorkerRole));
+
+...
+
+_log.Info("Starting worker process");
 ```
 
   

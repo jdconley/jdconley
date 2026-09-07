@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loadPosts, renderMarkdown } from "../../scripts/blog/content.mjs";
 import { buildBlog } from "../../scripts/blog/render.mjs";
+import { parseHTML } from "linkedom";
 
 const dirs = [];
 async function fixture(files) {
@@ -40,9 +41,26 @@ describe("Markdown blog", () => {
   });
   it("renders code and tables while removing executable HTML and unsafe URLs", () => {
     const html = renderMarkdown('```js\nif (a < b) {\n  work();\n}\n```\n\n| A | B |\n| - | - |\n| 1 | 2 |\n\n<script>alert(1)</script><img src="x" onerror="alert(1)"><a href="javascript:alert(1)">link</a>');
-    expect(html).toContain('if (a &lt; b) {\n  work();\n}');
+    const { document } = parseHTML(`<html><body>${html}</body></html>`);
+    expect(document.querySelector("pre code").textContent).toBe('if (a < b) {\n  work();\n}\n');
     expect(html).toContain("<table>");
     expect(html).not.toMatch(/<script|onerror|javascript:/);
+  });
+  it.each(["csharp", "js", "bash", "sql", "xml", "actionscript"])("highlights %s code at build time without changing its text", language => {
+    const samples = { csharp: "public class Person {}", js: "const x = 1;", bash: 'echo "hello"', sql: "SELECT * FROM people;", xml: '<add key="name" />', actionscript: "public class Resources {}" };
+    const code = samples[language];
+    const html = renderMarkdown(`\`\`\`${language}\n${code}\n\`\`\``);
+    const { document } = parseHTML(`<html><body>${html}</body></html>`);
+    expect(document.querySelector("pre code").textContent).toBe(`${code}\n`);
+    expect(document.querySelector("code span[class^=hljs-]")).not.toBeNull();
+    expect(html).not.toContain("<script");
+  });
+  it.each(["", "text", "unknown-language"])("keeps %s code readable and escaped without highlighting", language => {
+    const code = '<script>alert("x")</script>\n  <br>&value';
+    const html = renderMarkdown(`\`\`\`${language}\n${code}\n\`\`\``);
+    const { document } = parseHTML(`<html><body>${html}</body></html>`);
+    expect(document.querySelector("pre code").textContent).toBe(`${code}\n`);
+    expect(document.querySelector("script, span")).toBeNull();
   });
   it("emits only published pages and RSS, including when handed a development collection", async () => {
     const dir = await fixture({ "public.md": post("public"), "secret.md": post("secret", "draft: true\n", "SECRET-DRAFT-BODY") });

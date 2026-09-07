@@ -36,7 +36,18 @@ Place new images in `apps/jdconley-site/public/blog-assets/` and reference them 
 ![A useful description of the image](/blog-assets/my-image.jpg)
 ```
 
-Code fences support language labels such as `js`, `sh`, and `csharp`; code is rendered with preserved whitespace. Tables and strikethrough are supported. A small subset of HTML is allowed for historical formatting; scripts, event handlers, and unsafe URLs are stripped.
+Code fences support language labels such as `js`, `sh`, and `csharp`; code is rendered with preserved whitespace and build-time syntax highlighting in light and dark mode. Unlabelled or unknown languages remain plain preformatted text. No browser JavaScript or external highlighting service is needed.
+
+````markdown
+```csharp
+public IEnumerable<Person> Sort(IEnumerable<Person> people)
+{
+    return people.OrderBy(p => p.FirstName);
+}
+```
+````
+
+Tables and strikethrough are supported. A small subset of HTML is allowed for historical formatting; scripts, event handlers, and unsafe URLs are stripped.
 
 ## Publish
 

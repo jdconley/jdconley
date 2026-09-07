@@ -67,8 +67,12 @@ There are two interesting bits in this code (they're in giant red boxes – hard
 
 At this point astute readers will point out that I am in fact lying. In the default configuration of .NET, you will only ever make *two* simultaneous calls to a given remote IP. This is built-in to the WebRequest class. Lucky for us, we can change it in the web.config like so!  
 
-```
-<system.net>   <connectionManagement>       <add address="*" maxconnection="100" />   </connectionManagement></system.net>
+```csharp
+<system.net>
+   <connectionManagement>
+       <add address="*" maxconnection="100" />
+   </connectionManagement>
+</system.net>
 ```
 
 With this configuration entry in place we can now make up to 100 simultaneous outgoing requests to the same IP address. Much better. Even if you're not using fbasync, you should make a similar change.

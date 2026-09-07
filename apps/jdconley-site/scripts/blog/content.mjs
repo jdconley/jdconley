@@ -4,8 +4,16 @@ import MarkdownIt from "markdown-it";
 import { parse } from "yaml";
 import sanitizeHtml from "sanitize-html";
 import { parseHTML } from "linkedom";
+import hljs from "highlight.js";
 
-const markdown = new MarkdownIt({ html: true, linkify: false, typographer: false });
+const markdown = new MarkdownIt({
+  html: true, linkify: false, typographer: false,
+  highlight(code, language) {
+    // Unlabelled output and unknown languages stay escaped, preformatted text.
+    if (!language || !hljs.getLanguage(language)) return "";
+    return hljs.highlight(code, { language, ignoreIllegals: true }).value;
+  }
+});
 export const validSlug = slug => typeof slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && !["feed", "index"].includes(slug);
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 
@@ -14,13 +22,17 @@ export function renderMarkdown(body) {
     allowedTags: [...sanitizeHtml.defaults.allowedTags, "img", "figure", "figcaption", "s", "del", "u"],
     allowedAttributes: {
       a: ["href", "title", "id", "name"], img: ["src", "alt", "title", "width", "height"],
-      code: ["class"], th: ["colspan", "rowspan", "scope"], td: ["colspan", "rowspan"],
+      pre: ["tabindex"], code: ["class"], span: ["class"], th: ["colspan", "rowspan", "scope"], td: ["colspan", "rowspan"],
       "*": ["id"]
     },
+    allowedClasses: { span: [/^hljs-[\w-]+$/, /^[\w-]+_+$/] },
     allowedSchemes: ["http", "https", "mailto"],
     allowedSchemesByTag: { img: ["https"] },
     allowProtocolRelative: false,
-    transformTags: { img: (tagName, attribs) => ({ tagName, attribs: { ...attribs, alt: attribs.alt ?? "", loading: "lazy", decoding: "async" } }) },
+    transformTags: {
+      img: (tagName, attribs) => ({ tagName, attribs: { ...attribs, alt: attribs.alt ?? "", loading: "lazy", decoding: "async" } }),
+      pre: (tagName, attribs) => ({ tagName, attribs: { ...attribs, tabindex: "0" } })
+    },
   });
 }
 

@@ -29,7 +29,7 @@ And then a series of empty dialog boxes:
 
 This is apparently some sort of permissions issue. To solve it, the MSI needs to be run as an administrator. The easiest way to do this is to create a bat file to run the msi manually. It would be something like this:  
 
-```
+```bash
 msiexec.exe /i "c:\SoapBoxServer2007\files\SoapBox.Server.Enterprise.x64.3.0.213.69.msi"
 ```
 

@@ -53,7 +53,11 @@ export async function verifyImportedArchive({ root }) {
       if (manifest.failures.some(asset => asset.url === url)) image.replaceWith(before.createTextNode(`Image unavailable: ${image.getAttribute("alt") || "archived image"} (original source)`));
     }
     if (textCharacters(before.body) !== textCharacters(after.body)) fail("Visible text characters changed (ignoring layout whitespace)");
-    const codes = [...before.querySelectorAll("pre")].map(node => node.textContent.replace(/\n?$/, "\n"));
+    const codes = [...before.querySelectorAll("pre")].map(node => {
+      // Compare against rendered source line breaks, not textContent's flattened BRs.
+      for (const br of node.querySelectorAll("br")) br.replaceWith(before.createTextNode("\n"));
+      return node.textContent.replace(/\n?$/, "\n");
+    });
     report.codeBlocks += codes.length;
     if (JSON.stringify(codes) !== JSON.stringify([...after.querySelectorAll("pre")].map(node => node.textContent))) fail("Code block content or whitespace changed");
     const tables = before.querySelectorAll("table").length; report.tables += tables;

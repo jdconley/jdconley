@@ -30,8 +30,52 @@ I mentioned above that you should use Application.Idle to your advantage. The ar
 
 Both buttons calculate Pi to 50 digits on the UI thread using 100 separate ISynchronizeInvoke.BeginInvoke calls. The "Idle Invoke" button does so using my [ApplicationIdleSynchronizer](https://docs.google.com/viewer?a=v&pid=explorer&chrome=true&srcid=0B7Ew2HKAAmajMTkxY2NmMWQtZWE3ZS00MDdkLWE5NGUtZTA3YjUyY2JiMGEz&hl=en_US). The "Direct Invoke" button calls BeginInvoke on the Form directly. You can click the buttons any number of times and more and more Pi calculation runs will be queued. The completed label is incremented after every run. Here's the code:
 
-```
-    public partial class Form1 : Form {     private const int WorkItems = 100;     private const int PiDigitsToCalc = 50;     private int _workItemsCompleted = 0;     private ApplicationIdleSynchronizer _idleSynchronizer = new ApplicationIdleSynchronizer();     public Form1()     {         InitializeComponent();     }     protected override void OnClosed(EventArgs e)     {         base.OnClosed(e);         _idleSynchronizer.Dispose();     }     private void button1_Click(object sender, EventArgs e)     {         System.Threading.ThreadPool.QueueUserWorkItem(QueueOnBackgroundThread, _idleSynchronizer);     }     private void button2_Click(object sender, EventArgs e)     {         System.Threading.ThreadPool.QueueUserWorkItem(QueueOnBackgroundThread, this);     }     private void QueueOnBackgroundThread(object state)     {         for (int i = 0; i < WorkItems; i  )         {             ((ISynchronizeInvoke)state).BeginInvoke(new ThreadStart(MyWorkItem), null);         }     }     private void MyWorkItem()     {         PiCalculator.CalculatePi(PiDigitsToCalc);         _workItemsCompleted++;         label2.Text = _workItemsCompleted.ToString();     } }
+```csharp
+    public partial class Form1 : Form
+ {
+     private const int WorkItems = 100;
+     private const int PiDigitsToCalc = 50;
+
+     private int _workItemsCompleted = 0;
+
+     private ApplicationIdleSynchronizer _idleSynchronizer = new ApplicationIdleSynchronizer();
+
+     public Form1()
+     {
+         InitializeComponent();
+     }
+
+     protected override void OnClosed(EventArgs e)
+     {
+         base.OnClosed(e);
+         _idleSynchronizer.Dispose();
+     }
+
+     private void button1_Click(object sender, EventArgs e)
+     {
+         System.Threading.ThreadPool.QueueUserWorkItem(QueueOnBackgroundThread, _idleSynchronizer);
+     }
+
+     private void button2_Click(object sender, EventArgs e)
+     {
+         System.Threading.ThreadPool.QueueUserWorkItem(QueueOnBackgroundThread, this);
+     }
+
+     private void QueueOnBackgroundThread(object state)
+     {
+         for (int i = 0; i < WorkItems; i  )
+         {
+             ((ISynchronizeInvoke)state).BeginInvoke(new ThreadStart(MyWorkItem), null);
+         }
+     }
+
+     private void MyWorkItem()
+     {
+         PiCalculator.CalculatePi(PiDigitsToCalc);
+         _workItemsCompleted++;
+         label2.Text = _workItemsCompleted.ToString();
+     }
+ }
 ```
 
 Click the buttons. Move the form around. Resize it. You might be suprised by the result (or not). Both very adequately use your CPU, but the Idle Invoke produces a much more reactive UI. You can download the full source code here: [ApplicationIdleInvoker.zip](https://docs.google.com/viewer?a=v&pid=explorer&chrome=true&srcid=0B7Ew2HKAAmajMTkxY2NmMWQtZWE3ZS00MDdkLWE5NGUtZTA3YjUyY2JiMGEz&hl=en_US). Note, this exact code isn't in use in production. I wrote it for this blog. YMMV. Let me know if it has any issues.

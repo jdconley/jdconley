@@ -23,8 +23,32 @@ At the end of the day, the reality of the situation doesn't matter. Your users t
 
   
 
-```
-using System.Diagnostics;namespace Coversant.Utility {  public static class MemoryUtility  {      private static volatile bool _enabled = true;      public static void FakeOutTheUserToThinkWeDontUseAnyMemory()      {          if (!_enabled)              return;          try          {              Process curProc = Process.GetCurrentProcess();              curProc.MaxWorkingSet = curProc.MaxWorkingSet;          }          catch          {              //Some users won't have permission to adjust their working set.              _enabled = false;          }      }  }}
+```csharp
+using System.Diagnostics;
+
+namespace Coversant.Utility {
+  public static class MemoryUtility
+  {
+      private static volatile bool _enabled = true;
+
+      public static void FakeOutTheUserToThinkWeDontUseAnyMemory()
+      {
+          if (!_enabled)
+              return;
+
+          try
+          {
+              Process curProc = Process.GetCurrentProcess();
+              curProc.MaxWorkingSet = curProc.MaxWorkingSet;
+          }
+          catch
+          {
+              //Some users won't have permission to adjust their working set.
+              _enabled = false;
+          }
+      }
+  }
+}
 ```
 
   

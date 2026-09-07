@@ -18,8 +18,23 @@ This massive growth leads to some exciting scalability challenges. I'll be spend
 
 The original DB physical layout started out pretty simple. There was one File for data, one for logs. In the next 3 or 4 revisions more and more files were created. Why? Well, so we could run this nifty little query and find out *which* of our db tables/indexes/etc were causing the write bottlenecks:  
 
-```
-select  db.name as DbName,  f.name as FileName,  f.physical_name as FilePhysicalName,  vf.TimeStamp,  vf.NumberReads,  vf.BytesRead,  vf.IoStallReadMS,  vf.NumberWrites,  vf.BytesWritten,  vf.IoStallWriteMS,  vf.BytesOnDiskfrom fn_virtualfilestats(-1,-1) vf  inner join sys.databases db on db.database_id = vf.DbId  inner join sys.database_files f on f.file_id = vf.FileIdorder by vf.NumberWrites desc
+```sql
+select
+  db.name as DbName,
+  f.name as FileName,
+  f.physical_name as FilePhysicalName,
+  vf.TimeStamp,
+  vf.NumberReads,
+  vf.BytesRead,
+  vf.IoStallReadMS,
+  vf.NumberWrites,
+  vf.BytesWritten,
+  vf.IoStallWriteMS,
+  vf.BytesOnDisk
+from fn_virtualfilestats(-1,-1) vf
+  inner join sys.databases db on db.database_id = vf.DbId
+  inner join sys.database_files f on f.file_id = vf.FileId
+order by vf.NumberWrites desc
 ```
 
 If you have physically separated your various database tables and indexes into different files, the output from this function will give you all kinds of useful information about which ones are most accessed, and which put the most strain on your I/O subsystem. Optimizing it, of course, is up to you. :)

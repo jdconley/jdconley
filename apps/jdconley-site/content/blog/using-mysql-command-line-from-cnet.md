@@ -23,8 +23,101 @@ So, what's the answer? Simple. Set the nifty RedirectStandardInput property and 
 
   
 
-```
-private void ExecuteSQLScript(string databaseName, string user, string password, string command, string filename, string server)        {            using (System.Diagnostics.Process p = new System.Diagnostics.Process())            {#if LINUX            p.StartInfo.WorkingDirectory = System.IO.Path.GetFullPath(this.InstallOptions.InstallDirectory);            p.StartInfo.FileName = "mysql";#else                //grab the path from our installation options                p.StartInfo.WorkingDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(this.InstallOptions.InstallDirectory, BaseScriptDirectory));                p.StartInfo.FileName = System.IO.Path.Combine(p.StartInfo.WorkingDirectory, "mysql.exe");#endif                                //set all the startup options                p.StartInfo.CreateNoWindow = true;                p.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;                p.StartInfo.UseShellExecute = false;                p.StartInfo.RedirectStandardOutput = true;                p.StartInfo.RedirectStandardError = true;                //build the arguments for mysql                StringBuilder args = new StringBuilder();                if (!string.IsNullOrEmpty(password))                    args.AppendFormat("-p{0} ", password);                if (!string.IsNullOrEmpty(server))                    args.AppendFormat("-h{0} ", server);                if (!string.IsNullOrEmpty(databaseName))                    args.AppendFormat("-D{0} ", databaseName);                if (!string.IsNullOrEmpty(user))                    args.AppendFormat("-u{0} ", user);                if (!string.IsNullOrEmpty(command))                    args.AppendFormat("-e\"{0}\" ", command);                else if (!string.IsNullOrEmpty(filename))                    p.StartInfo.RedirectStandardInput = true;                p.StartInfo.Arguments = args.ToString();                WTrace.TraceInfo("Run Script", this.GetType(), "Executing: '{0}' with args '{1}' in working dir '{2}'", p.StartInfo.FileName, p.StartInfo.Arguments, p.StartInfo.WorkingDirectory);                //start up the process, and handle the redirected stdin and stdout -- send them to our trace lib                p.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(p_ErrorDataReceived);                p.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(p_OutputDataReceived);                try                {                    p.Start();                    p.BeginErrorReadLine();                    p.BeginOutputReadLine();                    //read in the script file if one was specified and give it to stdin                    if (null != filename)                    {                        using (FileStream f = File.OpenRead(filename))                        {                            using (StreamReader reader = new StreamReader(f))                            {                                //we could do this one line at a time to be safe memory wise, but we know our scripts are small                                p.StandardInput.WriteLine(reader.ReadToEnd());                            }                        }                        //tell mysql we want to exit, otherwise the process will hang                        p.StandardInput.WriteLine("exit");                    }                    p.WaitForExit();                }                finally                {                    p.ErrorDataReceived -= new System.Diagnostics.DataReceivedEventHandler(p_ErrorDataReceived);                    p.OutputDataReceived -= new System.Diagnostics.DataReceivedEventHandler(p_OutputDataReceived);                }                if (p.ExitCode != 0)                    throw new MySqlException("SQL Command failed.", p.StartInfo.Arguments, "", "");            }        }        void p_ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)        {            if (!string.IsNullOrEmpty(e.Data))                WTrace.TraceInfo("Run Script", this.GetType(), "StdErr: {0}", e.Data);        }        void p_OutputDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)        {            if (!string.IsNullOrEmpty(e.Data))                WTrace.TraceInfo("Run Script", this.GetType(), "StdOut: {0}", e.Data);        }
+```csharp
+private void ExecuteSQLScript(string databaseName, string user, string password, string command, string filename, string server)
+        {
+            using (System.Diagnostics.Process p = new System.Diagnostics.Process())
+            {
+#if LINUX
+            p.StartInfo.WorkingDirectory = System.IO.Path.GetFullPath(this.InstallOptions.InstallDirectory);
+            p.StartInfo.FileName = "mysql";
+#else
+                //grab the path from our installation options
+                p.StartInfo.WorkingDirectory = System.IO.Path.GetFullPath(System.IO.Path.Combine(this.InstallOptions.InstallDirectory, BaseScriptDirectory));
+                p.StartInfo.FileName = System.IO.Path.Combine(p.StartInfo.WorkingDirectory, "mysql.exe");
+#endif
+                
+                //set all the startup options
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.RedirectStandardError = true;
+
+                //build the arguments for mysql
+                StringBuilder args = new StringBuilder();
+
+                if (!string.IsNullOrEmpty(password))
+                    args.AppendFormat("-p{0} ", password);
+
+                if (!string.IsNullOrEmpty(server))
+                    args.AppendFormat("-h{0} ", server);
+
+                if (!string.IsNullOrEmpty(databaseName))
+                    args.AppendFormat("-D{0} ", databaseName);
+
+                if (!string.IsNullOrEmpty(user))
+                    args.AppendFormat("-u{0} ", user);
+
+                if (!string.IsNullOrEmpty(command))
+                    args.AppendFormat("-e\"{0}\" ", command);
+                else if (!string.IsNullOrEmpty(filename))
+                    p.StartInfo.RedirectStandardInput = true;
+
+                p.StartInfo.Arguments = args.ToString();
+
+                WTrace.TraceInfo("Run Script", this.GetType(), "Executing: '{0}' with args '{1}' in working dir '{2}'", p.StartInfo.FileName, p.StartInfo.Arguments, p.StartInfo.WorkingDirectory);
+
+
+                //start up the process, and handle the redirected stdin and stdout -- send them to our trace lib
+                p.ErrorDataReceived += new System.Diagnostics.DataReceivedEventHandler(p_ErrorDataReceived);
+                p.OutputDataReceived += new System.Diagnostics.DataReceivedEventHandler(p_OutputDataReceived);
+                try
+                {
+                    p.Start();
+                    p.BeginErrorReadLine();
+                    p.BeginOutputReadLine();
+
+                    //read in the script file if one was specified and give it to stdin
+                    if (null != filename)
+                    {
+                        using (FileStream f = File.OpenRead(filename))
+                        {
+                            using (StreamReader reader = new StreamReader(f))
+                            {
+                                //we could do this one line at a time to be safe memory wise, but we know our scripts are small
+                                p.StandardInput.WriteLine(reader.ReadToEnd());
+                            }
+                        }
+
+                        //tell mysql we want to exit, otherwise the process will hang
+                        p.StandardInput.WriteLine("exit");
+                    }
+
+                    p.WaitForExit();
+                }
+                finally
+                {
+                    p.ErrorDataReceived -= new System.Diagnostics.DataReceivedEventHandler(p_ErrorDataReceived);
+                    p.OutputDataReceived -= new System.Diagnostics.DataReceivedEventHandler(p_OutputDataReceived);
+                }
+
+                if (p.ExitCode != 0)
+                    throw new MySqlException("SQL Command failed.", p.StartInfo.Arguments, "", "");
+            }
+        }
+
+        void p_ErrorDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+                WTrace.TraceInfo("Run Script", this.GetType(), "StdErr: {0}", e.Data);
+        }
+
+        void p_OutputDataReceived(object sender, System.Diagnostics.DataReceivedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+                WTrace.TraceInfo("Run Script", this.GetType(), "StdOut: {0}", e.Data);
+        }
 ```
 
   

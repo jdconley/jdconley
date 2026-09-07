@@ -16,8 +16,16 @@ Often times when you're working on a web site you want to fire and forget an ema
 
 [Download](https://docs.google.com/viewer?a=v&pid=explorer&chrome=true&srcid=0B7Ew2HKAAmajN2MzNDEwMTEtZTU5Ny00NjBiLWIyODQtYTdjZjc3M2UzMTEy&hl=en_US) the sample code  
 
-```
-var s = new SmtpClient();s.SendCompleted +=  (sender2, e2) =>  {      //do something when the send is done.      //retry if error, etc.  };s.SendAsync(from.Text, to.Text, "", message.Text, null);
+```csharp
+var s = new SmtpClient();
+s.SendCompleted +=
+  (sender2, e2) =>
+  {
+      //do something when the send is done.
+      //retry if error, etc.
+  };
+
+s.SendAsync(from.Text, to.Text, "", message.Text, null);
 ```
 
 Well, that's pretty darn simple! Create a new SmtpClient. Call SendAsync and pass in your message data. Cool. There's even a whole set of classes to help you with attachments, multiple formats (like html and text), etc. From your console app or Windows Service this will work beautifully! The problem is, in an ASP.NET page this won't work. If you do this in a Page\_Load or button click event, for example, you'll get the following helpful error message.
@@ -31,8 +39,19 @@ So, now you've got the Async page directive down and you think all is good. But 
 
 When you set that Async="True" directive on your page you told ASP.NET that you want to do page rendering asynchronously. However, what you didn't realize is that you're doing things asynchronously with regards to the use of threads, and not the serving of the page. Let me clarify. With Async="True" ASP.NET *waits for all Async calls to complete before finishing page rendering* . It's designed so you can kick off long running IO operations like calling a database, web service, writing files, and sending email, without tying up a valuable worker thread in your ASP.NET threadpool. Instead, the IO operation gets queued up down in unmanaged Windows land and IOCP magic and the shared IO threads kick in. If you truly want to fire-and-forget, and not have your Async calls affect your page load time, here's your answer.
 
-```
-using (new SynchronizationContextSwitcher()){  var s = new SmtpClient();  s.SendCompleted +=      (sender2, e2) =>      {          //do something when the send is done.          //retry if error, etc.      };  s.SendAsync(from.Text, to.Text, "", message.Text, null);}
+```csharp
+using (new SynchronizationContextSwitcher())
+{
+  var s = new SmtpClient();
+  s.SendCompleted +=
+      (sender2, e2) =>
+      {
+          //do something when the send is done.
+          //retry if error, etc.
+      };
+
+  s.SendAsync(from.Text, to.Text, "", message.Text, null);
+}
 ```
 
 It should be noted that in this sample code when the SendCompleted anonymous method is called, you are *no longer in the ASP.NET context* . The SynchronizationContextSwitcher removed this context and put you in no context, so you're just free ballin'. This is important. You can't mess with the Request, Page, Response, etc. We're talking serious multi-threading now. In fact it's even likely that delegate will be executing at the same time as some other method in your page's lifecycle, on a whole other thread. So, pass anything you want to use from the page via the last parameter on the SendAsync call, pull it out of the EventArgs in your SendCompleted handler, and don't touch that page object or anything in it.
@@ -41,8 +60,42 @@ I must confess. I didn't write this SynchronizationContextSwitcher class. It was
 
 Anyway, Simply wrap your send (or any Async) call in a using block like this and, for the scope of that block, any Async operations will happen as if you were not even in ASP.NET and didn't have a Request context to worry about. Your page will be served immediately without waiting for your Async call to complete. Of course, this does have caveats. By doing a true fire and forget there is now the potential your email won't get sent and you won't even know about it. ASP.NET could shut down your app domain 1/2 way through the send and you and the user would be none the wiser. So, care must be taken to either store these things in some other reliable place before the Async call, or (as in our case) usually whatever you're firing off isn't critical, so a few missed ones here and there won't matter.  
 
-```
-public class SynchronizationContextSwitcher  : IDisposable{  private ExecutionContext _executionContext;  private readonly SynchronizationContext _oldContext;  private readonly SynchronizationContext _newContext;  public SynchronizationContextSwitcher()      : this(new SynchronizationContext())  {  }  public SynchronizationContextSwitcher(SynchronizationContext context)  {      _newContext = context;      _executionContext = Thread.CurrentThread.ExecutionContext;      _oldContext = SynchronizationContext.Current;      SynchronizationContext.SetSynchronizationContext(context);  }  public void Dispose()  {      if (null != _executionContext)      {          if (_executionContext != Thread.CurrentThread.ExecutionContext)              throw new InvalidOperationException("Dispose called on wrong thread.");          if (_newContext != SynchronizationContext.Current)              throw new InvalidOperationException("The SynchronizationContext has changed.");          SynchronizationContext.SetSynchronizationContext(_oldContext);          _executionContext = null;      }  }}
+```csharp
+public class SynchronizationContextSwitcher
+  : IDisposable
+{
+  private ExecutionContext _executionContext;
+  private readonly SynchronizationContext _oldContext;
+  private readonly SynchronizationContext _newContext;
+
+  public SynchronizationContextSwitcher()
+      : this(new SynchronizationContext())
+  {
+  }
+
+  public SynchronizationContextSwitcher(SynchronizationContext context)
+  {
+      _newContext = context;
+      _executionContext = Thread.CurrentThread.ExecutionContext;
+      _oldContext = SynchronizationContext.Current;
+      SynchronizationContext.SetSynchronizationContext(context);
+  }
+
+  public void Dispose()
+  {
+      if (null != _executionContext)
+      {
+          if (_executionContext != Thread.CurrentThread.ExecutionContext)
+              throw new InvalidOperationException("Dispose called on wrong thread.");
+
+          if (_newContext != SynchronizationContext.Current)
+              throw new InvalidOperationException("The SynchronizationContext has changed.");
+
+          SynchronizationContext.SetSynchronizationContext(_oldContext);
+          _executionContext = null;
+      }
+  }
+}
 ```
 
 I whipped up a [small sample project](https://docs.google.com/viewer?a=v&pid=explorer&chrome=true&srcid=0B7Ew2HKAAmajN2MzNDEwMTEtZTU5Ny00NjBiLWIyODQtYTdjZjc3M2UzMTEy&hl=en_US) to demo the effects I talk about here. There are two pages. One that is async, and one that isn't. It demos the error you get if you try to use an Async method on a non-async page, and simulates a slow email server on the async page. Then you can see the fire and forget in action.

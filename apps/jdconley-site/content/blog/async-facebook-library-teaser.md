@@ -23,13 +23,33 @@ I've been trolling the Facebook Developer Forums recently and talking with other
 > This is one myth I want to squash. Async stuff isn't hard. I promise. smile Let's take your page loading example, and make it asynchronous. I put in code comments for a "facebook is hammered" timing. Let's say every call takes you 250ms. That means that page will spend roughly one second waiting for facebook.
 > 
 > ```
-> Page_Load { GetSession(); // Call to Facebook 250ms RenderHtml(); Response.Flush(); Response.Close(); // Make calls to Facebook GetFriends(); // Call to Facebook 250ms UpdateProfile(); // Call to Facebook 250ms SendNotification(); // Call to Facebook 250ms}
+> Page_Load {
+>  GetSession(); // Call to Facebook 250ms
+>  RenderHtml();
+>  Response.Flush();
+>  Response.Close();
+>  // Make calls to Facebook
+>  GetFriends(); // Call to Facebook 250ms
+>  UpdateProfile(); // Call to Facebook 250ms
+>  SendNotification(); // Call to Facebook 250ms
+> }
 > ```
 > 
 > Now, let's make this Async. It would become (roughly -- there is also a "Completed" event handler you'd setup for the items you cared about):
 > 
 > ```
-> Page_Load {fbasync.GetSessionAsync();fbasync.GetFriendsAsync();fbasync.UpdateProfileAsync();fbasync.SendNotificationAsync();}Page_PreRenderCompelete {RenderHtml();Response.Flush();Response.Close();}
+> Page_Load {
+> fbasync.GetSessionAsync();
+> fbasync.GetFriendsAsync();
+> fbasync.UpdateProfileAsync();
+> fbasync.SendNotificationAsync();
+> }
+> 
+> Page_PreRenderCompelete {
+> RenderHtml();
+> Response.Flush();
+> Response.Close();
+> }
 > ```
 > 
 > This time, with the async calls in the server, we spend 0 time waiting for facebook. Just like in client side AJAX, we get a callback when the calls were complete! And, instead of a full second for our page to finish processing, it only takes 250ms, as all the facebook calls happen simultaneously (yeah I know this is a faulty assumption, but it is usually pretty close).

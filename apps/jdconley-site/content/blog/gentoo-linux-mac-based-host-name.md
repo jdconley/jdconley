@@ -17,8 +17,11 @@ The lab currently consists of 25 computers, pointed at whatever server hardware/
 
 On your network the hostname uniquely identifies your system. If you're pushing out images, this gets a little hairy. Most organizations use some sort of boot script that contacts a central repository to take care of this. We didn't need that much control for our lab. Instead, we decided just to base the hostname on the MAC address of the primary NIC, a very simple and guaranteed unique mechanism. Since we're using Gentoo we have the /etc/conf.d/hostname file that is used at boot time to set the hostname. Here's what we used to set the hostname to contain the MAC address:
 
-```
-lab0002A51B9F16 tmp # cat /etc/conf.d/hostname  # /etc/conf.d/hostname  # Set to lab+MAC (without ":"). IE: lab0002A51B9F16  HOSTNAME=lab`ifconfig eth0 |awk '/HWaddr/ {print $5}'|sed 's/://g'` 
+```bash
+lab0002A51B9F16 tmp # cat /etc/conf.d/hostname
+  # /etc/conf.d/hostname
+  # Set to lab+MAC (without ":"). IE: lab0002A51B9F16
+  HOSTNAME=lab`ifconfig eth0 |awk '/HWaddr/ {print $5}'|sed 's/://g'` 
 ```
 
 I'm sure there are more effecient commands that could be used here (I'm no scripting geek), but this works. :) I spent a couple hours hunting for something like this and couldn't find it, so I hope it's of use to someone.

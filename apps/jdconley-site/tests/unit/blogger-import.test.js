@@ -56,6 +56,33 @@ test("converts bare PRE, nested code whitespace, tables and strike without losin
   expect(document.body.textContent).toContain("A & B old");
 });
 
+test("preserves Blogger BR line breaks, blank lines, indentation and literal markup in code", () => {
+  const html = '<pre class="brush: c-sharp;">public class Person<br>{<br><br>  // &lt;br&gt; is literal\n\tstring name = "```";<BR />}</pre>';
+  const converted = convertHtml(html);
+  const { document } = parseHTML(`<html><body>${new MarkdownIt().render(converted)}</body></html>`);
+  expect(document.querySelector("pre code").textContent).toBe('public class Person\n{\n\n  // <br> is literal\n\tstring name = "```";\n}\n');
+  expect(document.querySelector("code").getAttribute("class")).toBe("language-csharp");
+});
+
+test.each([
+  ['class="brush: as3"', "actionscript"],
+  ['class="brush: xslt;"', "xml"],
+  ['class="brush: shell"', "bash"],
+  ['class="brush: sql;"', "sql"],
+  ['class="language-js"', "js"],
+])("retains language metadata from PRE %s", (attributes, language) => {
+  expect(convertHtml(`<pre ${attributes}>sample</pre>`)).toContain(`\`\`\`${language}\nsample\n`);
+});
+
+test("retains modern nested code language labels", () => {
+  expect(convertHtml('<pre><code class="language-typescript">const x = 1;</code></pre>')).toContain("```typescript\n");
+});
+
+test("preserves leading and trailing blank lines encoded as BRs", () => {
+  const converted = convertHtml('<pre><br><br>  first<br>\tsecond<br><br></pre>');
+  expect(converted).toBe("```\n\n\n  first\n\tsecond\n\n```\n");
+});
+
 test("remaps actual Blogger permalink preserving query and fragment except mobile flag", () => {
   const redirects = { "/2008/02/second.html": "/blog/second" };
   expect(remapUrl("http://blog.jdconley.com/2008/02/second.html?m=1&x=2#code", "https://blog.jdconley.com/2010/02/first.html", redirects)).toBe("/blog/second?x=2#code");

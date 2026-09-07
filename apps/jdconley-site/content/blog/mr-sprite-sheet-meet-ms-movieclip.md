@@ -30,28 +30,142 @@ The process starts by creating and exporting a MovieClip in your fla with a flas
 
 For easy deployment we embed the effects.swf and the garney.png file using PBE's ResourceBundle like so:  
 
-```
-package{   import com.pblabs.engine.resource.ResourceBundle;   public class Resources extends ResourceBundle   {       public static const EFFECTS_PATH:String = "../res/effects.swf";       public static const GARNEY_PATH:String = "../res/garney.png";             [Embed(source="../res/effects.swf",mimeType='application/octet-stream')]       public var effects:Class;       [Embed(source="../res/garney.png",mimeType='application/octet-stream')]       public var garney:Class;   }}
+```actionscript
+package
+{
+   import com.pblabs.engine.resource.ResourceBundle;
+
+   public class Resources extends ResourceBundle
+   {
+       public static const EFFECTS_PATH:String = "../res/effects.swf";
+       public static const GARNEY_PATH:String = "../res/garney.png";
+      
+       [Embed(source="../res/effects.swf",mimeType='application/octet-stream')]
+       public var effects:Class;
+
+       [Embed(source="../res/garney.png",mimeType='application/octet-stream')]
+       public var garney:Class;
+   }
+}
 ```
 
 Now on to our "main" method. We start off by creating a SceneView, which is the target where PBE will draw stuff. Then we call startup, load our embedded resources, and create the scene. This is all standard PBE initialization. A ThinkingComponent is added to the scene entity in order to spawn Garney instances based on the game's virtual time. And finally, we register our garney entity factory with the TemplateManager and spawn a Garney!  
 
-```
-// The SceneView is where PBE will draw tovar sv:SceneView = new SceneView();addChild(sv);// Start the logger, processmanager, etcPBE.startup(this);// Embed my resourcesPBE.addResources(new Resources());// Create a basic scene through codevar scene:IEntity = PBE.initializeScene(sv);// ThinkingComponent is an efficient Timer based on virtualTime rather than real timescene.addComponent(new ThinkingComponent(), "spawnThinker");// Register the callback for my "garney" template that will be used to instantiate garneyssetupTemplate();// Spawn a garney then kick off the timer. They keep coming, eeek!spawn();
+```actionscript
+// The SceneView is where PBE will draw to
+var sv:SceneView = new SceneView();
+addChild(sv);
+
+// Start the logger, processmanager, etc
+PBE.startup(this);
+
+// Embed my resources
+PBE.addResources(new Resources());
+
+// Create a basic scene through code
+var scene:IEntity = PBE.initializeScene(sv);
+
+// ThinkingComponent is an efficient Timer based on virtualTime rather than real time
+scene.addComponent(new ThinkingComponent(), "spawnThinker");
+
+// Register the callback for my "garney" template that will be used to instantiate garneys
+setupTemplate();
+
+// Spawn a garney then kick off the timer. They keep coming, eeek!
+spawn();
 ```
 
 The setupTemplate method is where all the interesting stuff happens. In here we choose all the components that make up our entity and determine how they relate to each other.  
 
-```
-private function setupTemplate():void{   PBE.templateManager.registerEntityCallback("garney",       function():IEntity       {           var e:IEntity = PBE.allocateEntity();                     // Spatial component knows where to put the garney           var spatial:SimpleSpatialComponent = new SimpleSpatialComponent();           spatial.spatialManager = PBE.spatialManager;                     // Rendering component knows how to draw the garney           var render:SpriteRenderer = new SpriteRenderer();           render.fileName = Resources.GARNEY_PATH;           render.positionProperty = new PropertyReference("@spatial.position");           render.scene = PBE.scene;                     // Here's the SWFSpriteSheet magic!           var fxSheet:SWFSpriteSheetComponent = new SWFSpriteSheetComponent();           fxSheet.swf = PBE.resourceManager.load(Resources.EFFECTS_PATH, SWFResource) as SWFResource;           fxSheet.clipName = "z_fx";                     // Fx Rendering component knows how to draw the z's from the spritesheet           var fxRender:SpriteSheetRenderer = new SpriteSheetRenderer();           fxRender.positionProperty = new PropertyReference("@spatial.position");           fxRender.positionOffset = new Point(30, 10);           fxRender.scene = PBE.scene;                     // Need an animation controller to assign and animate the sprite sheet on the renderer           var animator:AnimationController = new AnimationController();           animator.spriteSheetReference = new PropertyReference("@fxRender.spriteSheet");           animator.currentFrameReference = new PropertyReference("@fxRender.spriteIndex");           var idle:AnimationControllerInfo = new AnimationControllerInfo();           idle.loop = true;           idle.spriteSheet = fxSheet;           idle.frameRate = 30; // In PBE your animation framerate can be independent of your stage framerate           animator.animations["idle"] = idle;           animator.defaultAnimation = "idle";                     // Garneys self destruct after a random amount of time           var suicide:ThinkingComponent = new ThinkingComponent();                     // Add all the components to the entity           e.addComponent(spatial, "spatial");           e.addComponent(render, "render");           e.addComponent(fxSheet, "fxSheet");           e.addComponent(fxRender, "fxRender");           e.addComponent(animator, "animator");           e.addComponent(suicide, "suicide");                     e.initialize();           return e;       });}
+```actionscript
+private function setupTemplate():void
+{
+   PBE.templateManager.registerEntityCallback("garney",
+       function():IEntity
+       {
+           var e:IEntity = PBE.allocateEntity();
+          
+           // Spatial component knows where to put the garney
+           var spatial:SimpleSpatialComponent = new SimpleSpatialComponent();
+           spatial.spatialManager = PBE.spatialManager;
+          
+           // Rendering component knows how to draw the garney
+           var render:SpriteRenderer = new SpriteRenderer();
+           render.fileName = Resources.GARNEY_PATH;
+           render.positionProperty = new PropertyReference("@spatial.position");
+           render.scene = PBE.scene;
+          
+           // Here's the SWFSpriteSheet magic!
+           var fxSheet:SWFSpriteSheetComponent = new SWFSpriteSheetComponent();
+           fxSheet.swf = PBE.resourceManager.load(Resources.EFFECTS_PATH, SWFResource) as SWFResource;
+           fxSheet.clipName = "z_fx";
+          
+           // Fx Rendering component knows how to draw the z's from the spritesheet
+           var fxRender:SpriteSheetRenderer = new SpriteSheetRenderer();
+           fxRender.positionProperty = new PropertyReference("@spatial.position");
+           fxRender.positionOffset = new Point(30, 10);
+           fxRender.scene = PBE.scene;
+          
+           // Need an animation controller to assign and animate the sprite sheet on the renderer
+           var animator:AnimationController = new AnimationController();
+           animator.spriteSheetReference = new PropertyReference("@fxRender.spriteSheet");
+           animator.currentFrameReference = new PropertyReference("@fxRender.spriteIndex");
+
+           var idle:AnimationControllerInfo = new AnimationControllerInfo();
+           idle.loop = true;
+           idle.spriteSheet = fxSheet;
+           idle.frameRate = 30; // In PBE your animation framerate can be independent of your stage framerate
+
+           animator.animations["idle"] = idle;
+           animator.defaultAnimation = "idle";
+          
+           // Garneys self destruct after a random amount of time
+           var suicide:ThinkingComponent = new ThinkingComponent();
+          
+           // Add all the components to the entity
+           e.addComponent(spatial, "spatial");
+           e.addComponent(render, "render");
+           e.addComponent(fxSheet, "fxSheet");
+           e.addComponent(fxRender, "fxRender");
+           e.addComponent(animator, "animator");
+           e.addComponent(suicide, "suicide");
+          
+           e.initialize();
+           return e;
+       });
+}
 ```
 
 The "garney" template is made up of six distinct components. Each of these components perfmorm a small piece of highly specialized work. I created two components for rendering, one for the garney sprite and one for the animated z's. The z's use a SpriteSheetRenderer and a SWFSpriteSheetComponent. Both renderers are positioned based on the position property on the spatial component. The AnimationController is a very powerful class that lets you do things like automatically change out the animation being rendered based on an event firing. But, that's probably a post for another day. In this case it just plays the z's animation on the fxRender component.
 
 All of this gets tied together in the spawn method, which creates a new garney entity based on the template, assigns it some random values for position and velocity, makes sure it draws the most recently spawned entity on top, picks a random time for the entity to commit suicide, and schedules the next spawn.  
 
-```
-private function spawn():void{   // Create a garney!   var garney:IEntity = PBE.templateManager.instantiateEntity("garney");     // Randomly position a garney!   var spatial:SimpleSpatialComponent = garney.lookupComponentByName("spatial") as SimpleSpatialComponent;   spatial.position = new Point(Math.random() * 800, Math.random() * 600);   spatial.velocity =  new Point(Math.random() * 50 * (Math.random() < .5 ? -1 : 1), Math.random() * 50 * (Math.random() < .5 ? -1 : 1));     // Choose when this garney commits suicide, up to 20,000 virtual MS from now   var suicide:ThinkingComponent = garney.lookupComponentByName("suicide") as ThinkingComponent;   suicide.think(garney.destroy, Math.random() * 20000);     // Set the zIndex so our components render consistently in spawn-order   var render:DisplayObjectRenderer = garney.lookupComponentByName("render") as DisplayObjectRenderer;   render.zIndex =   _zIndex;     var fxRender:DisplayObjectRenderer = garney.lookupComponentByName("fxRender") as DisplayObjectRenderer;   fxRender.zIndex =   _zIndex;     // Grab the global spawn thinking component and schedule a think   var thinker:ThinkingComponent = PBE.lookupComponentByName("SceneDB", "spawnThinker") as ThinkingComponent;   thinker.think(spawn, 1000);}
+```actionscript
+private function spawn():void
+{
+   // Create a garney!
+   var garney:IEntity = PBE.templateManager.instantiateEntity("garney");
+  
+   // Randomly position a garney!
+   var spatial:SimpleSpatialComponent = garney.lookupComponentByName("spatial") as SimpleSpatialComponent;
+   spatial.position = new Point(Math.random() * 800, Math.random() * 600);
+   spatial.velocity =  new Point(Math.random() * 50 * (Math.random() < .5 ? -1 : 1), Math.random() * 50 * (Math.random() < .5 ? -1 : 1));
+  
+   // Choose when this garney commits suicide, up to 20,000 virtual MS from now
+   var suicide:ThinkingComponent = garney.lookupComponentByName("suicide") as ThinkingComponent;
+   suicide.think(garney.destroy, Math.random() * 20000);
+  
+   // Set the zIndex so our components render consistently in spawn-order
+   var render:DisplayObjectRenderer = garney.lookupComponentByName("render") as DisplayObjectRenderer;
+   render.zIndex =   _zIndex;
+  
+   var fxRender:DisplayObjectRenderer = garney.lookupComponentByName("fxRender") as DisplayObjectRenderer;
+   fxRender.zIndex =   _zIndex;
+  
+   // Grab the global spawn thinking component and schedule a think
+   var thinker:ThinkingComponent = PBE.lookupComponentByName("SceneDB", "spawnThinker") as ThinkingComponent;
+   thinker.think(spawn, 1000);
+}
 ```
 
 That's all there is to it! There are some caveats, though. Make sure you keep your source MovieClips really simple. Just like it is CPU intensive to play a complex MovieClip, it is CPU intensive to render each frame to a bitmap. In addition, nested clips with separate timelines and as3 code in the clip that is not based on the timeline will not be executed. This works really well for simple frame based animations, but is not designed for complex interactive clips with tweening. YMMV.

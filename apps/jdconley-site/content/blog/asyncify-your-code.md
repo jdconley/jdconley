@@ -45,14 +45,50 @@ Using the asynchronous process gate is straight forward if you're used to the Be
 
 **The Begin Code:**  
 
-```
-static void StartProcesses(){   AsynchronousProcessGate g = new AsynchronousProcessGate();   while (!_shutdown)   {       //keep twice as many queued as we have cpu's.       //for a real, CPU or IO intensive, operation       //you shouldn't do any throttling before the gate.       //that's what the gate is for!       if (g.PendingCount < g.AllowedInstances * 2)           g.BeginExecuteProcess(               new ProcessStartInfo("notepad.exe"),               10000,               ProcessCompleted,               g);       else           System.Threading.Thread.Sleep(100);   }}
+```csharp
+static void StartProcesses()
+{
+   AsynchronousProcessGate g = new AsynchronousProcessGate();
+   while (!_shutdown)
+   {
+       //keep twice as many queued as we have cpu's.
+       //for a real, CPU or IO intensive, operation
+       //you shouldn't do any throttling before the gate.
+       //that's what the gate is for!
+       if (g.PendingCount < g.AllowedInstances * 2)
+           g.BeginExecuteProcess(
+               new ProcessStartInfo("notepad.exe"),
+               10000,
+               ProcessCompleted,
+               g);
+       else
+           System.Threading.Thread.Sleep(100);
+   }
+}
 ```
 
 **The End Code:**  
 
-```
-static void ProcessCompleted(IAsyncResult ar){   try   {       AsynchronousProcessGate g =           (AsynchronousProcessGate)ar.AsyncState;       using (Process p = g.EndExecuteProcess(ar))           Console.WriteLine("Exited with code: " +               p.ExitCode + ". " +               g.PendingCount + " notepads pending.");   }   catch (Exception ex)   {       Console.WriteLine("("            + ex.GetType().ToString()            + ") - "   ex.Message);   }}
+```csharp
+static void ProcessCompleted(IAsyncResult ar)
+{
+   try
+   {
+       AsynchronousProcessGate g =
+           (AsynchronousProcessGate)ar.AsyncState;
+
+       using (Process p = g.EndExecuteProcess(ar))
+           Console.WriteLine("Exited with code: " +
+               p.ExitCode + ". " +
+               g.PendingCount + " notepads pending.");
+   }
+   catch (Exception ex)
+   {
+       Console.WriteLine("("
+            + ex.GetType().ToString()
+            + ") - "   ex.Message);
+   }
+}
 ```
 
 Phew! After all that, the end result for SoapBox: a single self extracting digitally signed file someone can download. Oh, and a simple library you can use as an Asynchronous Process Gate! Enjoy. Look, another [download link](https://docs.google.com/viewer?a=v&pid=explorer&chrome=true&srcid=0B7Ew2HKAAmajYjIzNmE4MDYtYWFiMy00Nzk1LTg3MjUtODAzNGY5ZmRmN2I2&hl=en_US) so you don't even have to scroll back up. How nice am I?

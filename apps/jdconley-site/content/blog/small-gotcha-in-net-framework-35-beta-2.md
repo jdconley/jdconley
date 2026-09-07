@@ -16,12 +16,22 @@ Visual Studio 2008 was officially released today to MSDN subscribers so I took t
 
 If you have a web project that was running under .NET 3.5 beta 2 you will have an assembly reference as follows:
 
-```
-<compilation><assemblies>  ...  <add assembly="System.Data.DataSetExtensions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/></assemblies></compilation>
+```csharp
+<compilation>
+<assemblies>
+  ...
+  <add assembly="System.Data.DataSetExtensions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/>
+</assemblies>
+</compilation>
 ```
 
 Notice the version number is 2.0.0.0. This was apparently changed at the RTM and the version number should be 3.5.0.0 like:
 
-```
-<compilation><assemblies>  ...  <add assembly="System.Data.DataSetExtensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/></assemblies></compilation>
+```csharp
+<compilation>
+<assemblies>
+  ...
+  <add assembly="System.Data.DataSetExtensions, Version=3.5.0.0, Culture=neutral, PublicKeyToken=B77A5C561934E089"/>
+</assemblies>
+</compilation>
 ```

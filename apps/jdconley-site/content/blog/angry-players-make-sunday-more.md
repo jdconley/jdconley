@@ -31,8 +31,10 @@ Here are a few great links that came out of my research.
 
 With ASP.NET 3.5 SP1 it boils down to a simple configuration file change. Use something like this in the aspnet.config file (in x64 it's at C:\\Windows\\Microsoft.NET\\Framework64\\v2.0.50727\\aspnet.config). This is the default. Adjust maxConcurrentRequestsPerCPU to suit your needs.  
 
-```
-<system.web>   <applicationPool maxConcurrentRequestsPerCPU="12" maxConcurrentThreadsPerCPU="0" requestQueueLimit="5000"/></system.web>
+```xml
+<system.web>
+   <applicationPool maxConcurrentRequestsPerCPU="12" maxConcurrentThreadsPerCPU="0" requestQueueLimit="5000"/>
+</system.web>
 ```
 
 In addition, the application pool needs to be configured to allow more requests. By default it only allows 1000 concurrent requests. This is done under the Advanced Settings for the application pool in the IIS 7 manager. Set Queue Length to 5000 to match this system level configuration.

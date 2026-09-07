@@ -32,6 +32,11 @@ const legacyAliases = {
 const hash = value => createHash("sha256").update(value).digest("hex");
 const documentFor = html => parseHTML(`<html><body>${html}</body></html>`).document;
 const normalizeText = text => text.replace(/\s+/g, " ").trim();
+// Blogger's SyntaxHighlighter blocks use BR elements, including leading blank lines.
+// Read these during conversion so reparsing a PRE cannot strip an initial newline.
+const preformattedText = node => node.nodeName === "BR" ? "\n"
+  : node.nodeType === 3 ? node.nodeValue
+  : Array.from(node.childNodes || [], preformattedText).join("");
 const hasVisibleContent = html => {
   const document = documentFor(html);
   for (const hidden of document.querySelectorAll("script,style,template,[hidden]")) hidden.remove();
@@ -139,10 +144,12 @@ export function convertHtml(html, { originalUrl, redirects = {}, assets = [], bl
   turndown.addRule("allPreformattedBlocks", {
     filter: "pre",
     replacement: (_content, node) => {
-      const code = node.textContent;
+      const code = preformattedText(node);
       const length = Math.max(3, ...[...code.matchAll(/`+/g)].map(match => match[0].length + 1));
       const fence = "`".repeat(length);
-      const language = (node.firstElementChild?.getAttribute("class") || "").match(/language-([\w+-]+)/)?.[1] || "";
+      const classes = `${node.firstElementChild?.getAttribute("class") || ""} ${node.getAttribute("class") || ""}`;
+      const label = classes.match(/\blanguage-([\w+-]+)/)?.[1] || classes.match(/\bbrush:\s*([\w+-]+)/)?.[1] || "";
+      const language = new Map([["c-sharp", "csharp"], ["as3", "actionscript"], ["xslt", "xml"], ["shell", "bash"]]).get(label) || label;
       return `\n\n${fence}${language}\n${code}${code.endsWith("\n") ? "" : "\n"}${fence}\n\n`;
     }
   });

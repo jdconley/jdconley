@@ -20,14 +20,42 @@ The UI uses asynchronous ASP.NET pages and [RegisterAsyncTask](http://msdn2.micr
 
 **Async Web Method**  
 
-```
-     [WebMethod]     public IAsyncResult BeginEnqueueEmailInvites(EmailInvitation invite, AsyncCallback callback, object state)     {         return InvitationFactory.BeginEnqueueEmailInvites(invite, callback, state);     }     [WebMethod]     public string[] EndEnqueueEmailInvites(IAsyncResult ar)     {         return InvitationFactory.EndEnqueueEmailInvites(ar);     }
+```csharp
+
+     [WebMethod]
+     public IAsyncResult BeginEnqueueEmailInvites(EmailInvitation invite, AsyncCallback callback, object state)
+     {
+         return InvitationFactory.BeginEnqueueEmailInvites(invite, callback, state);
+     }
+
+     [WebMethod]
+     public string[] EndEnqueueEmailInvites(IAsyncResult ar)
+     {
+         return InvitationFactory.EndEnqueueEmailInvites(ar);
+     }
 ```
 
 **Factory Calling DAL**  
 
-```
-public static IAsyncResult BeginEnqueueEmailInvites(EmailInvitation invite, AsyncCallback callback, object state)        {            InviteEmailAsyncState myAs = new InviteEmailAsyncState();            myAs.Invitation = invite;            InviteEmailAsyncResult myAR = new InviteEmailAsyncResult(myAs, callback, state);            int emailInviteId = invite.Mutual ? GetInvitationTypeId(Constants.InviteTypeEmailMutual) : GetInvitationTypeId(Constants.InviteTypeEmail);            string csvAddresses = string.Join(",", new List<string>(invite.Addresses).ToArray());            Data.Invitations.BeginCreateReadInvitation(emailInviteId, invite.FromJid, invite.FromName, invite.Subject, invite.UserBodyPlain, string.Empty, csvAddresses, EmailInvitationCreatedCallback, myAR);            return myAR;        }
+```csharp
+
+public static IAsyncResult BeginEnqueueEmailInvites(EmailInvitation invite, 
+
+AsyncCallback callback, object state)
+        {
+            InviteEmailAsyncState myAs = new InviteEmailAsyncState();
+            myAs.Invitation = invite;
+            InviteEmailAsyncResult myAR = new InviteEmailAsyncResult(myAs, callback, state);
+
+            int emailInviteId = invite.Mutual ? GetInvitationTypeId(Constants.InviteTypeEmailMutual) : 
+
+GetInvitationTypeId(Constants.InviteTypeEmail);
+            string csvAddresses = string.Join(",", new List<string>(invite.Addresses).ToArray());
+
+            Data.Invitations.BeginCreateReadInvitation(emailInviteId, invite.FromJid, invite.FromName, invite.Subject, invite.UserBodyPlain, string.Empty, csvAddresses, EmailInvitationCreatedCallback, myAR);
+
+            return myAR;
+        }
 ```
 
 I write a lot of asynchronous code. A lot. I'm a bit of an asynchronous I/O zealot. In fact, I've had an article on the shelf called "Asyncify your code" for months now. l I just haven't got the sample code written for it yet. Anyway, my experience has led me to a simple conclusion: I hate the [AsyncOperationManager](http://msdn2.microsoft.com/en-us/library/system.componentmodel.asyncoperationmanager.aspx).
@@ -44,8 +72,16 @@ After a little reflectoring it was apparent this had something to do with the Sy
 
 **The Hack**  
 
-```
-             if (messagesToSend.Count > 0)             {                 //this seems strange, but we queue up the creation of the SmtpClient to a threadpool thread.                 //the synchronization context seems to become invalid when we complete the async web method call                                      //and we don't want to wait for the emails to go out to complete the web service call.                                      System.Threading.ThreadPool.QueueUserWorkItem(StartSendingEmailCallback, new object[] { myAr.MyAsyncState.Invitation, messagesToSend });             }
+```csharp
+
+             if (messagesToSend.Count > 0)
+             {
+                 //this seems strange, but we queue up the creation of the SmtpClient to a threadpool thread.
+                 //the synchronization context seems to become invalid when we complete the async web method call                     
+                 //and we don't want to wait for the emails to go out to complete the web service call.                     
+
+                 System.Threading.ThreadPool.QueueUserWorkItem(StartSendingEmailCallback, new object[] { myAr.MyAsyncState.Invitation, messagesToSend });
+             }
 ```
 
 I have a plea to all framework designers out there. Have the decency to give me the good ole IAsyncResult based async pattern without all that extra AsyncOperationManager baggage! I don't want to have to worry about all that. I'm a big boy. I can handle my own synchronization, and I like it that way.
