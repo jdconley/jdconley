@@ -1,12 +1,21 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { fileURLToPath } from "node:url";
+import { loadPosts } from "../scripts/blog/content.mjs";
+
+let publishedPosts: Array<{ slug: string }>;
+test.beforeAll(async () => {
+  publishedPosts = await loadPosts(fileURLToPath(new URL("../content/blog/", import.meta.url)));
+});
 
 test("blog has dedicated navigation and opens articles without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto(process.env.E2E_SERVER === "wrangler" ? "http://127.0.0.1:8788/blog" : "http://127.0.0.1:4173/blog");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Starin’ at the Wall.");
-  await expect(page.locator(".story")).toHaveCount(71);
+  await expect(page.locator(".story")).toHaveCount(publishedPosts.length);
+  const articleLinks = await page.locator(".story h2 a").evaluateAll(links => links.map(link => link.getAttribute("href")));
+  expect(articleLinks).toEqual(publishedPosts.map(post => `/blog/${post.slug}`));
   await expect(page.getByRole("navigation", { name: "Blog navigation" })).toBeVisible();
   await expect(page.getByRole("link", { name: "About JD" })).toHaveAttribute("href", "/");
   await page.getByRole("heading", { name: "Put down the abstract factory and get something done" }).getByRole("link").click();
@@ -48,7 +57,8 @@ test("RSS, sitemap, Markdown mirrors and absent-post status are correct", async 
   const feed = await request.get("/blog/feed.xml");
   expect(feed.ok()).toBe(true);
   const xml = await feed.text();
-  expect((xml.match(/<item>/g) || [])).toHaveLength(71);
+  expect((xml.match(/<item>/g) || [])).toHaveLength(publishedPosts.length);
+  for (const post of publishedPosts) expect(xml).toContain(`<link>https://jdconley.com/blog/${post.slug}</link>`);
   expect(xml).toContain("https://jdconley.com/blog/worry-less-do-more-be-fearless");
   expect(xml).toContain("https://jdconley.com/blog-assets/imported/");
   const sitemap = await (await request.get("/sitemap.xml")).text();
