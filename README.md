@@ -18,7 +18,7 @@ Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years
 
 ## Highlights
 
-- **Meanwhile** Co-Founder. Websites, apps, and back office tools for SMB operators. Lake Tahoe AI + Adaptiv.
+- **Meanwhile** Co-Founder. Websites, apps, and back office tools for SMB operators.
 - **AfterHour** Head of Engineering, 2022–2026. Consumer finance social, AI trading, AI product development workflows.
 - **Brava**: VP / Head of Engineering (software). Complex consumer IoT + custom Linux OS; acquired in 2019 by [Middleby](https://www.google.com/finance/quote/MIDD:NASDAQ) (`$MIDD`).
 - **RealCrowd**: Co-founder / CTO. Direct commercial real estate investing marketplace (YC Summer 2013).
@@ -35,9 +35,9 @@ Based in **South Lake Tahoe, CA**. I’ve been shipping software for **25+ years
 
 ## What I’m up to now
 
-I started **[Meanwhile](https://meanwhile.so)** in 2026. We build websites, apps, and back office tools for small businesses run by their owners. Restaurants. Charters. Dog trainers. CRE syndicators. Folks stuck on templates for thirty years because a real shop wanted a year of revenue. We keep them current. Fully branded. Never a template. Ship in days. Run it monthly. Two brands today. **[Lake Tahoe AI](https://laketahoeai.com)** for local shops. **[Adaptiv](https://tryadaptiv.com)** for commercial real estate. Same factory under both.
+I started **[Meanwhile](https://meanwhile.so)** in 2026. We build websites, apps, and back office tools for the people SaaS forgot: small businesses run by their owners. Restaurants, charters, dog trainers, CRE syndicators. The folks who've been stuck with templates for thirty years because a real shop wanted a year of their revenue. With AI, a small team can ship a fully branded stack in days and keep it current month after month.
 
-Right now we make custom software cheap enough for owners. The vision is that everyone in every business gets software built for how they actually work.
+We're making custom software affordable for owner-operators today. The bigger bet is that everyone in every business gets software built for how they actually work.
 
 Previously Head of Engineering at AfterHour. Still doing a little advising and investing (incl. **Pioneer Fund** / **Orange Fund**).
 
