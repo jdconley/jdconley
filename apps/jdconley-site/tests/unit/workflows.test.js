@@ -86,20 +86,25 @@ describe("production workflow contracts", () => {
   it("scopes production secrets only to validation, reconciliation, and deploy inputs", () => {
     const job = deploy();
     const steps = stepMap(job);
-    const secrets = {
-      CLOUDFLARE_API_TOKEN: "${{ secrets.CLOUDFLARE_API_TOKEN }}",
-      CLOUDFLARE_ACCOUNT_ID: "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}",
-      SUPPORT_IP_HMAC_SECRET: "${{ secrets.SUPPORT_IP_HMAC_SECRET }}"
+    // Cloudflare access comes from the Meanwhile deploy broker's session step,
+    // so the repo holds no Cloudflare secret. The HMAC secret is still a secret.
+    const session = {
+      CLOUDFLARE_API_TOKEN: "${{ steps.cloudflare-session.outputs.api_token }}",
+      CLOUDFLARE_ACCOUNT_ID: "${{ steps.cloudflare-session.outputs.account_id }}"
     };
+    const secrets = { ...session, SUPPORT_IP_HMAC_SECRET: "${{ secrets.SUPPORT_IP_HMAC_SECRET }}" };
     expect(job.env).toEqual({
       SITE_URL: "${{ vars.SITE_URL || 'https://jdconley.com' }}",
       VITE_SITE_URL: "${{ vars.SITE_URL || 'https://jdconley.com' }}"
     });
     expect(steps["Validate production secrets"].env).toEqual(secrets);
     expect(steps["Reconcile production resources"].env).toEqual(secrets);
-    expect(steps["Deploy Cloudflare Worker"].with.apiToken).toBe(secrets.CLOUDFLARE_API_TOKEN);
-    expect(steps["Deploy Cloudflare Worker"].with.accountId).toBe(secrets.CLOUDFLARE_ACCOUNT_ID);
-    for (const name of ["Checkout", "Setup pnpm", "Setup Node.js", "Install dependencies", "Build site", "Verify production", "Cleanup reconciled configuration"]) {
+    expect(steps["Deploy Cloudflare Worker"].with.apiToken).toBe(session.CLOUDFLARE_API_TOKEN);
+    expect(steps["Deploy Cloudflare Worker"].with.accountId).toBe(session.CLOUDFLARE_ACCOUNT_ID);
+    expect(JSON.stringify(job)).not.toMatch(/secrets\.CLOUDFLARE_/);
+    expect(steps["Open Cloudflare deploy session"].run).toBe("node scripts/cloudflare-deploy-session.mjs open");
+    expect(job.permissions).toEqual({ contents: "read", "id-token": "write" });
+    for (const name of ["Checkout", "Setup pnpm", "Setup Node.js", "Install dependencies", "Build site", "Verify production", "Cleanup reconciled configuration", "Open Cloudflare deploy session", "Close Cloudflare deploy session"]) {
       expect(JSON.stringify(steps[name])).not.toContain("secrets.");
     }
   });
