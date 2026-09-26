@@ -24,6 +24,11 @@ jobs:
     env:
       SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
       VITE_SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
+    # id-token lets this job trade a GitHub OIDC token for a short-lived
+    # Cloudflare session from the Meanwhile deploy broker.
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout
@@ -42,10 +47,16 @@ jobs:
             exit 1
           fi
 
+      # Writes CLOUDFLARE_API_BASE_URL to GITHUB_ENV, so wrangler in every
+      # later step talks to the broker instead of api.cloudflare.com.
+      - name: Open Cloudflare deploy session
+        id: cloudflare-session
+        run: node scripts/cloudflare-deploy-session.mjs open
+
       - name: Validate production secrets
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.cloudflare-session.outputs.api_token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.cloudflare-session.outputs.account_id }}
           SUPPORT_IP_HMAC_SECRET: ${{ secrets.SUPPORT_IP_HMAC_SECRET }}
         shell: bash
         run: |
@@ -103,8 +114,8 @@ jobs:
         id: reconcile
         working-directory: apps/jdconley-site
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.cloudflare-session.outputs.api_token }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ steps.cloudflare-session.outputs.account_id }}
           SUPPORT_IP_HMAC_SECRET: ${{ secrets.SUPPORT_IP_HMAC_SECRET }}
         run: pnpm run production:reconcile
 
@@ -153,8 +164,8 @@ jobs:
       - name: Deploy Cloudflare Worker
         uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ steps.cloudflare-session.outputs.api_token }}
+          accountId: ${{ steps.cloudflare-session.outputs.account_id }}
           workingDirectory: apps/jdconley-site
           command: >-
             deploy
@@ -179,3 +190,7 @@ jobs:
           if [[ -n "$CONFIG_PATH" ]]; then
             pnpm run production:reconcile:cleanup "$CONFIG_PATH"
           fi
+
+      - name: Close Cloudflare deploy session
+        if: always() && steps.cloudflare-session.outcome == 'success'
+        run: node scripts/cloudflare-deploy-session.mjs close

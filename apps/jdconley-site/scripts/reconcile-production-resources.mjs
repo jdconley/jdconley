@@ -213,7 +213,7 @@ async function queryLocationCount(run, configPath) {
 }
 
 async function cloudflareEnvelope(fetchImpl, env, pathname, init = {}) {
-  const response = await fetchImpl(`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${pathname}`, {
+  const response = await fetchImpl(`${process.env.CLOUDFLARE_API_BASE_URL ?? "https://api.cloudflare.com/client/v4"}/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${pathname}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
