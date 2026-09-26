@@ -173,8 +173,28 @@ function unzipText(bytes, label) {
   return new TextDecoder().decode(files[0][1]);
 }
 
+const RETRY_DELAYS_MS = Object.freeze([5000, 15000, 30000]);
+const sleepFor = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// ArcGIS answers the first query after its cache expires with a 504 after
+// about a minute, then serves the same query in under a second. Retrying
+// server errors and dropped connections keeps a deploy from failing on that.
+export async function fetchWithRetry(url, fetcher, { attempts = RETRY_DELAYS_MS.length + 1, sleep = sleepFor } = {}) {
+  for (let attempt = 1; ; attempt += 1) {
+    const last = attempt >= attempts;
+    let response;
+    try {
+      response = await fetcher(url);
+    } catch (error) {
+      if (last) throw error;
+    }
+    if (response && (response.status < 500 || last)) return response;
+    await sleep(RETRY_DELAYS_MS[Math.min(attempt, RETRY_DELAYS_MS.length) - 1]);
+  }
+}
+
 async function download(source, fetcher) {
-  const response = await fetcher(source.url);
+  const response = await fetchWithRetry(source.url, fetcher);
   if (!response.ok) throw new Error(`Download failed (${response.status}) for ${source.url}`);
   const bytes = new Uint8Array(await response.arrayBuffer());
   verifyChecksum(bytes, source.sha256, source.url);
@@ -185,7 +205,7 @@ async function downloadPopulations(fetcher) {
   const rows = [];
   for (let offset = 0; offset < 40000; offset += 2000) {
     const url = SOURCES.populations.urlTemplate.replace("{offset}", String(offset));
-    const response = await fetcher(url);
+    const response = await fetchWithRetry(url, fetcher);
     if (!response.ok) throw new Error(`Download failed (${response.status}) for ${url}`);
     const payload = await response.json();
     if (payload.error) throw new Error(`Population service error: ${JSON.stringify(payload.error)}`);

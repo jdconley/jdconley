@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildLocationRecords,
+  fetchWithRetry,
   parsePopulationCsv,
   parseDelimited,
   resolveGenerationTime,
@@ -28,6 +29,51 @@ describe("location index source parsing", () => {
     const bytes = new TextEncoder().encode("fixture");
     const checksum = createHash("sha256").update(bytes).digest("hex");
     expect(verifyChecksum(bytes, checksum, "fixture")).toBe(checksum);
+  });
+});
+
+describe("location source downloads", () => {
+  const url = "https://example.test/source";
+  const noSleep = async () => {};
+
+  it("retries a gateway timeout, which ArcGIS returns on a cold query", async () => {
+    const responses = [new Response("", { status: 504 }), new Response("ok", { status: 200 })];
+    const delays = [];
+    const fetcher = async () => responses.shift();
+    const response = await fetchWithRetry(url, fetcher, { sleep: async (ms) => { delays.push(ms); } });
+    expect(response.status).toBe(200);
+    expect(responses).toHaveLength(0);
+    expect(delays).toHaveLength(1);
+  });
+
+  it("retries a network error", async () => {
+    let calls = 0;
+    const fetcher = async () => {
+      calls += 1;
+      if (calls === 1) throw new TypeError("fetch failed");
+      return new Response("ok", { status: 200 });
+    };
+    expect((await fetchWithRetry(url, fetcher, { sleep: noSleep })).status).toBe(200);
+    expect(calls).toBe(2);
+  });
+
+  it("does not retry a client error", async () => {
+    let calls = 0;
+    const fetcher = async () => { calls += 1; return new Response("", { status: 404 }); };
+    expect((await fetchWithRetry(url, fetcher, { sleep: noSleep })).status).toBe(404);
+    expect(calls).toBe(1);
+  });
+
+  it("returns the last failure after the final attempt", async () => {
+    let calls = 0;
+    const fetcher = async () => { calls += 1; return new Response("", { status: 503 }); };
+    expect((await fetchWithRetry(url, fetcher, { attempts: 3, sleep: noSleep })).status).toBe(503);
+    expect(calls).toBe(3);
+  });
+
+  it("rethrows the last network error after the final attempt", async () => {
+    const fetcher = async () => { throw new TypeError("fetch failed"); };
+    await expect(fetchWithRetry(url, fetcher, { attempts: 2, sleep: noSleep })).rejects.toThrow("fetch failed");
   });
 });
 
