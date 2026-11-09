@@ -12,6 +12,7 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       VITE_SITE_URL: ${{ vars.SITE_URL || 'https://jdconley.com' }}
       TURNSTILE_SITE_KEY: 1x00000000000000000000AA
@@ -28,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 24
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -45,6 +46,7 @@ jobs:
         run: pnpm --filter @jdconley/jdconley-site run test:worker
 
       - name: Install Playwright browser
+        timeout-minutes: 10
         run: pnpm --filter @jdconley/jdconley-site exec playwright install --with-deps chromium
 
       - name: Run site E2E
