@@ -8,6 +8,11 @@ test("homepage renders core content and metadata", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "make things" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "that people want." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Big Projects" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Little Projects" })).toHaveAttribute(
+    "href",
+    "#vibe-projects"
+  );
+  await expect(page.locator("#vibe-projects .section-heading")).toHaveText("Little projects");
 
   const canonicalHref = await page.locator("link[rel='canonical']").getAttribute("href");
   expect(canonicalHref).toContain("http");
@@ -22,7 +27,7 @@ test("critical contact and profile links are present", async ({ page }) => {
   await expect(page.locator('a[href="https://www.linkedin.com/in/jdconley"]')).toBeVisible();
 });
 
-test("links to A Better Time from Vibe coded projects", async ({ page }) => {
+test("links to A Better Time from Little projects", async ({ page }) => {
   await page.goto("/");
   const project = page.getByRole("link", { name: /A Better Time/ });
   await expect(project).toBeVisible();
@@ -50,7 +55,7 @@ for (const card of [
     img: /Good First Token homepage/,
   },
 ]) {
-  test(`links to ${card.name.source} from Vibe coded projects`, async ({ page }) => {
+  test(`links to ${card.name.source} from Little projects`, async ({ page }) => {
     await page.goto("/");
     const project = page.locator("#vibe-projects").getByRole("link", { name: card.name });
     await expect(project).toHaveAttribute("href", card.href);
