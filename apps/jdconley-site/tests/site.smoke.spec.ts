@@ -36,6 +36,33 @@ test("links to A Better Time from Vibe coded projects", async ({ page }) => {
   );
 });
 
+for (const card of [
+  {
+    name: /Pounce/,
+    href: "https://github.com/jdconley/pounce",
+    text: "Little games for couples, families and friends",
+    img: /Cat Tower art/,
+  },
+  {
+    name: /Good First Token/,
+    href: "https://goodfirsttoken.org",
+    text: "Spend your spare AI tokens on open source",
+    img: /Good First Token homepage/,
+  },
+]) {
+  test(`links to ${card.name.source} from Vibe coded projects`, async ({ page }) => {
+    await page.goto("/");
+    const project = page.locator("#vibe-projects").getByRole("link", { name: card.name });
+    await expect(project).toHaveAttribute("href", card.href);
+    await expect(project).toContainText(card.text);
+    const img = project.getByRole("img", { name: card.img });
+    await img.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth))
+      .toBe(800);
+  });
+}
+
 test("A Better Time static metadata uses its approved share fallback", async ({ page }) => {
   test.skip(process.env.E2E_SERVER === "wrangler", "Wrangler personalizes share metadata");
   await page.goto("/a-better-time.html");
