@@ -88,9 +88,8 @@ principles, the project history, the vibe-coded section, "How this is built."
 
 ### Do not add
 
-A phone number, unless JD confirms which is current. The live site shows `+1.530.494.9447`;
-his Meanwhile operator profile shows `+1-916-342-6485`. Defaulting to omit — form plus email
-is sufficient for B2B.
+A phone number. JD took his phone number off the site in November 2026; form plus email is
+sufficient for B2B.
 
 Contact address is `jd@jdconley.com`. Wildcard forwarding is already configured on the domain.
 
