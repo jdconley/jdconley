@@ -31,7 +31,8 @@ The problem is entirely commercial:
 current role), `c1eb570` (A Better Time on homepage), `e30e7f4` (Work With Me refinement).
 **The repo is canonical now.** Running the `webflow-static-site-refresh` skill would silently
 clobber every post-export edit. Fence or retire that skill as part of this work, and say so
-in `AGENTS.md`.
+in `AGENTS.md`. (Done November 2026: the zip and the skill are gone, and `AGENTS.md` says
+the repo is the source.)
 
 **This repo is public and auto-publishes agent transcripts.** The `pre-commit` hook exports
 Cursor transcripts to `apps/jdconley-site/public/how-this-is-built/logs`. Nothing about the

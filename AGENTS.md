@@ -4,9 +4,8 @@ Use this guide when working in this repository. Prefer reusing project skills in
 
 ## Skill Routing
 
-- **Webflow refresh / export sync**
-  - Use: `.agents/skills/webflow-static-site-refresh/SKILL.md`
-  - Trigger phrases: "new Webflow zip", "refresh export", "sync Webflow site"
+The site started as a Webflow export, but this repo is the source now: edit `apps/jdconley-site/` directly. The export zip and its refresh skill were removed in November 2026 (re-importing would overwrite every edit since, and the export held an old phone number).
+
 - **Cloudflare Workers deploy / Wrangler parity**
   - Use: `.agents/skills/cloudflare-workers-ops/SKILL.md`
   - Trigger phrases: "Cloudflare Workers", "Worker deploy", "Wrangler", "D1", "Turnstile", "bindings", "dotenvx"
