@@ -22,7 +22,7 @@ test("critical contact and profile links are present", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.locator('a[href^="mailto:jd.conley@gmail.com"]')).toBeVisible();
-  await expect(page.locator('a[href^="tel:+15304949447"]')).toBeVisible();
+  await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
   await expect(page.locator('a[href="https://github.com/jdconley"]')).toBeVisible();
   await expect(page.locator('a[href="https://www.linkedin.com/in/jdconley"]')).toBeVisible();
 });
@@ -41,39 +41,25 @@ test("links to A Better Time from Little projects", async ({ page }) => {
   );
 });
 
-test("Also building shows Pounce from Conley Chaos", async ({ page }) => {
+test("Pounce leads Little projects and links to its site", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "Also Building" })).toHaveAttribute("href", "#pounce");
+  await expect(page.locator("#pounce")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Also Building" })).toHaveCount(0);
 
-  const section = page.locator("#pounce");
-  await expect(section.locator(".section-heading")).toHaveText("Also building");
-  await expect(section).toContainText("Family game night, every night.");
-  await expect(section.getByRole("link", { name: "Conley Chaos" })).toHaveAttribute(
-    "href",
-    "https://conleychaos.com"
-  );
-  await expect(section.getByRole("link", { name: "Get Pounce on the App Store" })).toHaveAttribute(
-    "href",
-    "https://apps.apple.com/app/id6829560061"
-  );
-  await expect(section.getByRole("link", { name: "play.conleychaos.com" })).toHaveAttribute(
-    "href",
-    "https://play.conleychaos.com"
-  );
-  await expect(section.getByRole("link", { name: "Code on GitHub" })).toHaveAttribute(
-    "href",
-    "https://github.com/jdconley/pounce"
-  );
+  const project = page.locator("#vibe-projects").getByRole("link", { name: /Pounce/ });
+  await expect(project).toHaveCount(1);
+  await expect(project).toHaveAttribute("href", "https://play.conleychaos.com");
+  await expect(project).toContainText("Family game night, every night");
+  await expect(project).toContainText("on the App Store for iPhone and iPad");
+  await expect(page.locator("#vibe-projects .projects-link").first()).toHaveAttribute("href", "https://play.conleychaos.com");
 
-  const img = section.getByRole("img", { name: /Family game night, every night/ });
+  const img = project.getByRole("img", { name: /cats cheering on a cat tower/ });
   await img.scrollIntoViewIfNeeded();
   await expect
     .poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth))
-    .toBe(2400);
-
-  // Pounce moved out of Little projects; it should not appear twice.
-  await expect(page.locator("#vibe-projects").getByRole("link", { name: /Pounce/ })).toHaveCount(0);
+    .toBe(800);
 });
+
 
 for (const card of [
   {
