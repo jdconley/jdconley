@@ -41,13 +41,41 @@ test("links to A Better Time from Little projects", async ({ page }) => {
   );
 });
 
+test("Also building shows Pounce from Conley Chaos", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "Also Building" })).toHaveAttribute("href", "#pounce");
+
+  const section = page.locator("#pounce");
+  await expect(section.locator(".section-heading")).toHaveText("Also building");
+  await expect(section).toContainText("Family game night, every night.");
+  await expect(section.getByRole("link", { name: "Conley Chaos" })).toHaveAttribute(
+    "href",
+    "https://conleychaos.com"
+  );
+  await expect(section.getByRole("link", { name: "Get Pounce on the App Store" })).toHaveAttribute(
+    "href",
+    "https://apps.apple.com/app/id6829560061"
+  );
+  await expect(section.getByRole("link", { name: "play.conleychaos.com" })).toHaveAttribute(
+    "href",
+    "https://play.conleychaos.com"
+  );
+  await expect(section.getByRole("link", { name: "Code on GitHub" })).toHaveAttribute(
+    "href",
+    "https://github.com/jdconley/pounce"
+  );
+
+  const img = section.getByRole("img", { name: /Family game night, every night/ });
+  await img.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth))
+    .toBe(2400);
+
+  // Pounce moved out of Little projects; it should not appear twice.
+  await expect(page.locator("#vibe-projects").getByRole("link", { name: /Pounce/ })).toHaveCount(0);
+});
+
 for (const card of [
-  {
-    name: /Pounce/,
-    href: "https://github.com/jdconley/pounce",
-    text: "Little games for couples, families and friends",
-    img: /Cat Tower art/,
-  },
   {
     name: /Good First Token/,
     href: "https://goodfirsttoken.org",
