@@ -4,12 +4,11 @@ This repo powers my personal site and the “How This Is Built” logs.
 
 ## What this is
 
-Static personal site export from Webflow, rebuilt as a monorepo app with Vite optimization, Playwright E2E, and a Cloudflare Worker with Static Assets and D1.
+Personal site that started as a Webflow export, rebuilt as a monorepo app with Vite optimization, Playwright E2E, and a Cloudflare Worker with Static Assets and D1. This repo is the source of truth; the original export zip is no longer kept.
 
 ## Structure
 
 - `apps/jdconley-site/`: Static site app and deployment/testing config
-- `jdconley-com.webflow.zip`: Original Webflow export source artifact
 
 ## Prerequisites
 
