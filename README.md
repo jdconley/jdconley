@@ -39,7 +39,7 @@ I started **[Meanwhile](https://meanwhile.so)** in 2026. We build websites, apps
 
 We're making custom software affordable for owner-operators today. The bigger bet is that everyone in every business gets software built for how they actually work.
 
-I also make **[Pounce](https://play.conleychaos.com)** through my own company, [Conley Chaos](https://conleychaos.com). It's an iPhone and iPad app for families and couples who play together. Family game night, every night. It's [on the App Store](https://apps.apple.com/app/id6829560061) with Cat Tower, a rummy-style card game. Version 1.1 came out on November 16 and adds a second game called Tuna Tiles. The code is [on GitHub](https://github.com/jdconley/pounce).
+I also make **[Pounce](https://play.conleychaos.com)** through my own company, [Conley Chaos](https://conleychaos.com). It's an iPhone and iPad app for families and couples who play together. Family game night, every night. It's [on the App Store](https://apps.apple.com/app/id6829560061) with two games: Cat Tower, a rummy-style card game, and Tuna Tiles. Version 1.2 came out on November 26. It puts the table on the TV (any browser on the big screen) while each phone holds just its own cards, and it adds the Daily Dish: four new puzzles every day, the same for the whole family. The code is [on GitHub](https://github.com/jdconley/pounce).
 
 Previously Head of Engineering at AfterHour. Still doing a little advising and investing (incl. **Pioneer Fund** / **Orange Fund**).
 
